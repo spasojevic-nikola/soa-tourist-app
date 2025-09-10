@@ -4,20 +4,47 @@ services:
   # PostgreSQL database for stakeholders service
   postgres:
     image: postgres:15-alpine
+    container_name: soa-tourist-app-postgres-stakeholders
     environment:
       POSTGRES_DB: stakeholders
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL database for auth service
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: soa-tourist-app-postgres-auth
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # MongoDB database for blog service
   mongo:
     image: mongo:7.0
+    container_name: soa-tourist-app-mongo
     environment:
       MONGO_INITDB_DATABASE: blog
     ports:
@@ -30,10 +57,13 @@ services:
   # Stakeholders service
   stakeholders-service:
     build: ./services/stakeholders-service
+    container_name: soa-tourist-app-stakeholders-service
     ports:
-      - "8080:8080"
+      - "8083:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: on-failure
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -46,10 +76,12 @@ services:
   # Blog service
   blog-service:
     build: ./services/blog-service
+    container_name: soa-tourist-app-blog-service
     ports:
       - "8081:8081"
     depends_on:
       - mongo
+    restart: on-failure
     environment:
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
@@ -57,8 +89,28 @@ services:
     networks:
       - soa-network
 
+  # Auth service
+  auth-service:
+    build: ./services/auth-service
+    container_name: soa-tourist-app-auth-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    restart: on-failure
+    environment:
+      - DB_HOST=postgres-auth
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=authdb
+    networks:
+      - soa-network
+
 volumes:
   postgres_data:
+  postgres_auth_data:
   mongo_data:
 
 networks:
