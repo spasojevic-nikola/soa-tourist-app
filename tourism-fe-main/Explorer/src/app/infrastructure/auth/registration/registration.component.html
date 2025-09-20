@@ -20,6 +20,14 @@
             <mat-label>Password</mat-label>
             <input matInput formControlName="password" type="password"/>
         </mat-form-field>
+        <mat-form-field>
+            <mat-label>Uloga</mat-label>
+            <mat-select formControlName="role">
+                <mat-option *ngFor="let roleOption of roleOptions" [value]="roleOption.value">
+                    {{roleOption.label}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
     <button color="primary" type="submit" mat-raised-button>Register</button>
     </div>
 </form>
