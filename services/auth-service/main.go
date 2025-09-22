@@ -10,6 +10,7 @@ import (
 
     "github.com/golang-jwt/jwt/v5"
     "github.com/gorilla/mux"
+    "github.com/gorilla/handlers" 
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
 )
@@ -85,8 +86,27 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Kreiranje tokena nakon uspesne registracije
+    expirationTime := time.Now().Add(1 * time.Hour)
+    claims := &Claims{
+        UserID:   user.ID,
+        Username: user.Username,
+        Role:     user.Role,
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(expirationTime),
+        },
+    }
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    tokenString, err := token.SignedString(jwtKey)
+    if err != nil {
+        http.Error(w, "Could not create token", http.StatusInternalServerError)
+        return
+    }
+
+    // Vracanje tokena sa kljucem "accessToken"
     w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(user)
+    json.NewEncoder(w).Encode(map[string]string{"accessToken": tokenString})
 }
 
 // Login
@@ -126,7 +146,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+    json.NewEncoder(w).Encode(map[string]string{"accessToken": tokenString})
 }
 
 // Health check
@@ -263,5 +283,10 @@ func main() {
     }
 
     fmt.Println("Auth service running on port", port)
-    log.Fatal(http.ListenAndServe(":"+port, r))
+
+    headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+    originsOk := handlers.AllowedOrigins([]string{"http://localhost:4200"})
+    methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS", "DELETE"})
+
+    log.Fatal(http.ListenAndServe(":"+port, handlers.CORS(originsOk, headersOk, methodsOk)(r)))
 }

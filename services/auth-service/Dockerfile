@@ -13,6 +13,9 @@ COPY go.mod go.sum ./
 RUN go env -w GOPROXY=https://proxy.golang.org
 RUN go mod download
 
+# Tidy up dependencies to include the new one
+RUN go mod tidy
+
 # Copy source code
 COPY . .
 

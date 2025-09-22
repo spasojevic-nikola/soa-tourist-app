@@ -15,14 +15,16 @@ import (
 
 // User model
 type User struct {
-    ID        uint      `json:"id" gorm:"primaryKey"`
-    Username  string    `json:"username" gorm:"unique;not null"`
-    Email     string    `json:"email" gorm:"unique;not null"`
-    Password  string    `json:"-" gorm:"not null"`
-    Role      string    `json:"role" gorm:"default:'user'"`
-    IsBlocked bool      `json:"is_blocked" gorm:"default:false"`
-    CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
+    ID              uint       `json:"id" gorm:"primaryKey"`
+    FirstName       string     `json:"first_name"`
+    LastName        string      `json:"last_name"`
+    ProfileImage    string     `json:"profile_image"`
+    Biography       string     `json:"biography"`
+    Motto           string     `json:"motto"`
+    Role            string     `json:"role" gorm:"default:'tourist'"`
+    IsBlocked       bool       `json:"is_blocked" gorm:"default:false"`
+    CreatedAt       time.Time  `json:"created_at"`
+    UpdatedAt       time.Time  `json:"updated_at"`
 }
 
 // Database connection
@@ -49,12 +51,12 @@ func main() {
     api := r.PathPrefix("/api/v1").Subrouter()
 
     // User registration
-    api.HandleFunc("/register", registerUser).Methods("POST")
+    // api.HandleFunc("/register", registerUser).Methods("POST")
 
     // Admin routes
-    api.HandleFunc("/admin/users", getAllUsers).Methods("GET")
-    api.HandleFunc("/admin/users/{id}/block", blockUser).Methods("POST")
-    api.HandleFunc("/admin/users/{id}/unblock", unblockUser).Methods("POST")
+    //api.HandleFunc("/admin/users", getAllUsers).Methods("GET")
+    //api.HandleFunc("/admin/users/{id}/block", blockUser).Methods("POST")
+    //api.HandleFunc("/admin/users/{id}/unblock", unblockUser).Methods("POST")
 
     // Profile routes
     api.HandleFunc("/profile/{id}", getProfile).Methods("GET")
@@ -70,34 +72,6 @@ func main() {
     log.Fatal(http.ListenAndServe(":8080", r))
 }
 
-// Register a new user
-func registerUser(w http.ResponseWriter, r *http.Request) {
-    var user User
-    if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-        http.Error(w, "Invalid JSON", http.StatusBadRequest)
-        return
-    }
-
-    // Check if user already exists
-    var existingUser User
-    if err := db.Where("username = ? OR email = ?", user.Username, user.Email).First(&existingUser).Error; err == nil {
-        http.Error(w, "User already exists", http.StatusConflict)
-        return
-    }
-
-    // Create user
-    user.CreatedAt = time.Now()
-    user.UpdatedAt = time.Now()
-    if err := db.Create(&user).Error; err != nil {
-        http.Error(w, "Failed to create user", http.StatusInternalServerError)
-        return
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(user)
-}
-
 // Get all users (Admin only)
 func getAllUsers(w http.ResponseWriter, r *http.Request) {
     var users []User
@@ -110,6 +84,7 @@ func getAllUsers(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(users)
 }
 
+/*
 // Block user (Admin only)
 func blockUser(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
@@ -144,11 +119,13 @@ func unblockUser(w http.ResponseWriter, r *http.Request) {
 
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(map[string]string{"message": "User unblocked successfully"})
-}
+}*/
 
 // Get user profile
 func getProfile(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
+    // Ovde bi trebali da dobijete UserID iz tokena, a ne iz URL-a
+    // Trenutno uzimamo iz URL-a, sto cemo popraviti kasnije
     userID, err := strconv.ParseUint(vars["id"], 10, 32)
     if err != nil {
         http.Error(w, "Invalid user ID", http.StatusBadRequest)
@@ -173,33 +150,37 @@ func updateProfile(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Invalid user ID", http.StatusBadRequest)
         return
     }
-
     var user User
     if err := db.First(&user, userID).Error; err != nil {
         http.Error(w, "User not found", http.StatusNotFound)
         return
     }
-
-    var updateData User
+    var updateData map[string]interface{}
     if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
         http.Error(w, "Invalid JSON", http.StatusBadRequest)
         return
     }
-
     // Update allowed fields
-    if updateData.Username != "" {
-        user.Username = updateData.Username
+    if firstName, ok := updateData["first_name"].(string); ok {
+        user.FirstName = firstName
     }
-    if updateData.Email != "" {
-        user.Email = updateData.Email
+    if lastName, ok := updateData["last_name"].(string); ok {
+        user.LastName = lastName
+    }
+    if profileImage, ok := updateData["profile_image"].(string); ok {
+        user.ProfileImage = profileImage
+    }
+    if biography, ok := updateData["biography"].(string); ok {
+        user.Biography = biography
+    }
+    if motto, ok := updateData["motto"].(string); ok {
+         user.Motto = motto
     }
     user.UpdatedAt = time.Now()
-
     if err := db.Save(&user).Error; err != nil {
         http.Error(w, "Failed to update profile", http.StatusInternalServerError)
         return
     }
-
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(user)
 }
