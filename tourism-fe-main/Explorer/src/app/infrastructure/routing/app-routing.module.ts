@@ -9,6 +9,7 @@ const routes: Routes = [
   {path: 'home', component: HomeComponent},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: RegistrationComponent},
+  {path: 'profile', loadChildren: () => import('../../feature-modules/user-profile/user-profile.module').then(m => m.UserProfileModule)}
 ];
 
 @NgModule({
