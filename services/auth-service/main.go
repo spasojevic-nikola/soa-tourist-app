@@ -1,6 +1,7 @@
 package main
 
 import (
+    "bytes"
     "encoding/json"
     "fmt"
     "log"
@@ -10,6 +11,8 @@ import (
 
     "github.com/golang-jwt/jwt/v5"
     "github.com/gorilla/mux"
+    "github.com/gorilla/handlers" 
+    "golang.org/x/crypto/bcrypt"
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
 )
@@ -77,6 +80,14 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Invalid JSON", http.StatusBadRequest)
         return
     }
+
+    // hesiranje lozinke
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+    if err != nil {
+        http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+        return
+    }
+    user.Password = string(hashedPassword)
     user.CreatedAt = time.Now()
     user.UpdatedAt = time.Now()
 
@@ -85,35 +96,40 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(user)
-}
-
-// Login
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-    var creds User
-    if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-        http.Error(w, "Invalid JSON", http.StatusBadRequest)
-        return
+    // **Dodatna logika za slanje podataka na stakeholders-service**
+    stakeholderUser := StakeholderUser{
+        ID:           user.ID,
+        FirstName:    "",
+        LastName:     "",
+        Username:     user.Username,
+        Role:         user.Role,
+        ProfileImage: "",
+        Biography:    "",
+        Motto:        "",
     }
 
-    var user User
-    if err := db.Where("username = ? AND password = ?", creds.Username, creds.Password).First(&user).Error; err != nil {
-        http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-        return
+    jsonStakeholderUser, err := json.Marshal(stakeholderUser)
+    if err != nil {
+        log.Println("Failed to marshal stakeholder user:", err)
     }
 
-    // Check if user is blocked
-    if user.Blocked {
-        http.Error(w, "Account is blocked", http.StatusForbidden)
-        return
+    // Slati POST zahtjev na stakeholders-service
+    resp, err := http.Post("http://stakeholders-service:8080/api/v1/user", "application/json", bytes.NewBuffer(jsonStakeholderUser))
+    if err != nil {
+        log.Println("Failed to create user in stakeholders-service:", err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusCreated {
+        log.Printf("Failed to create user in stakeholders-service. Status: %d", resp.StatusCode)
     }
 
+    // Kreiranje tokena
     expirationTime := time.Now().Add(1 * time.Hour)
     claims := &Claims{
-        UserID:   user.ID,
-        Username: user.Username,
-        Role:     user.Role,
+        UserID:           user.ID,
+        Username:         user.Username,
+        Role:             user.Role,
         RegisteredClaims: jwt.RegisteredClaims{
             ExpiresAt: jwt.NewNumericDate(expirationTime),
         },
@@ -126,7 +142,55 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(map[string]string{"accessToken": tokenString})
+}
+
+// Login
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+    var creds User
+    if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+
+    var user User
+    if err := db.Where("username = ?", creds.Username).First(&user).Error; err != nil {
+        http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+        return
+    }
+
+    // Poredjenje lozinke iz zahtjeva sa hesiranom lozinkom iz baze
+    if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
+        http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+        return
+    }
+
+    // Check if user is blocked
+    if user.Blocked {
+        http.Error(w, "Account is blocked", http.StatusForbidden)
+        return
+    }
+
+    // Kreiranje tokena i vracanje odgovora
+    expirationTime := time.Now().Add(1 * time.Hour)
+    claims := &Claims{
+        UserID:           user.ID,
+        Username:         user.Username,
+        Role:             user.Role,
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(expirationTime),
+        },
+    }
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    tokenString, err := token.SignedString(jwtKey)
+    if err != nil {
+        http.Error(w, "Could not create token", http.StatusInternalServerError)
+        return
+    }
+
+    json.NewEncoder(w).Encode(map[string]string{"accessToken": tokenString})
 }
 
 // Health check
@@ -263,5 +327,10 @@ func main() {
     }
 
     fmt.Println("Auth service running on port", port)
-    log.Fatal(http.ListenAndServe(":"+port, r))
+
+    headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+    originsOk := handlers.AllowedOrigins([]string{"http://localhost:4200"})
+    methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "OPTIONS", "DELETE"})
+
+    log.Fatal(http.ListenAndServe(":"+port, handlers.CORS(originsOk, headersOk, methodsOk)(r)))
 }

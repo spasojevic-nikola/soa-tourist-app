@@ -1,0 +1,33 @@
+<div class="profile-container">
+  <ng-container *ngIf="user; else loadingOrError">
+    <div class="profile-card">
+      <div class="profile-header">
+<img [src]="user.profile_image ? user.profile_image : 'assets/images/default_profile.png'" alt="Profile Picture" class="profile-image" />
+        <h2 class="profile-name">
+          {{ user.first_name || user.last_name ? (user.first_name + ' ' + user.last_name) : 'New user' }}
+        </h2>
+        <p class="profile-role">{{ user.role | titlecase }}</p>
+      </div>
+
+      <div class="profile-details">
+        <div class="detail-item">
+          <label>Motto:</label>
+          <p>{{ user.motto }}</p>
+        </div>
+        <div class="detail-item">
+          <label>Biography:</label>
+          <p>{{ user.biography }}</p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingOrError>
+    <div *ngIf="isLoading" class="loading-message">
+      Loading profile...
+    </div>
+    <div *ngIf="!isLoading" class="error-message">
+      Failed to load profile. Please log in again.
+    </div>
+  </ng-template>
+</div>
