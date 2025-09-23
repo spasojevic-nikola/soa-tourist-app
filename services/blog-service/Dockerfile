@@ -21,7 +21,7 @@ RUN go mod tidy
 COPY . .
 
 # Build the application with CGO disabled for a static binary.
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
 
 # Final stage - a minimal alpine image
 FROM alpine:latest
