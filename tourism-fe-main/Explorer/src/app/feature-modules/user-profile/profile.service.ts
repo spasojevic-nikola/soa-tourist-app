@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { User } from './profile/model/profile.model';
+import { UpdateUserProfilePayload, User } from './profile/model/profile.model';
 import { TokenStorage } from 'src/app/infrastructure/auth/jwt/token.service';
 
 @Injectable({
@@ -24,15 +24,24 @@ export class ProfileService {
     return this.http.get<User>(this.apiURL, { headers });
   }
 
-  updateProfile(profileData: User): Observable<User> {
+  updateProfile(payload: UpdateUserProfilePayload): Observable<User> {
+    return this.http.put<User>(this.apiURL, payload, { headers: this.createAuthHeaders() });
+  }
+
+  //Kreira i vraća HttpHeaders sa JWT tokenom
+  private createAuthHeaders(): HttpHeaders {    
     const token = this.tokenStorage.getAccessToken();
 
     if (!token) {
       console.error('No token found!');
-      throw new Error('No token found');
+      //backend će vratiti 401 Unauthorized gresku
+      return new HttpHeaders();
     }
-
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.put<User>(this.apiURL, profileData, { headers });
+    
+    // Vracamo hedere spremne za slanje
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
   }
 }

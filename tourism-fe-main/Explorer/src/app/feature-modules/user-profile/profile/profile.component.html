@@ -1,25 +1,59 @@
 <div class="profile-container">
   <ng-container *ngIf="user; else loadingOrError">
-    <div class="profile-card">
-      <div class="profile-header">
-<img [src]="user.profile_image ? user.profile_image : 'assets/images/default_profile.png'" alt="Profile Picture" class="profile-image" />
-        <h2 class="profile-name">
-          {{ user.first_name || user.last_name ? (user.first_name + ' ' + user.last_name) : 'New user' }}
-        </h2>
-        <p class="profile-role">{{ user.role | titlecase }}</p>
-      </div>
 
-      <div class="profile-details">
-        <div class="detail-item">
-          <label>Motto:</label>
-          <p>{{ user.motto }}</p>
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+      <div class="profile-card">
+
+        <div class="profile-header">
+
+          <div class="profile-image-container">
+            <img [src]="imagePreviewUrl || (user.profile_image ? user.profile_image : 'assets/images/default_profile.png')" alt="Profile Picture" class="profile-image" />
+            
+            <label *ngIf="isEditing" for="file-upload" class="edit-photo-icon">
+              <mat-icon>edit</mat-icon>
+            </label>
+            <input id="file-upload" type="file" accept="image/*" (change)="onFileSelected($event)">
+          </div>
+          
+          <h2 *ngIf="!isEditing" class="profile-name">
+            {{ user.first_name || user.last_name ? (user.first_name + ' ' + user.last_name) : 'New user' }}
+          </h2>
+          <div *ngIf="isEditing" class="editing-name-inputs">
+            <input formControlName="firstName" placeholder="First Name" class="form-control-inline">
+            <input formControlName="lastName" placeholder="Last Name" class="form-control-inline">
+          </div>
+          
+          <p class="profile-role">{{ user.role | titlecase }}</p>
         </div>
-        <div class="detail-item">
-          <label>Biography:</label>
-          <p>{{ user.biography }}</p>
+
+        <div class="profile-details">
+          <div *ngIf="!isEditing" class="detail-item">
+            <label>Motto:</label>
+            <p>{{ user.motto || 'Not set' }}</p>
+          </div>
+          <div *ngIf="isEditing" class="detail-item-editing">
+             <label for="motto">Motto:</label>
+             <input id="motto" formControlName="motto" class="form-control">
+          </div>
+
+          <div *ngIf="!isEditing" class="detail-item">
+            <label>Biography:</label>
+            <p>{{ user.biography || 'Not set' }}</p>
+          </div>
+          <div *ngIf="isEditing" class="detail-item-editing">
+             <label for="biography">Biography:</label>
+             <textarea id="biography" formControlName="biography" rows="4" class="form-control"></textarea>
+          </div>
+        </div>
+
+        <button *ngIf="!isEditing" type="button" (click)="enterEditMode()" class="edit-btn">Edit Profile</button>
+        <div *ngIf="isEditing" class="form-actions">
+          <button type="button" (click)="cancelEdit()" class="cancel-btn">Cancel</button>
+          <button type="submit" [disabled]="profileForm.invalid" class="submit-btn">Save Changes</button>
         </div>
       </div>
-    </div>
+    </form>
+
   </ng-container>
 
   <ng-template #loadingOrError>

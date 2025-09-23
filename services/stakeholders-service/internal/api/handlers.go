@@ -37,27 +37,28 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// UpdateProfile ažurira profil ulogovanog korisnika.
+// UpdateProfile azurira profil ulogovanog korisnika.
 func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+		// 1.Dohvati ID korisnika iz JWT tokena (koji je middleware postavio u kontekst)
 	userID, ok := r.Context().Value("userID").(uint)
 	if !ok {
 		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
 		return
 	}
-
+	// 2. Pronadji trenutnog korisnika u bazi da bismo imali pocetne podatke
 	var user models.User
 	if err := h.DB.First(&user, userID).Error; err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
-
+	// 3. Dekodiraj JSON telo zahteva u privremenu mapu, da bismo mogli videti koja polja je korisnik poslao
 	var updateData map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 	
-	// Ažuriranje dozvoljenih polja
+	
 	if firstName, ok := updateData["first_name"].(string); ok {
 		user.FirstName = firstName
 	}
@@ -73,12 +74,13 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	if motto, ok := updateData["motto"].(string); ok {
 		user.Motto = motto
 	}
-
+	// 5. Postavi novo vreme azuriranja i sacuvaj u bazi
 	user.UpdatedAt = time.Now()
 	if err := h.DB.Save(&user).Error; err != nil {
 		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
 		return
 	}
+	// 6. Vrati azurirani profil kao odgovor
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }

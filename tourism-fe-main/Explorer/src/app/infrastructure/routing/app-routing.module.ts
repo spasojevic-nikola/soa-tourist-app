@@ -4,12 +4,17 @@ import { HomeComponent } from 'src/app/feature-modules/layout/home/home.componen
 import { LoginComponent } from '../auth/login/login.component';
 import { AuthGuard } from '../auth/auth.guard';
 import { RegistrationComponent } from '../auth/registration/registration.component';
+import { ProfileComponent } from 'src/app/feature-modules/user-profile/profile/profile.component';
 
 const routes: Routes = [
   {path: 'home', component: HomeComponent},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: RegistrationComponent},
-  {path: 'profile', loadChildren: () => import('../../feature-modules/user-profile/user-profile.module').then(m => m.UserProfileModule)}
+  {
+    path: 'profile', 
+    loadChildren: () => import('../../feature-modules/user-profile/user-profile.module').then(m => m.UserProfileModule),
+    canActivate: [AuthGuard] // DODAJTE OVO
+  }
 ];
 
 @NgModule({
