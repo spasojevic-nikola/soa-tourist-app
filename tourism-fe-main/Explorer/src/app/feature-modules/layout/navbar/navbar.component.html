@@ -1,11 +1,16 @@
 <mat-toolbar color="primary">
-    <div>
+    <div class="toolbar-container"> 
         <p>Explorer</p>
         <div id="buttons">
             <button *ngIf="user && user.username === ''" color="accent" mat-raised-button [routerLink]="['login']">Login</button>
-            <button *ngIf="user && user.username !== ''" color="accent" mat-raised-button (click)="onLogout()">Logout</button>
+            <ng-container *ngIf="user && user.username !== ''">
+                <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
+                    <mat-icon>account_circle</mat-icon>
+                </button>
+                <button color="accent" mat-raised-button (click)="onLogout()">Log out</button>
+            </ng-container>
             <button color="primary" mat-raised-button [routerLink]="['home']">Home</button>
-            <button *ngIf="user && user.role === 'administrator'"color="primary" mat-raised-button [routerLink]="['equipment']">Manage equipment</button>
-        </div>
+            <button *ngIf="user && user.role === 'administrator'" color="primary" mat-raised-button [routerLink]="['equipment']">Manage equipment</button>
+        </div> 
     </div>
 </mat-toolbar>

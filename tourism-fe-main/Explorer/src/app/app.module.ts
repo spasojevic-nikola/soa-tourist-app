@@ -13,6 +13,8 @@ import { AuthModule } from './infrastructure/auth/auth.module';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { JwtInterceptor } from './infrastructure/auth/jwt/jwt.interceptor';
 
+import { MatIconModule } from '@angular/material/icon';
+
 @NgModule({
   declarations: [
     AppComponent
@@ -26,7 +28,8 @@ import { JwtInterceptor } from './infrastructure/auth/jwt/jwt.interceptor';
     AdministrationModule,
     BlogModule,
     AuthModule,
-    HttpClientModule
+    HttpClientModule,
+    MatIconModule
   ],
   providers: [
     {

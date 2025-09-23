@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
-	"stakeholders-service/internal/models" // Obavezno zamenite "stakeholders-service" sa imenom vašeg modula iz go.mod
+	"stakeholders-service/internal/models" 
 
 	"github.com/golang-jwt/jwt/v5"
 )
