@@ -8,6 +8,7 @@ import (
     "net/http"
     "os"
     "time"
+    "strconv"
 
     "github.com/golang-jwt/jwt/v5"
     "github.com/gorilla/mux"
@@ -43,6 +44,10 @@ type Claims struct {
     Username string `json:"username"`
     Role     string `json:"role"`
     jwt.RegisteredClaims
+}
+
+type Handler struct {
+    DB *gorm.DB
 }
 
 // Init DB
@@ -303,8 +308,34 @@ func unblockUserHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(user)
 }
 
+// GetUserByID - vraća osnovne podatke o korisniku
+func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    idStr := vars["id"]
+
+    id, err := strconv.ParseUint(idStr, 10, 64)
+    if err != nil {
+        http.Error(w, "Invalid user ID", http.StatusBadRequest)
+        return
+    }
+
+    var user User
+    if err := h.DB.First(&user, id).Error; err != nil {
+        http.Error(w, "User not found", http.StatusNotFound)
+        return
+    }
+
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "username": user.Username,
+        "email":    user.Email,
+        "role":     user.Role,
+    })
+}
+
 func main() {
     initDB()
+
+    handler := &Handler{DB: db}
 
     r := mux.NewRouter()
     api := r.PathPrefix("/api/v1/auth").Subrouter()
@@ -318,6 +349,9 @@ func main() {
     admin.HandleFunc("/users", adminMiddleware(getAllUsersHandler)).Methods("GET")
     admin.HandleFunc("/users/{id}/block", adminMiddleware(blockUserHandler)).Methods("POST")
     admin.HandleFunc("/users/{id}/unblock", adminMiddleware(unblockUserHandler)).Methods("POST")
+
+    // ruta za dohvatanje korisnika po ID
+    api.HandleFunc("/user/{id}", handler.GetUserByID).Methods("GET") // Koristimo handler.GetUserByID
 
     r.HandleFunc("/health", healthHandler).Methods("GET")
 

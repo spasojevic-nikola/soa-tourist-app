@@ -48,3 +48,26 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(w, r)
 	}
 }
+
+	// AdminAuthMiddleware provjerava da li je korisnik administrator.
+	func AdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userRole, ok := r.Context().Value("userRole").(string)
+		if !ok || userRole != "administrator" {
+			http.Error(w, "Forbidden: Only administrators can access this resource", http.StatusForbidden)
+			return
+		}
+
+		// dohvatanje userID-a iz konteksta
+		userID, ok := r.Context().Value("userID").(uint)
+		if !ok {
+			http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+			return
+		}
+
+		// postavljanje userID-a u novi kontekst, da bude dostupan sljedecem handleru
+		ctx := context.WithValue(r.Context(), "currentUserID", userID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+}

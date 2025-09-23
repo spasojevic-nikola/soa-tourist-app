@@ -5,18 +5,24 @@ import (
 	"net/http"
 	"stakeholders-service/internal/models"
 	"time"
-
+	"fmt"            
+    "log"                 
+    "stakeholders-service/internal/dto"  
 	"gorm.io/gorm"
 )
 
 // Handler struktura čuva zavisnosti, kao što je konekcija sa bazom.
 type Handler struct {
 	DB *gorm.DB
+	authClient *http.Client
 }
 
 // NewHandler kreira novu instancu Handler-a.
 func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{DB: db}
+	return &Handler{
+    DB: db,
+    authClient: &http.Client{Timeout: 10 * time.Second},  
+  }
 }
 
 // GetProfile dobavlja profil ulogovanog korisnika.
@@ -104,12 +110,60 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // GetAllUsers (Admin only) - primer kako bi izgledao hendler za admina.
 func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	var users []models.User
-	if err := h.DB.Find(&users).Error; err != nil {
-		http.Error(w, "Failed to fetch users", http.StatusInternalServerError)
+    currentUserID, ok := r.Context().Value("currentUserID").(uint)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
 		return
 	}
+	
+	var users []models.User
+    if err := h.DB.Find(&users).Error; err != nil {
+        http.Error(w, "Failed to fetch users", http.StatusInternalServerError)
+        return
+    }
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(users)
+    var userDTOs []dto.UserOverviewDto
+    for _, user := range users {
+		// preskociti ulogovanog administratora:
+		if user.ID == currentUserID {
+			continue
+		}
+
+		log.Printf("Current User ID from context: %d", currentUserID)
+
+        // pozivanje auth-servisa
+        authServiceURL := fmt.Sprintf("http://auth-service:8084/api/v1/auth/user/%d", user.ID)
+
+        resp, err := h.authClient.Get(authServiceURL)
+        if err != nil || resp.StatusCode != http.StatusOK {
+            log.Printf("Failed to get auth data for user ID %d: %v", user.ID, err)
+            continue
+        }
+        defer resp.Body.Close()
+
+        var authUser struct {
+            Username string `json:"username"`
+            Email    string `json:"email"`
+            Role     string `json:"role"`
+        }
+        if err := json.NewDecoder(resp.Body).Decode(&authUser); err != nil {
+            log.Printf("Failed to decode auth data for user ID %d: %v", user.ID, err)
+            continue
+        }
+
+
+        userDTOs = append(userDTOs, dto.UserOverviewDto{
+            ID:           user.ID,
+            Username:     authUser.Username,
+            Email:        authUser.Email,
+            FirstName:    user.FirstName,
+            LastName:     user.LastName,
+            ProfileImage: user.ProfileImage,
+            Role:         authUser.Role,
+        })
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(userDTOs)
 }
+
