@@ -1,0 +1,28 @@
+<div class="admin-dashboard-container">
+  <h2>Admin Dashboard - All Users</h2>
+  
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="users.length > 0" class="user-cards-container">
+    <div class="user-card" *ngFor="let user of users">
+      <div class="profile-image-container">
+        <img [src]="user.profile_image || 'assets/images/default_profile.png'" alt="Profile Picture" class="profile-image">
+      </div>
+      <div class="user-details">
+        <h3 class="user-name">
+          {{ (user?.first_name || user?.last_name) 
+              ? (user.first_name + ' ' + user.last_name) 
+              : 'No name provided' }}
+        </h3>
+        <p class="user-role">{{ user.role }}</p>
+        <p class="user-username">Username: {{ user.username }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="users.length === 0 && !errorMessage" class="info-message">
+    No users found.
+  </div>
+</div>

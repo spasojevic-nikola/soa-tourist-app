@@ -5,6 +5,7 @@ import { LoginComponent } from '../auth/login/login.component';
 import { AuthGuard } from '../auth/auth.guard';
 import { RegistrationComponent } from '../auth/registration/registration.component';
 import { ProfileComponent } from 'src/app/feature-modules/user-profile/profile/profile.component';
+import { AdminDashboardComponent } from 'src/app/admin-dashboard/admin-dashboard.component';
 
 const routes: Routes = [
   {path: 'home', component: HomeComponent},
@@ -14,7 +15,9 @@ const routes: Routes = [
     path: 'profile', 
     loadChildren: () => import('../../feature-modules/user-profile/user-profile.module').then(m => m.UserProfileModule),
     canActivate: [AuthGuard] // DODAJTE OVO
-  }
+  },
+  { path: 'admin/users', component: AdminDashboardComponent },  
+
 ];
 
 @NgModule({
