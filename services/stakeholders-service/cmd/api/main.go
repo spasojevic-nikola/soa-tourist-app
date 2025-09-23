@@ -31,6 +31,9 @@ func main() {
 	// Zaštićene rute koriste AuthMiddleware iz `api` paketa
 	apiV1.Handle("/profile", api.AuthMiddleware(apiHandler.GetProfile)).Methods("GET")
 	apiV1.Handle("/profile", api.AuthMiddleware(apiHandler.UpdateProfile)).Methods("PUT")
+	
+	// Admin ruta za pregled svih korisnika
+	apiV1.Handle("/admin/users", api.AuthMiddleware(api.AdminAuthMiddleware(apiHandler.GetAllUsers))).Methods("GET")
 
 	// Health check ruta može ostati ovde
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
