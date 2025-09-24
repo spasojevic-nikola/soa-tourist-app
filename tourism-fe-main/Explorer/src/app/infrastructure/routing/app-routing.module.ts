@@ -17,6 +17,11 @@ const routes: Routes = [
     canActivate: [AuthGuard] // DODAJTE OVO
   },
   { path: 'admin/users', component: AdminDashboardComponent },  
+  {
+    path: 'blog',
+    loadChildren: () => import('../../feature-modules/blog/blog.module').then(m => m.BlogModule),
+    canActivate: [AuthGuard]
+  }
 
 ];
 
