@@ -1,16 +1,43 @@
 <mat-toolbar color="primary">
-    <div class="toolbar-container"> 
-        <p>Explorer</p>
-        <div id="buttons">
-            <button *ngIf="user && user.username === ''" color="accent" mat-raised-button [routerLink]="['login']">Login</button>
-            <ng-container *ngIf="user && user.username !== ''">
-                <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
-                    <mat-icon>account_circle</mat-icon>
-                </button>
-                <button color="accent" mat-raised-button (click)="onLogout()">Log out</button>
-            </ng-container>
-            <button color="primary" mat-raised-button [routerLink]="['home']">Home</button>
-            <button *ngIf="user && user.role === 'administrator'" color="primary" mat-raised-button [routerLink]="['equipment']">Manage equipment</button>
-        </div> 
+    <div class="toolbar-container">
+      
+      <div class="nav-section">
+        <p class="app-title">Explorer</p>
+        <div class="nav-buttons">
+          <button mat-button [routerLink]="['/home']">Home</button>
+
+          <button *ngIf="user && user.username !== ''" mat-button [matMenuTriggerFor]="blogMenu">
+            <span>Blog</span>
+            <mat-icon>expand_more</mat-icon>
+          </button>
+        </div>
+      </div>
+  
+      <div class="user-buttons">
+        <button *ngIf="user && user.username === ''" color="accent" mat-raised-button [routerLink]="['login']">Login</button>
+        
+        <!-- Секција за улогованог корисника -->
+        <ng-container *ngIf="user && user.username !== ''">
+          
+          <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
+            <mat-icon>account_circle</mat-icon>
+          </button>
+  
+          <button color="accent" mat-raised-button (click)="onLogout()">Log out</button>
+        </ng-container>
+      </div>
+  
     </div>
-</mat-toolbar>
+  </mat-toolbar>
+  
+  <!-- ОВО ЈЕ САМ МЕНИ, он је сакривен док се не активира -->
+  <mat-menu #blogMenu="matMenu">
+    <button mat-menu-item [routerLink]="['/blog/create']">
+      <mat-icon>add_circle_outline</mat-icon>
+      <span>Add Blog</span>
+    </button>
+    <button mat-menu-item [routerLink]="['/blog/view']"> <!-- НАПОМЕНА: Ову руту треба да направиш -->
+      <mat-icon>visibility</mat-icon>
+      <span>View Blogs</span>
+    </button>
+  </mat-menu>
