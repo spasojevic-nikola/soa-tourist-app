@@ -25,7 +25,6 @@ export class BlogCreationComponent {
       title: ['', [Validators.required, Validators.minLength(5)]],
       content: ['', [Validators.required, Validators.minLength(20)]],
       images: [[] as string[]], // Ovde cuvamo Base64 slike
-      createdAt: ['', Validators.required],
     });
   }
   onFileSelected(event: Event): void {
@@ -76,11 +75,8 @@ export class BlogCreationComponent {
     this.errorMessage = '';
 
    
-    const payload: CreateBlogPayload = {
-      ...this.blogForm.value,
-      createdAt: new Date(this.blogForm.value.createdAt)
-    };
-    
+    const payload: CreateBlogPayload = this.blogForm.value;
+  
 
     this.blogService.createBlog(payload).subscribe({
       next: (response) => {

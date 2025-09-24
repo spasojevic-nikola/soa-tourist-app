@@ -18,20 +18,6 @@
           Content is required (minimum 20 characters).
         </div>
       </div>
-      
-      <div class="form-group">
-        <label for="createdAt">Datum kreiranja</label>
-        <input
-          type="date"
-          id="createdAt"
-          class="form-control"
-          formControlName="createdAt"
-        />
-        <div class="validation-error" *ngIf="blogForm.get('createdAt')?.touched && blogForm.get('createdAt')?.invalid">
-          Molimo unesite datum kreiranja.
-        </div>
-      </div>
-      
 
       <div class="form-group upload-section">
         <label for="images-upload" class="file-upload-icon-label">
