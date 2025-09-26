@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # PostgreSQL database for stakeholders service
+  # BAZA ZA STAKEHOLDERS
   postgres:
     image: postgres:15-alpine
     container_name: soa-tourist-app-postgres-stakeholders
@@ -21,7 +21,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # PostgreSQL database for auth service
+  # BAZA ZA AUTH
   postgres-auth:
     image: postgres:15-alpine
     container_name: soa-tourist-app-postgres-auth
@@ -41,7 +41,27 @@ services:
       timeout: 5s
       retries: 5
 
-  # MongoDB database for blog service
+  # BAZA ZA TOUR - DODATO
+  tour-db:
+    image: postgres:15-alpine
+    container_name: soa-tourist-app-postgres-tour
+    environment:
+      POSTGRES_DB: tours
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_tour_data:/var/lib/postgresql/data
+    networks:
+      - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # BAZA ZA BLOG
   mongo:
     image: mongo:7.0
     container_name: soa-tourist-app-mongo
@@ -54,7 +74,7 @@ services:
     networks:
       - soa-network
 
-  # Stakeholders service
+  # STAKEHOLDERS SERVIS
   stakeholders-service:
     build: ./services/stakeholders-service
     container_name: soa-tourist-app-stakeholders-service
@@ -73,7 +93,7 @@ services:
     networks:
       - soa-network
 
-  # Blog service
+  # BLOG SERVIS
   blog-service:
     build: ./services/blog-service
     container_name: soa-tourist-app-blog-service
@@ -89,7 +109,7 @@ services:
     networks:
       - soa-network
 
-  # Auth service
+  # AUTH SERVIS
   auth-service:
     build: ./services/auth-service
     container_name: soa-tourist-app-auth-service
@@ -108,11 +128,33 @@ services:
     networks:
       - soa-network
 
+  # TOUR SERVIS - DODATO I ISPRAVLJENO
+  tour-service:
+    build: ./services/tour-service # Ovde je bitna putanja do build-a
+    container_name: soa-tourist-app-tour-service
+    ports:
+      - "8082:8080"
+    depends_on:
+      tour-db:
+        condition: service_healthy
+    restart: on-failure
+    environment:
+      - DB_HOST=tour-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=tours
+    networks:
+      - soa-network
+
+# JEDAN 'volumes' BLOK NA KRAJU
 volumes:
   postgres_data:
   postgres_auth_data:
+  postgres_tour_data: # Dodat volume za bazu tura
   mongo_data:
 
+# JEDAN 'networks' BLOK NA KRAJU
 networks:
   soa-network:
     driver: bridge
