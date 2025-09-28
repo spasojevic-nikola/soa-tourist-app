@@ -8,6 +8,8 @@ import (
 
 	"tour-service/internal/api"
 	"tour-service/internal/database"
+	"tour-service/internal/repository" 
+	"tour-service/internal/service"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -15,7 +17,10 @@ import (
 
 func main() {
 	db := database.InitDB()
-	apiHandler := api.NewHandler(db)
+	
+	tourRepo := repository.NewTourRepository(db)
+	tourService := service.NewTourService(tourRepo)
+	apiHandler := api.NewHandler(tourService)
 
 	r := mux.NewRouter()
 	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
