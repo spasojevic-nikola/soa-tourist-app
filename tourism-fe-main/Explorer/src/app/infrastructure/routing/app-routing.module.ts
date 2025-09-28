@@ -21,6 +21,11 @@ const routes: Routes = [
     path: 'blog',
     loadChildren: () => import('../../feature-modules/blog/blog.module').then(m => m.BlogModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'position-simulator',
+    loadChildren: () => import('../../feature-modules/position-simulator/position-simulator.module').then(m => m.PositionSimulatorModule),
+    canActivate: [AuthGuard]
   }
 
 ];

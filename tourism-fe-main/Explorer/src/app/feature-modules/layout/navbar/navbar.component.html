@@ -10,6 +10,11 @@
             <span>Blog</span>
             <mat-icon>expand_more</mat-icon>
           </button>
+
+          <button *ngIf="user && user.username !== '' && user.role === 'tourist'" mat-button [routerLink]="['/position-simulator']">
+            <mat-icon>location_on</mat-icon>
+            <span>Simulator pozicije</span>
+          </button>
         </div>
       </div>
   
