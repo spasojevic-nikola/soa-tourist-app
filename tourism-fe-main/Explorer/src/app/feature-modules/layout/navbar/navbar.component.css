@@ -38,6 +38,9 @@
   font-weight: 500;
   transition: background-color 0.2s ease-in-out;
   border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .nav-buttons button[mat-button]:hover {
