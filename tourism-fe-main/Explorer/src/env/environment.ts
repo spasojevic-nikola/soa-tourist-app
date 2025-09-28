@@ -4,5 +4,6 @@ export const environment = {
     authApiHost: 'http://localhost:8084/api/v1/auth/',
     blogApiHost: 'http://localhost:8081/api/',
     stakeholdersApiHost: 'http://localhost:8083/api/v1/',
+    tourApiHost : 'http://localhost:8082/api/v1/tours'
   };
   

@@ -1,0 +1,143 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 1rem;
+  background-color: #f7f8fc;
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 750px;
+  background: #ffffff;
+  padding: 2.5rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eef;
+}
+
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 2.5rem;
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 4px;
+  background-color: #007bff;
+  border-radius: 2px;
+}
+
+.form-group {
+  margin-bottom: 1.75rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #f7f8fc;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: 0;
+  background-color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1), 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Custom styling for the select dropdown */
+select.form-control {
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+  background-repeat: no-repeat;
+  background-position: right 1.2rem center;
+  background-size: 1em;
+  padding-right: 3rem; /* Make room for dropdown arrow */
+  cursor: pointer;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  color: white;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  letter-spacing: 0.5px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.submit-btn:disabled {
+  background: #a1c9f7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.validation-error {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.4rem;
+}
+
+.success-message,
+.error-message {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-weight: 500;
+  padding: 0.8rem;
+  border-radius: 8px;
+}
+
+.success-message {
+  color: #166534;
+  background-color: #dcfce7;
+}
+
+.error-message {
+  color: #e74c3c;
+  background-color: #fbe9e7;
+}

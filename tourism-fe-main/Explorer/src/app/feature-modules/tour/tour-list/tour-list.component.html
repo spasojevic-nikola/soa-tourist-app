@@ -1,0 +1,41 @@
+<div class="list-container">
+  <h1>My Tours</h1>
+
+  <ng-container *ngIf="tours$ | async as tours; else loading">
+    <div *ngIf="tours.length > 0; else noTours" class="tours-grid">
+
+      <div *ngFor="let tour of tours" class="tour-card">
+        
+        <div class="card-image">
+          <span class="tour-status" [ngClass]="tour.status">{{ tour.status }}</span>
+        </div>
+
+        <div class="card-content">
+          <h2 class="tour-name">{{ tour.name }}</h2>
+          <p class="tour-description">{{ tour.description | slice:0:120 }}{{ tour.description.length > 120 ? '...' : '' }}</p>
+        </div>
+        
+        <div class="card-stats">
+          <div class="stat-item difficulty">
+            Difficulty: <strong class="stat-value">{{ tour.difficulty }}</strong>
+          </div>
+          <div class="stat-item price">
+            <span class="stat-value">€{{ tour.price }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="info-text">Loading tours...</div>
+  </ng-template>
+
+  <ng-template #noTours>
+    <div class="info-text">
+      <p>You haven't created any tours yet.</p>
+      <a routerLink="/tours/create" class="create-tour-link">Create your first one!</a>
+    </div>
+  </ng-template>
+</div>

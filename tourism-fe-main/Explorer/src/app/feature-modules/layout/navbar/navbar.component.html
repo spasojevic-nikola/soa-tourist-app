@@ -10,6 +10,10 @@
             <span>Blog</span>
             <mat-icon>expand_more</mat-icon>
           </button>
+          <button *ngIf="user && (user.role === 'author')" mat-button [matMenuTriggerFor]="tourMenu">
+            <span>Tours</span>
+            <mat-icon>expand_more</mat-icon>
+          </button>
 
           <button *ngIf="user && user.username !== '' && user.role === 'tourist'" mat-button [routerLink]="['/position-simulator']">
             <mat-icon>location_on</mat-icon>
@@ -21,7 +25,7 @@
       <div class="user-buttons">
         <button *ngIf="user && user.username === ''" color="accent" mat-raised-button [routerLink]="['login']">Login</button>
         
-        <!-- Секција за улогованог корисника -->
+        
         <ng-container *ngIf="user && user.username !== ''">
           
           <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
@@ -35,14 +39,25 @@
     </div>
   </mat-toolbar>
   
-  <!-- ОВО ЈЕ САМ МЕНИ, он је сакривен док се не активира -->
+
   <mat-menu #blogMenu="matMenu">
     <button mat-menu-item [routerLink]="['/blog/create']">
       <mat-icon>add_circle_outline</mat-icon>
       <span>Add Blog</span>
     </button>
-    <button mat-menu-item [routerLink]="['/blog/view']"> <!-- НАПОМЕНА: Ову руту треба да направиш -->
+    <button mat-menu-item [routerLink]="['/blog/view']"> 
       <mat-icon>visibility</mat-icon>
       <span>View Blogs</span>
+    </button>
+  </mat-menu>
+
+  <mat-menu #tourMenu="matMenu">
+    <button mat-menu-item [routerLink]="['/tours/create']">
+      <mat-icon>add_circle_outline</mat-icon>
+      <span>Create tour</span>
+    </button>
+    <button mat-menu-item [routerLink]="['/tours']"> 
+      <mat-icon>visibility</mat-icon>
+      <span>View tour</span>
     </button>
   </mat-menu>
