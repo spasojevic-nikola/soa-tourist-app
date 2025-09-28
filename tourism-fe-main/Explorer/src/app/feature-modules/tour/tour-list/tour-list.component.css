@@ -1,0 +1,98 @@
+.list-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    font-family: sans-serif;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 2.5rem;
+  }
+  
+  .tours-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .tour-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .tour-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  }
+  
+  .card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .tour-name {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #34495e;
+  }
+  
+  .tour-status {
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #fff;
+  }
+  
+  .tour-status.Draft { background-color: #7f8c8d; }
+  .tour-status.Published { background-color: #27ae60; }
+  .tour-status.Archived { background-color: #c0392b; }
+  
+  .card-body {
+    padding: 1.25rem;
+    flex-grow: 1;
+  }
+  
+  .tour-description {
+    color: #555;
+    line-height: 1.5;
+    margin: 0;
+  }
+  
+  .card-footer {
+    padding: 1rem 1.25rem;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+  }
+  
+  .tour-difficulty, .tour-price {
+      color: #555;
+  }
+  
+  .info-text {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-top: 4rem;
+  }
+  
+  .info-text a {
+      color: #3498db;
+      text-decoration: none;
+      font-weight: 600;
+  }

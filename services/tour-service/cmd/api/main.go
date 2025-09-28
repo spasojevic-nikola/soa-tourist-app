@@ -18,10 +18,13 @@ func main() {
 	apiHandler := api.NewHandler(db)
 
 	r := mux.NewRouter()
-	apiV1 := r.PathPrefix("/api/v1").Subrouter()
+	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
 
 	// Ruta za kreiranje ture
-	apiV1.Handle("/tours", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateTour))).Methods("POST")
+	apiV1.Handle("/create-tour", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateTour))).Methods("POST")
+	
+	apiV1.Handle("", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetMyTours))).Methods("GET")
+
 
 	// Health check ruta
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

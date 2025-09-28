@@ -15,11 +15,12 @@ import { JwtInterceptor } from './infrastructure/auth/jwt/jwt.interceptor';
 
 import { MatIconModule } from '@angular/material/icon';
 import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
+import { TourModule } from './feature-modules/tour/tour.module';
 
 @NgModule({
   declarations: [
     AppComponent,
-    AdminDashboardComponent
+    AdminDashboardComponent,
   ],
   imports: [
     BrowserModule,
@@ -31,7 +32,8 @@ import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.compo
     BlogModule,
     AuthModule,
     HttpClientModule,
-    MatIconModule
+    MatIconModule,
+    TourModule
   ],
   providers: [
     {
