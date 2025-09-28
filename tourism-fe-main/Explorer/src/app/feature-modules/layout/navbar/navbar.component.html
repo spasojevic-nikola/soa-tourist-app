@@ -11,7 +11,7 @@
             <mat-icon>expand_more</mat-icon>
           </button>
           <button *ngIf="user && (user.role === 'author')" mat-button [matMenuTriggerFor]="tourMenu">
-            <span>Ture</span>
+            <span>Tours</span>
             <mat-icon>expand_more</mat-icon>
           </button>
 
@@ -54,10 +54,10 @@
   <mat-menu #tourMenu="matMenu">
     <button mat-menu-item [routerLink]="['/tours/create']">
       <mat-icon>add_circle_outline</mat-icon>
-      <span>Kreiraj Turu</span>
+      <span>Create tour</span>
     </button>
     <button mat-menu-item [routerLink]="['/tours']"> 
       <mat-icon>visibility</mat-icon>
-      <span>Pogledaj Ture</span>
+      <span>View tour</span>
     </button>
   </mat-menu>

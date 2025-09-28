@@ -1,98 +1,173 @@
 .list-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-    font-family: sans-serif;
-  }
-  
-  h1 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 2.5rem;
-  }
-  
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 3rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+/* --- Responsive grid for the cards --- */
+.tours-grid {
+  display: grid;
+  gap: 2rem;
+  /* Default to 1 column for mobile */
+  grid-template-columns: 1fr;
+}
+
+/* 2 columns for tablets */
+@media (min-width: 600px) {
   .tours-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .tour-card {
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 3 columns for smaller desktop screens */
+@media (min-width: 992px) {
+  .tours-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
-  
-  .tour-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* 4 columns for large desktop screens */
+@media (min-width: 1300px) {
+  .tours-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
-  
-  .card-header {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .tour-name {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #34495e;
-  }
-  
-  .tour-status {
-    padding: 0.25rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: #fff;
-  }
-  
-  .tour-status.Draft { background-color: #7f8c8d; }
-  .tour-status.Published { background-color: #27ae60; }
-  .tour-status.Archived { background-color: #c0392b; }
-  
-  .card-body {
-    padding: 1.25rem;
-    flex-grow: 1;
-  }
-  
-  .tour-description {
-    color: #555;
-    line-height: 1.5;
-    margin: 0;
-  }
-  
-  .card-footer {
-    padding: 1rem 1.25rem;
-    background-color: #f9f9f9;
-    border-top: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-  }
-  
-  .tour-difficulty, .tour-price {
-      color: #555;
-  }
-  
-  .info-text {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #7f8c8d;
-    margin-top: 4rem;
-  }
-  
-  .info-text a {
-      color: #3498db;
-      text-decoration: none;
-      font-weight: 600;
-  }
+}
+
+
+/* --- Redesigned Card --- */
+.tour-card {
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Ensures content stays within rounded corners */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tour-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+  height: 180px;
+  background: linear-gradient(45deg, #e0eafc, #cfdef3); /* Placeholder color */
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a3b1c6;
+  font-size: 1.2rem;
+}
+.card-image::before {
+    content: "🏔️"; /* Emoji as a placeholder */
+    font-size: 4rem;
+    opacity: 0.5;
+}
+
+
+.tour-status {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.tour-status.Draft { background-color: #7f8c8d; }
+.tour-status.Published { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+.tour-status.Archived { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+
+.card-content {
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Pushes the stats to the bottom */
+}
+
+.tour-name {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.tour-description {
+  color: #555;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.card-stats {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+}
+.stat-item strong {
+  color: #34495e;
+  font-weight: 700;
+}
+.stat-item::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.6;
+}
+
+.info-text {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  margin-top: 4rem;
+}
+
+.create-tour-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.8rem 1.5rem;
+  background-color: #3498db;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.create-tour-link:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}

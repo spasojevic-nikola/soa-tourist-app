@@ -1,52 +1,54 @@
 <div class="form-container">
-  <h2>Kreiraj novu turu</h2>
+  <h2>Create a new tour</h2>
 
   <form [formGroup]="tourForm" (ngSubmit)="onSubmit()" novalidate>
+    
     <div class="form-group">
-      <label for="name">Naziv ture</label>
-      <input type="text" id="name" formControlName="name" class="form-control" placeholder="npr. Avantura na Tari">
-      <div *ngIf="tourForm.get('name')?.invalid && (tourForm.get('name')?.dirty || tourForm.get('name')?.touched)" class="alert-danger">
-        <div *ngIf="tourForm.get('name')?.hasError('required')">Naziv je obavezan.</div>
-        <div *ngIf="tourForm.get('name')?.hasError('minlength')">Naziv mora imati bar 5 karaktera.</div>
+      <label for="name">Tour Title</label>
+      <input id="name" class="form-control" formControlName="name" placeholder="Enter a captivating tour title">
+      <div *ngIf="tourForm.get('name')?.touched && tourForm.get('name')?.invalid" class="validation-error">
+        Title is required (minimum 5 characters).
       </div>
     </div>
 
     <div class="form-group">
-      <label for="description">Opis</label>
-      <textarea id="description" formControlName="description" class="form-control" rows="4"></textarea>
-      <div *ngIf="tourForm.get('description')?.invalid && (tourForm.get('description')?.dirty || tourForm.get('description')?.touched)" class="alert-danger">
-        <div *ngIf="tourForm.get('description')?.hasError('required')">Opis je obavezan.</div>
-        <div *ngIf="tourForm.get('description')?.hasError('minlength')">Opis mora imati bar 20 karaktera.</div>
+      <label for="description">Description</label>
+      <textarea id="description" class="form-control" formControlName="description" rows="8" placeholder="Describe the tour experience..."></textarea>
+      <div *ngIf="tourForm.get('description')?.touched && tourForm.get('description')?.invalid" class="validation-error">
+        Description is required (minimum 20 characters).
       </div>
     </div>
 
     <div class="form-group">
-      <label for="difficulty">Težina ture</label>
+      <label for="difficulty">Difficulty Level</label>
       <select id="difficulty" formControlName="difficulty" class="form-control">
-        <option value="Easy">Lako</option>
-        <option value="Medium">Srednje</option>
-        <option value="Hard">Teško</option>
-        <option value="Expert">Ekspert</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+        <option value="Expert">Expert</option>
       </select>
-      <div *ngIf="tourForm.get('difficulty')?.invalid && tourForm.get('difficulty')?.touched" class="alert-danger">
-        <div *ngIf="tourForm.get('difficulty')?.hasError('required')">Težina je obavezna.</div>
+      <div *ngIf="tourForm.get('difficulty')?.touched && tourForm.get('difficulty')?.invalid" class="validation-error">
+        Difficulty is required.
       </div>
     </div>
 
     <div class="form-group">
-      <label for="tags">Tagovi (odvojeni zarezom)</label>
-      <input type="text" id="tags" formControlName="tags" class="form-control" placeholder="npr. planinarenje, reka, priroda">
-      <div *ngIf="tourForm.get('tags')?.invalid && (tourForm.get('tags')?.dirty || tourForm.get('tags')?.touched)" class="alert-danger">
-        <div *ngIf="tourForm.get('tags')?.hasError('required')">Tagovi su obavezni.</div>
+      <label for="tags">Tags (comma separated)</label>
+      <input id="tags" type="text" class="form-control" formControlName="tags" placeholder="e.g., hiking, river, nature">
+      <div *ngIf="tourForm.get('tags')?.touched && tourForm.get('tags')?.invalid" class="validation-error">
+        Tags are required.
       </div>
     </div>
 
-    <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
-    <div *ngIf="errorMessage" class="alert alert-danger-submit">{{ errorMessage }}</div>
-
-    <button type="submit" class="btn-submit" [disabled]="tourForm.invalid || isSubmitting">
-      <span *ngIf="!isSubmitting">Kreiraj Turu</span>
-      <span *ngIf="isSubmitting">Slanje...</span>
+    <button type="submit" class="submit-btn" [disabled]="tourForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Creating...' : 'Create Tour' }}
     </button>
   </form>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
 </div>
