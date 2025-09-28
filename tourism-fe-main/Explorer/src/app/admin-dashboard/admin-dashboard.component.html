@@ -5,6 +5,10 @@
     {{ errorMessage }}
   </div>
 
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
   <div *ngIf="users.length > 0" class="user-cards-container">
     <div class="user-card" *ngFor="let user of users">
       <div class="profile-image-container">
@@ -18,6 +22,24 @@
         </h3>
         <p class="user-role">{{ user.role }}</p>
         <p class="user-username">Username: {{ user.username }}</p>
+        <p class="user-status" [ngClass]="{'blocked-status': user.blocked}">
+          Status: {{ user.blocked ? 'BLOCKED' : 'ACTIVE' }}
+        </p>
+      </div>
+      <div class="user-actions" *ngIf="user.role !== 'Administrator'">
+        <button 
+          *ngIf="!user.blocked" 
+          class="block-btn" 
+          (click)="blockUser(user.id)"
+          [disabled]="user.role === 'Administrator'">
+          Block User
+        </button>
+        <button 
+          *ngIf="user.blocked" 
+          class="unblock-btn" 
+          (click)="unblockUser(user.id)">
+          Unblock User
+        </button>
       </div>
     </div>
   </div>
