@@ -19,16 +19,25 @@ func main() {
 	db := database.InitDB()
 	
 	tourRepo := repository.NewTourRepository(db)
+	keyPointRepo := repository.NewKeyPointRepository(db)
+
 	tourService := service.NewTourService(tourRepo)
-	apiHandler := api.NewHandler(tourService)
+	keyPointService := service.NewKeyPointService(keyPointRepo, tourRepo)
+
+	apiHandler := api.NewHandler(tourService, keyPointService)
 
 	r := mux.NewRouter()
 	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
 
-	
+	// Tour routes
 	apiV1.Handle("/create-tour", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateTour))).Methods("POST")
 	apiV1.Handle("", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetMyTours))).Methods("GET")
 
+	// KeyPoint routes
+	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateKeyPoint))).Methods("POST")
+	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetKeyPointsByTour))).Methods("GET")
+	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.UpdateKeyPoint))).Methods("PUT")
+	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.DeleteKeyPoint))).Methods("DELETE")
 
 	// Health check ruta
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

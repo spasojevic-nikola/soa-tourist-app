@@ -38,6 +38,9 @@ type Tour struct {
 	IsDeleted 	  bool 		       `json:"isDeleted" gorm:"default:false"`
 	CreatedAt 	  time.Time 	   `json:"createdAt"`
 	UpdatedAt 	  time.Time 	   `json:"updatedAt"`
+	KeyPoints   []KeyPoint     	   `json:"keyPoints,omitempty" 
+									gorm:"foreignKey:TourID;
+									constraint:OnDelete:CASCADE"`
 }
 
 func (Tour) TableName() string { return "tours" }
