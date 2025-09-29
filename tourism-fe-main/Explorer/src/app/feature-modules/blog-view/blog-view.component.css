@@ -1,0 +1,80 @@
+.main-container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 40px auto;
+  font-family: Arial, sans-serif;
+}
+
+/* Grid za listu blogova */
+.blog-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Stil kartica */
+.blog-card, .detail-card {
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.blog-card:hover, .detail-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Thumbnail slike u listi */
+.blog-card mat-card-content img.blog-thumbnail {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* Slike u detaljnom prikazu */
+.blog-detail-view .blog-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.blog-detail-view .blog-images img {
+  width: calc(33% - 10px);
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Sekcija komentara */
+.comment-section {
+  margin-top: 30px;
+}
+
+.comment-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.comment-date {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.comment-form mat-form-field {
+  width: 100%;
+}
+
+/* Loader overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  z-index: 1000;
+  font-size: 1.2em;
+}

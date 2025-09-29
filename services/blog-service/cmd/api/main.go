@@ -8,18 +8,26 @@ import (
 
 	"blog-service/internal/api"
 	"blog-service/internal/database"
+	"blog-service/internal/repository" 
+	"blog-service/internal/service" 	
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	db := database.InitDB()
-	apiHandler := api.NewHandler(db)
+
+	mongoDB := database.InitDB() 
+
+	blogRepo := repository.NewBlogRepository(mongoDB)
+
+	blogService := service.NewBlogService(blogRepo)
+
+	blogHandler := api.NewHandler(blogService) 
 
 	r := mux.NewRouter()
 
-	// DefiniSemo CORS opcije
+	// Definisemo CORS opcije
 	corsOpts := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
@@ -28,10 +36,12 @@ func main() {
 
 	apiV1 := r.PathPrefix("/api/v1/blogs").Subrouter()
 
-	
-	apiV1.HandleFunc("", api.AuthMiddleware(apiHandler.CreateBlog)).Methods("POST")
-	apiV1.HandleFunc("/{id}/comments", api.AuthMiddleware(apiHandler.AddComment)).Methods("POST")
-	apiV1.HandleFunc("/{id}/like", api.AuthMiddleware(apiHandler.ToggleLike)).Methods("POST")
+	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.CreateBlog)).Methods("POST")
+	apiV1.HandleFunc("/{id}/comments", api.AuthMiddleware(blogHandler.AddComment)).Methods("POST")
+	apiV1.HandleFunc("/{id}/like", api.AuthMiddleware(blogHandler.ToggleLike)).Methods("POST")
+	apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
+	apiV1.HandleFunc("/{id}", blogHandler.GetBlogByID).Methods("GET")
+
 
 	// Health check
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,98 @@
+<div class="main-container">
+
+  <!-- Loader -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner></mat-spinner>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Detaljan prikaz bloga -->
+  <div *ngIf="!isLoading && isDetailView && blogDetail" class="blog-detail-view">
+    
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>{{ blogDetail.title }}</mat-card-title>
+        <mat-card-subtitle>
+          Autor ID: {{ blogDetail.authorId }} | Published: {{ blogDetail.createdAt | date:'medium' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p>{{ blogDetail.content }}</p>
+
+        <!-- Slike bloga -->
+        <div *ngIf="blogDetail.images?.length" class="blog-images">
+          <img *ngFor="let img of blogDetail.images" [src]="img" alt="Blog image">
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-icon-button (click)="toggleLike()">
+  <mat-icon 
+    [color]="currentUserId !== null && blogDetail.likes.includes(currentUserId) ? 'warn' : ''">
+    favorite
+  </mat-icon>
+</button>
+<span>{{ blogDetail.likes.length }} Likes</span>
+
+       <button mat-button (click)="isDetailView = false">Back</button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Komentari -->
+    <div class="comment-section">
+      <h3>Comments ({{ blogDetail.comments.length }})</h3>
+
+      <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="comment-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Add comment</mat-label>
+          <textarea matInput formControlName="text" rows="3" placeholder="Vaš komentar..."></textarea>
+         >
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="commentForm.invalid || isCommentSending">
+          <span *ngIf="!isCommentSending">Send comment</span>
+          <mat-spinner *ngIf="isCommentSending" diameter="20"></mat-spinner>
+        </button>
+      </form>
+
+      <div *ngIf="blogDetail.comments.length > 0" class="comments-list">
+     <div *ngFor="let comment of blogDetail.comments" class="comment-item">
+  <strong>{{ comment.authorUsername || ('User ' + comment.authorId) }}</strong> 
+  <span class="comment-date"> ({{ comment.createdAt | date:'short' }})</span>
+  <p>{{ comment.text }}</p>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista blogova -->
+  <div *ngIf="!isLoading && !isDetailView" class="blog-list-view">
+    <h2>Blog Posts</h2>
+    
+    <div *ngIf="blogs.length === 0" class="no-blogs">
+      Trenutno nema objavljenih blog postova.
+    </div>
+
+    <div *ngIf="blogs.length > 0" class="blog-cards-grid">
+      <mat-card *ngFor="let blog of blogs" class="blog-card">
+        <mat-card-header>
+          <mat-card-title>{{ blog.title }}</mat-card-title>
+          <mat-card-subtitle>Autor ID: {{ blog.authorId }} | {{ blog.createdAt | date: 'mediumDate' }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <img *ngIf="blog.images?.length" [src]="blog.images?.[0]" alt="Blog image" class="blog-thumbnail">
+          <p>{{ blog.content.substring(0, 150) }}...</p>
+          <p>Likes: {{ blog.likes.length }} | Comments: {{ blog.comments.length }}</p>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-button color="primary" (click)="goToDetail(blog.id)">
+            Read more
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>
