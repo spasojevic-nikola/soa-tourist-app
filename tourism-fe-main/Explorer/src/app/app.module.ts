@@ -20,7 +20,7 @@ import { TourModule } from './feature-modules/tour/tour.module';
 @NgModule({
   declarations: [
     AppComponent,
-    AdminDashboardComponent,
+    AdminDashboardComponent
   ],
   imports: [
     BrowserModule,

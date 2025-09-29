@@ -1,0 +1,81 @@
+<div class="form-container">
+  <h2>Add Key Points to Tour</h2>
+
+  <form [formGroup]="keyPointsForm" (ngSubmit)="onSubmit()" novalidate>
+    
+    <div class="form-group">
+      <label for="name">Key Point Name</label>
+      <input id="name" class="form-control" formControlName="name" placeholder="Enter key point name">
+      <div *ngIf="keyPointsForm.get('name')?.touched && keyPointsForm.get('name')?.invalid" class="validation-error">
+        Name is required (minimum 3 characters).
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description" class="form-control" formControlName="description" rows="4" placeholder="Describe this key point..."></textarea>
+      <div *ngIf="keyPointsForm.get('description')?.touched && keyPointsForm.get('description')?.invalid" class="validation-error">
+        Description is required (minimum 10 characters).
+      </div>
+    </div>
+
+    <div class="coordinates-row">
+      <div class="form-group">
+        <label for="latitude">Latitude</label>
+        <input id="latitude" type="number" step="any" class="form-control" formControlName="latitude" placeholder="e.g., 44.8125">
+        <div *ngIf="keyPointsForm.get('latitude')?.touched && keyPointsForm.get('latitude')?.invalid" class="validation-error">
+          Valid latitude is required (-90 to 90).
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="longitude">Longitude</label>
+        <input id="longitude" type="number" step="any" class="form-control" formControlName="longitude" placeholder="e.g., 20.4612">
+        <div *ngIf="keyPointsForm.get('longitude')?.touched && keyPointsForm.get('longitude')?.invalid" class="validation-error">
+          Valid longitude is required (-180 to 180).
+        </div>
+      </div>
+    </div>
+
+    <!-- PROMENJENO: File upload umesto URL -->
+    <div class="form-group">
+      <label for="image">Image</label>
+      <input 
+        id="image" 
+        type="file" 
+        class="form-control file-input" 
+        (change)="onFileSelected($event)" 
+        accept="image/*">
+      <div class="file-note">Select an image for this key point</div>
+    </div>
+
+    <div class="form-group">
+      <label for="order">Order in Tour</label>
+      <input id="order" type="number" class="form-control" formControlName="order" placeholder="1">
+      <div *ngIf="keyPointsForm.get('order')?.touched && keyPointsForm.get('order')?.invalid" class="validation-error">
+        Order is required (minimum 1).
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="submit-btn" [disabled]="keyPointsForm.invalid || isSubmitting">
+        {{ isSubmitting ? 'Adding...' : 'Add Key Point' }}
+      </button>
+      
+      <button *ngIf="successMessage" type="button" class="secondary-btn" (click)="addAnother()">
+        Add Another Key Point
+      </button>
+      
+      <button *ngIf="successMessage" type="button" class="secondary-btn" (click)="finish()">
+        Finish
+      </button>
+    </div>
+  </form>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+</div>

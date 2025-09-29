@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TourService } from '../../tour.service';
 import { CreateTourPayload } from '../../dto/tour-creation.dto';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'xp-tour-create',
@@ -15,9 +16,13 @@ export class TourCreateComponent implements OnInit {
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
+  showKeyPointDialog = false;  
+  createdTourId: number | null = null;  
+
   constructor(
     private fb: FormBuilder,
-    private tourService: TourService
+    private tourService: TourService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -57,6 +62,8 @@ export class TourCreateComponent implements OnInit {
     this.tourService.createTour(payload).subscribe({
       next: (createdTour) => {
        // this.successMessage = `Tura "${createdTour.name}" je uspešno kreirana i ima status 'Draft'.`;
+        this.createdTourId = createdTour.id;  
+        this.showKeyPointDialog = true;
         this.tourForm.reset({ difficulty: 'Easy', name: '', description: '', tags: '' }); // Resetujemo formu
         this.isSubmitting = false;
       },
@@ -66,5 +73,17 @@ export class TourCreateComponent implements OnInit {
         this.isSubmitting = false;
       }
     });
+  }
+
+  onAddKeyPoints(): void {
+    if (this.createdTourId) {
+      this.router.navigate(['/keypoints', this.createdTourId]);
+    }
+  }
+
+  onSkipKeyPoints(): void {
+    this.showKeyPointDialog = false;
+    this.tourForm.reset({ difficulty: 'Easy', name: '', description: '', tags: '' });
+    this.successMessage = `The tour has been successfully created! You can add key points later.`;
   }
 }
