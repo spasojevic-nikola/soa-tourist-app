@@ -74,6 +74,27 @@ services:
     networks:
       - soa-network
 
+  # NEO4J BAZA ZA FOLLOWERE
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: soa-tourist-app-neo4j
+    environment:
+      
+      NEO4J_AUTH: neo4j/natasa123
+    ports:
+      - "7474:7474" # Web interfejs za Neo4j Browser
+      - "7687:7687" # Port za konekciju iz Go aplikacije (Bolt drajver)
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O /dev/null http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # STAKEHOLDERS SERVIS
   stakeholders-service:
     build: ./services/stakeholders-service
@@ -147,12 +168,33 @@ services:
     networks:
       - soa-network
 
+  # FOLLOWER SERVIS
+  follower-service:
+    build: ./services/follower-service 
+    container_name: soa-tourist-app-follower-service
+    ports:
+      - "8085:8080" # Koristimo novi port 8085 da ne bi bilo konflikta
+    depends_on:
+      neo4j:
+        condition: service_healthy # Čeka da se Neo4j baza pokrene
+    restart: on-failure
+    environment:
+      # Varijable za konekciju na Neo4j bazu
+      - NEO4J_URI=neo4j://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=natasa123 # Ista šifra kao gore
+    networks:
+      - soa-network
+
+
 # JEDAN 'volumes' BLOK NA KRAJU
 volumes:
   postgres_data:
   postgres_auth_data:
   postgres_tour_data: # Dodat volume za bazu tura
   mongo_data:
+  neo4j_data:
+
 
 # JEDAN 'networks' BLOK NA KRAJU
 networks:

@@ -1,0 +1,56 @@
+package api
+
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+
+	"soa-tourist-app/follower-service/internal/service"
+
+	"github.com/gorilla/mux"
+)
+
+type Handler struct {
+	Service *service.FollowerService
+}
+
+func NewHandler(s *service.FollowerService) *Handler {
+	return &Handler{Service: s}
+}
+
+// Follow je HTTP handler za pracenje korisnika
+func (h *Handler) Follow(w http.ResponseWriter, r *http.Request) {
+	// Izvuci ID ulogovanog korisnika iz konteksta (ovo će postaviti middleware)
+	followerId, ok := r.Context().Value(userKey).(uint)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Izvuci ID korisnika koga treba zapratiti iz URL-a
+	vars := mux.Vars(r)
+	followedIdStr := vars["id"]
+	followedId, err := strconv.ParseUint(followedIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Pozovi servis da odradi logiku
+	err = h.Service.Follow(followerId, uint(followedId))
+	if err != nil {
+		// Vrati gresku ako npr. korisnik pokusa da zaprati sam sebe
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Vrati uspešan odgovor
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// Opciono: Handler za proveru da li postoji veza - trebace za blog-service
+func (h *Handler) CheckFollow(w http.ResponseWriter, r *http.Request) {
+    // Implementacija ove funkcije će biti potrebna kasnije za integraciju
+    // ...
+    json.NewEncoder(w).Encode(map[string]bool{"follows": true})
+}
