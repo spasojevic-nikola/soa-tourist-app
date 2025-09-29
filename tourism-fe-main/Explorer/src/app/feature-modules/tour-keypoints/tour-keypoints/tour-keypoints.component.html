@@ -37,7 +37,6 @@
       </div>
     </div>
 
-    <!-- PROMENJENO: File upload umesto URL -->
     <div class="form-group">
       <label for="image">Image</label>
       <input 
@@ -47,6 +46,15 @@
         (change)="onFileSelected($event)" 
         accept="image/*">
       <div class="file-note">Select an image for this key point</div>
+
+      <div *ngIf="imagePreview" class="image-preview-container">
+        <div class="image-preview-header">
+        <span>Selected Image:</span>
+        <button type="button" class="remove-preview-btn" (click)="removeImage()">Remove</button>
+        </div>
+        <img [src]="imagePreview" [alt]="'Selected image'" class="image-preview">
+    </div>
+
     </div>
 
     <div class="form-group">
@@ -78,4 +86,40 @@
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
+  <!-- Lista dodatih keypoints -->
+<div *ngIf="addedKeyPoints.length > 0" class="added-keypoints">
+  <h3>Added Key Points ({{ addedKeyPoints.length }})</h3>
+  
+  <div class="keypoints-list">
+    <div *ngFor="let keyPoint of addedKeyPoints; let i = index" class="keypoint-card">
+      <div class="keypoint-header">
+        <h4>{{ keyPoint.order }}. {{ keyPoint.name }}</h4>
+        <button 
+          type="button" 
+          class="delete-btn"
+          (click)="removeKeyPoint(keyPoint.id, i)">
+          ×
+        </button>
+      </div>
+      
+      <div class="keypoint-content">
+        <p class="keypoint-description">{{ keyPoint.description }}</p>
+        
+        <div class="keypoint-details">
+          <span class="coordinate">
+            <strong>Lat:</strong> {{ keyPoint.latitude | number:'1.4-4' }}
+          </span>
+          <span class="coordinate">
+            <strong>Lng:</strong> {{ keyPoint.longitude | number:'1.4-4' }}
+          </span>
+        </div>
+        
+        <div *ngIf="keyPoint.image" class="keypoint-image">
+          <img [src]="keyPoint.image" [alt]="keyPoint.name" class="keypoint-thumbnail">
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+</div>
+

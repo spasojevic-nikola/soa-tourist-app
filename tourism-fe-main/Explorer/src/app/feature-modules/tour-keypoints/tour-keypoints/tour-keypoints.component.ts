@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { KeypointService } from '../keypoint.service';
-import { CreateKeyPointPayload } from '../model/keypoint.model';
+import { CreateKeyPointPayload, KeyPoint } from '../model/keypoint.model';
 
 @Component({
   selector: 'xp-tour-keypoints',
@@ -15,7 +15,8 @@ export class TourKeypointsComponent implements OnInit {
   isSubmitting = false;
   successMessage: string | null = null;
   errorMessage: string | null = null;
-  selectedFile: File | null = null;  
+  imagePreview: string | null = null;  
+  addedKeyPoints: KeyPoint[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -34,21 +35,34 @@ export class TourKeypointsComponent implements OnInit {
       description: ['', [Validators.required, Validators.minLength(10)]],
       latitude: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
       longitude: ['', [Validators.required, Validators.min(-180), Validators.max(180)]],
+      image: [''], 
       order: ['', [Validators.required, Validators.min(1)]]
     });
   }
 
-  // DODAJTE OVU METODU ZA FILE SELECTION
+  // METODA ZA BASE64 CONVERSION
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      // Provera tipa fajla
       if (!file.type.match('image.*')) {
         this.errorMessage = 'Please select a valid image file.';
         return;
       }
-      this.selectedFile = file;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result as string;
+        this.keyPointsForm.patchValue({
+          image: reader.result as string
+        });
+      };
+      reader.readAsDataURL(file);
     }
+  }
+
+  removeImage(): void {
+    this.imagePreview = null;
+    this.keyPointsForm.patchValue({ image: '' });
   }
 
   onSubmit(): void {
@@ -67,15 +81,16 @@ export class TourKeypointsComponent implements OnInit {
       description: formValue.description,
       latitude: parseFloat(formValue.latitude),
       longitude: parseFloat(formValue.longitude),
-      image: this.selectedFile,  
+      image: formValue.image, // BASE64 STRING
       order: parseInt(formValue.order)
     };
 
     this.keyPointService.createKeyPoint(this.tourId, payload).subscribe({
       next: (createdKeyPoint) => {
+        this.addedKeyPoints.push(createdKeyPoint);
         this.successMessage = `Key point "${createdKeyPoint.name}" added successfully!`;
         this.keyPointsForm.reset();
-        this.selectedFile = null;  
+        this.imagePreview = null;
         this.isSubmitting = false;
       },
       error: (err) => {
@@ -89,10 +104,22 @@ export class TourKeypointsComponent implements OnInit {
   addAnother(): void {
     this.successMessage = null;
     this.keyPointsForm.reset();
-    this.selectedFile = null;
+    this.imagePreview = null;
   }
 
   finish(): void {
     window.history.back();
+  }
+
+  removeKeyPoint(keyPointId: number, index: number): void {
+    this.keyPointService.deleteKeyPoint(keyPointId).subscribe({
+      next: () => {
+        this.addedKeyPoints.splice(index, 1);
+        this.successMessage = 'Key point removed successfully!';
+      },
+      error: (err) => {
+        this.errorMessage = `Error removing key point: ${err.error?.error || err.error || 'Please try again.'}`;
+      }
+    });
   }
 }
