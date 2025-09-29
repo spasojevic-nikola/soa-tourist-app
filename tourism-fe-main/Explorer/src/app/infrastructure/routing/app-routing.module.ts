@@ -6,11 +6,16 @@ import { AuthGuard } from '../auth/auth.guard';
 import { RegistrationComponent } from '../auth/registration/registration.component';
 import { ProfileComponent } from 'src/app/feature-modules/user-profile/profile/profile.component';
 import { AdminDashboardComponent } from 'src/app/admin-dashboard/admin-dashboard.component';
+import { BlogViewComponent } from 'src/app/feature-modules/blog-view/blog-view.component';
 
 const routes: Routes = [
   {path: 'home', component: HomeComponent},
   {path: 'login', component: LoginComponent},
   {path: 'register', component: RegistrationComponent},
+  { path: 'blog/view', component: BlogViewComponent },
+  { path: 'blogs/:id', component: BlogViewComponent },
+
+
   {
     path: 'profile', 
     loadChildren: () => import('../../feature-modules/user-profile/user-profile.module').then(m => m.UserProfileModule),

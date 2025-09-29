@@ -1,19 +1,10 @@
 package models
 
 import (
-	"time"
-
     "github.com/golang-jwt/jwt/v5" 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
 )
-
-// Comment predstavlja strukturu jednog komentara na blogu.
-type Comment struct {
-	AuthorID   uint      `bson:"authorId" json:"authorId"` // ISPRAVKA: Sada je uint
-	Text       string    `bson:"text" json:"text"`
-	CreatedAt  time.Time `bson:"createdAt" json:"createdAt"`
-	UpdatedAt  time.Time `bson:"updatedAt" json:"updatedAt"`
-}
 
 // Blog predstavlja strukturu jednog blog posta.
 type Blog struct {

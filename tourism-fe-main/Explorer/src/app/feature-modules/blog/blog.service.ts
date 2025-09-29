@@ -3,6 +3,7 @@ import { TokenStorage } from 'src/app/infrastructure/auth/jwt/token.service';
 import { Blog, CreateBlogPayload } from './model/blog.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AddCommentPayload, BlogComment} from './model/blog.model';
 
 @Injectable({
   providedIn: 'root'
@@ -33,5 +34,33 @@ export class BlogService {
       'Authorization': `Bearer ${token}`
     });
   }
+
+  addComment(blogId: string, payload: AddCommentPayload): Observable<BlogComment> {
+        const headers = this.createAuthHeaders();
+        // PUTANJA: /api/v1/blogs/{id}/comments
+        const url = `${this.apiUrl}/${blogId}/comments`; 
+        
+        return this.http.post<BlogComment>(url, payload, { headers: headers });
+    }
+
+    toggleLike(blogId: string): Observable<{ message: string }> {
+        const headers = this.createAuthHeaders();
+        // PUTANJA: /api/v1/blogs/{id}/like
+        const url = `${this.apiUrl}/${blogId}/like`;
+        
+        // POST zahtev bez body-ja
+        return this.http.post<{ message: string }>(url, {}, { headers: headers }); 
+    }
+  
+getAllBlogs(): Observable<Blog[]> {
+  const headers = this.createAuthHeaders();
+  return this.http.get<Blog[]>(this.apiUrl, { headers });
+}
+
+getBlogById(id: string): Observable<Blog> {
+  const headers = this.createAuthHeaders();
+  return this.http.get<Blog>(`${this.apiUrl}/${id}`, { headers });
+}
+
 
 }
