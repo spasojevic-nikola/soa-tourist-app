@@ -32,6 +32,7 @@ func main() {
 
 	// Definišemo rute na pod-ruteru
 	protectedRoutes.HandleFunc("/follow/{id:[0-9]+}", handler.Follow).Methods("POST")
+	protectedRoutes.HandleFunc("/unfollow/{id:[0-9]+}", handler.Unfollow).Methods("DELETE")
 	
 	// Podesavanje CORS-a
 	corsHandler := handlers.CORS(

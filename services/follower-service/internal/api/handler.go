@@ -54,3 +54,26 @@ func (h *Handler) CheckFollow(w http.ResponseWriter, r *http.Request) {
     // ...
     json.NewEncoder(w).Encode(map[string]bool{"follows": true})
 }
+
+func (h *Handler) Unfollow(w http.ResponseWriter, r *http.Request) {
+	followerId, ok := r.Context().Value(userKey).(uint)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	followedId, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	err = h.Service.Unfollow(followerId, uint(followedId))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
