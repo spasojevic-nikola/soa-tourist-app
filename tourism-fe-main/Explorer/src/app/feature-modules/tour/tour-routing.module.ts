@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TourCreateComponent } from './create-tour/tour-create/tour-create.component';
 import { TourListComponent } from './tour-list/tour-list.component';
+import { TourWizardComponent  } from './tour-wizard/tour-wizard.component'
 
 const routes: Routes = [
   {
     path: 'create',
-    component: TourCreateComponent
+    component: TourWizardComponent  
   },
   {
     path: '',

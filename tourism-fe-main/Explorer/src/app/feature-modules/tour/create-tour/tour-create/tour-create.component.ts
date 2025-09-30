@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core'; // DODAJ Output, EventEmitter
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TourService } from '../../tour.service';
 import { CreateTourPayload } from '../../dto/tour-creation.dto';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'xp-tour-create',
@@ -10,14 +11,20 @@ import { CreateTourPayload } from '../../dto/tour-creation.dto';
 })
 export class TourCreateComponent implements OnInit {
 
+  @Output() tourCreated = new EventEmitter<CreateTourPayload>(); // DODAJ OVO
+
   tourForm: FormGroup;
   isSubmitting = false;
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
+  showKeyPointDialog = false;  
+  createdTourId: number | null = null;  
+
   constructor(
     private fb: FormBuilder,
-    private tourService: TourService
+    private tourService: TourService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -41,12 +48,10 @@ export class TourCreateComponent implements OnInit {
 
     const formValue = this.tourForm.value;
     
-    // Tagove koje korisnik unese kao string ("planina, reka") pretvaramo u niz ["planina", "reka"]
     const tagsArray = formValue.tags.split(',')
       .map((tag: string) => tag.trim())
       .filter((tag: string) => tag !== ''); 
 
-    // Kreiramo DTO koji saljemo
     const payload: CreateTourPayload = {
       name: formValue.name,
       description: formValue.description,
@@ -54,17 +59,26 @@ export class TourCreateComponent implements OnInit {
       tags: tagsArray
     };
 
-    this.tourService.createTour(payload).subscribe({
-      next: (createdTour) => {
-       // this.successMessage = `Tura "${createdTour.name}" je uspešno kreirana i ima status 'Draft'.`;
-        this.tourForm.reset({ difficulty: 'Easy', name: '', description: '', tags: '' }); // Resetujemo formu
+    // OBRISI OVO - NE TREBA DA ŠALJEŠ NA BACKEND OVDE
+    // this.tourService.createTour(payload).subscribe({
+    //   next: (createdTour) => {
+        this.tourCreated.emit(payload); // EMITUJ PAYLOAD WIZARDU
         this.isSubmitting = false;
-      },
-      error: (err) => {
-        this.errorMessage = `Došlo je do greške: ${err.error.error || err.error || 'Proverite podatke i pokušajte ponovo.'}`;
-        console.error(err);
-        this.isSubmitting = false;
-      }
-    });
+        
+        // OBRISI OVO - WIZARD ĆE HANDLE-OVATI SVE
+        // this.createdTourId = createdTour.id;  
+        // this.showKeyPointDialog = true;
+        // this.tourForm.reset({ difficulty: 'Easy', name: '', description: '', tags: '' });
+    //   },
+    //   error: (err) => {
+    //     this.errorMessage = `Došlo je do greške: ${err.error.error || err.error || 'Proverite podatke i pokušajte ponovo.'}`;
+    //     console.error(err);
+    //     this.isSubmitting = false;
+    //   }
+    // });
   }
+
+  // OBRISI OVE METODE - WIZARD ĆE HANDLE-OVATI NAVIGACIJU
+  // onAddKeyPoints(): void { ... }
+  // onSkipKeyPoints(): void { ... }
 }

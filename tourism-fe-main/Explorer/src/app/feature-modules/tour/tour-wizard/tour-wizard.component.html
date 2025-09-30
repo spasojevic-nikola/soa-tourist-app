@@ -1,0 +1,37 @@
+<div class="wizard-container">
+  <div class="wizard-header">
+    <h2>Create New Tour</h2>
+    <div class="step-indicator">
+      <span [class.active]="currentStep === 1" class="step">1</span>
+      <span class="step-divider"></span>
+      <span [class.active]="currentStep === 2" class="step">2</span>
+    </div>
+    <div class="step-labels">
+      <span [class.active]="currentStep === 1">Basic Info</span>
+      <span [class.active]="currentStep === 2">Key Points</span>
+    </div>
+  </div>
+
+  <div class="wizard-content">
+    <!-- Step 1: Basic Tour Info -->
+    <div *ngIf="currentStep === 1" class="step-content">
+      <xp-tour-create 
+        (tourCreated)="onStep1Completed($event)">
+      </xp-tour-create>
+    </div>
+
+    <!-- Step 2: Map with Key Points -->
+    <div *ngIf="currentStep === 2" class="step-content">
+      <!-- Uklonjen tourData input jer tour-map-creation ne treba tourData -->
+      <xp-tour-map-creation
+        (keyPointsCompleted)="onStep2Completed($event)"
+        (goBack)="goBack()">
+      </xp-tour-map-creation>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isSubmitting" class="loading-overlay">
+    <div class="loading-spinner">Creating tour...</div>
+  </div>
+</div>

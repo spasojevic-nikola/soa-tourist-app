@@ -171,3 +171,44 @@ h1 {
     background-color: #2980b9;
     transform: translateY(-2px);
 }
+
+/* Card Actions Section */
+.card-actions {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: center;
+}
+
+.add-keypoints-btn {
+  background: linear-gradient(90deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+.add-keypoints-btn:hover {
+  background: linear-gradient(90deg, #20c997, #1e7e34);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.add-keypoints-btn:disabled {
+  background: #6c757d !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  opacity: 0.6;
+}
+
+.add-keypoints-btn:disabled:hover {
+  background: #6c757d !important;
+  transform: none !important;
+  box-shadow: none !important;
+}

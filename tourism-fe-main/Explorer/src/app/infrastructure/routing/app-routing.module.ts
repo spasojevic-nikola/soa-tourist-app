@@ -36,6 +36,11 @@ const routes: Routes = [
     path: 'tours',
     loadChildren: () => import('../../feature-modules/tour/tour.module').then(m => m.TourModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'keypoints',
+    loadChildren: () => import('../../feature-modules/tour-keypoints/tour-keypoints.module').then(m => m.TourKeypointsModule),
+    canActivate: [AuthGuard]
   }
 
 ];
