@@ -28,6 +28,11 @@
                  [formControl]="searchControl"
                  [matAutocomplete]="auto"
                  placeholder="Search users...">
+          
+          <button *ngIf="searchControl.value" mat-icon-button matSuffix (click)="clearSearch()" aria-label="Clear">
+            <mat-icon>close</mat-icon>
+          </button>
+    
         </mat-form-field>
 
       </div>

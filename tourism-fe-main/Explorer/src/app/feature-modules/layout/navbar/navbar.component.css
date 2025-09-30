@@ -1,11 +1,11 @@
-/* Glavni kontejner unutar toolbara */
+/* --- Glavni raspored unutar Toolbara --- */
 .toolbar-container {
   display: flex;
   justify-content: space-between; /* Gura levu i desnu stranu na krajeve */
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 16px; /* Mali razmak od ivica ekrana */
+  padding: 0 16px;
 }
 
 /* Leva sekcija (logo i glavna navigacija) */
@@ -15,7 +15,14 @@
   gap: 1rem; /* Razmak između "Explorer" i dugmadi */
 }
 
-/* Stil za naslov aplikacije */
+/* Desna sekcija (dugmad za korisnika) */
+.user-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* --- Elementi navigacije --- */
 .app-title {
   font-size: 1.5rem;
   font-weight: bold;
@@ -26,12 +33,6 @@
   display: flex;
   align-items: center;
   gap: 8px; 
-}
-
-.user-buttons {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .nav-buttons button[mat-button] {
@@ -56,6 +57,69 @@ button[mat-icon-button] mat-icon {
   transform: scale(1.2);
 }
 
+/* --- Polje za pretragu (Search Bar) --- */
+.search-form-field {
+  width: 250px;
+  margin-left: 20px;
+  vertical-align: middle; /* Bolje poravnanje sa dugmadima */
+}
+
+/* Stilovi za Angular Material komponente (koristi se ::ng-deep) */
+::ng-deep .search-form-field .mdc-notched-outline > * {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+::ng-deep .search-form-field .mat-mdc-form-field-icon-prefix,
+::ng-deep .search-form-field .mat-mdc-input-element,
+::ng-deep .search-form-field .mat-mdc-floating-label {
+  color: #fff !important;
+  text-align: center; 
+}
+::ng-deep .search-form-field .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+::ng-deep .search-form-field .mat-mdc-form-field-flex {
+  height: 48px;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+/* Stil za 'x' (clear) dugme */
+::ng-deep .search-form-field .mat-mdc-form-field-icon-suffix {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Efekat kada se klikne na polje (fokus) */
+::ng-deep .search-form-field.mat-focused .mat-mdc-text-field-wrapper {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+::ng-deep .search-form-field.mat-focused .mdc-notched-outline > * {
+  border-color: #fff !important;
+  border-width: 2px !important;
+}
+
+/* --- Padajući meni za rezultate pretrage (Autocomplete) --- */
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-result-item .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.search-result-item span {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Opšti stilovi za padajuće menije (mat-menu) --- */
 ::ng-deep .mat-mdc-menu-content {
   padding: 8px 0 !important;
 }
@@ -69,35 +133,3 @@ button[mat-icon-button] mat-icon {
 ::ng-deep .mat-mdc-menu-item mat-icon {
   margin: 0 !important;
 }
-
-.search-form-field {
-  width: 250px;
-  margin-left: 20px;
-}
-/* Stil za svaku stavku (opciju) u padajućem meniju */
-.search-result-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Ovo je ključni deo - smanjujemo sliku */
-.search-result-item .avatar {
-  width: 42px;
-  height: 42px;
-  object-fit: cover;
-}
-
-/* Stil za tekst pored slike */
-.search-result-item span {
-  font-size: 0.9rem;
-  line-height: 1.2;
-}
-::ng-deep .search-form-field .mdc-notched-outline > * { border-color: rgba(255, 255, 255, 0.3) !important; }
-::ng-deep .search-form-field:hover .mdc-notched-outline > * { border-color: rgba(255, 255, 255, 0.7) !important; }
-::ng-deep .search-form-field.mat-focused .mdc-notched-outline > * { border-color: #fff !important; border-width: 2px !important; }
-::ng-deep .search-form-field .mat-mdc-form-field-icon-prefix,
-::ng-deep .search-form-field .mat-mdc-input-element,
-::ng-deep .search-form-field .mat-mdc-floating-label { color: #fff !important; }
-::ng-deep .search-form-field .mat-mdc-form-field-subscript-wrapper { display: none; }
-::ng-deep .search-form-field .mat-mdc-form-field-flex { height: 48px; padding-top: 12px !important; padding-bottom: 12px !important; }
