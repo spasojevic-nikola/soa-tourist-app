@@ -8,7 +8,6 @@
     <div id="map" class="map"></div>
   </div>
 
-  <!-- Lista dodatih keypoints -->
   <div *ngIf="keyPoints.length > 0" class="keypoints-list-section">
     <h3>Added Key Points ({{ keyPoints.length }})</h3>
     
@@ -30,7 +29,10 @@
             <span class="address">
               📍 {{ keyPoint.address }}
             </span>
-            <span *ngIf="keyPoint.image" class="image-indicator">📷 Has image</span>
+            
+            <div *ngIf="getImagePreview(i)" class="image-preview-container">
+              <img [src]="getImagePreview(i)" [alt]="'Selected image'" class="image-preview">
+            </div>
           </div>
         </div>
       </div>
@@ -41,7 +43,7 @@
     <button type="button" class="btn-back" (click)="backToStep1()">
       ← Back to Basic Info
     </button>
-    <button type="button" class="btn-create-tour" (click)="finishTour()" [disabled]="keyPoints.length === 0">
+    <button type="button" class="btn-create-tour" (click)="finishTour()" [disabled]="keyPoints.length < 2">
       {{ keyPoints.length < 2 ? 'Add at least two key points' : 'Create Tour' }}
     </button>
   </div>

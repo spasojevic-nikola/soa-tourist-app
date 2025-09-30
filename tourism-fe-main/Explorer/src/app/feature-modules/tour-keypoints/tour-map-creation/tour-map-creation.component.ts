@@ -25,6 +25,7 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   polyline: any;
   tempMarker: any;
   private addressCache = new Map<string, string>();
+  private imagePreviews = new Map<number, string>();
 
   constructor(
     private fb: FormBuilder,
@@ -70,27 +71,31 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   }
 
   openKeypointDialog(lat: number, lng: number): void {
-    const order = this.keyPoints.length + 1;
+  const order = this.keyPoints.length + 1;
+  
+  this.keypointDialogService.openKeypointDialog(lat, lng, order).subscribe(async (result) => {
+    if (result) {
+      try {
+        result.address = await this.mapService.reverseGeocode(result.latitude, result.longitude);
+      } catch (error) {
+        result.address = `Lat: ${result.latitude.toFixed(4)}, Lng: ${result.longitude.toFixed(4)}`;
+      }
+
+      // result.image JE VEĆ BASE64 STRING IZ DIJALOGA!
+      if (result.image && typeof result.image === 'string') {
+        this.imagePreviews.set(this.keyPoints.length, result.image);
+      }
+
+      this.keyPoints.push(result);
+      this.drawExistingKeyPoints();
+    }
     
-    this.keypointDialogService.openKeypointDialog(lat, lng, order).subscribe(async (result) => {
-      if (result) {
-        try {
-          result.address = await this.mapService.reverseGeocode(result.latitude, result.longitude);
-        } catch (error) {
-          result.address = `Lat: ${result.latitude.toFixed(4)}, Lng: ${result.longitude.toFixed(4)}`;
-        }
-
-        this.keyPoints.push(result);
-        this.drawExistingKeyPoints();
-      }
-      
-      if (this.tempMarker) {
-        this.map.removeLayer(this.tempMarker);
-        this.tempMarker = null;
-      }
-    });
-  }
-
+    if (this.tempMarker) {
+      this.map.removeLayer(this.tempMarker);
+      this.tempMarker = null;
+    }
+  });
+}
   drawExistingKeyPoints(): void {
     this.markers.forEach(marker => this.map.removeLayer(marker));
     if (this.polyline) {
@@ -122,7 +127,18 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   }
 
   removeKeyPoint(index: number): void {
+    this.imagePreviews.delete(index);
     this.keyPoints.splice(index, 1);
+    
+    const newImagePreviews = new Map<number, string>();
+    this.keyPoints.forEach((kp, newIndex) => {
+      const oldPreview = this.imagePreviews.get(newIndex + 1);
+      if (oldPreview) {
+        newImagePreviews.set(newIndex, oldPreview);
+      }
+    });
+    this.imagePreviews = newImagePreviews;
+    
     this.drawExistingKeyPoints();
   }
 
@@ -155,4 +171,7 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
     );
   }
 
+  getImagePreview(index: number): string | null {
+    return this.imagePreviews.get(index) || null;
+  }
 }
