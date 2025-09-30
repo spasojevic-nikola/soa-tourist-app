@@ -19,52 +19,6 @@ func NewKeyPointService(keyPointRepo *repository.KeyPointRepository, tourRepo *r
 	}
 }
 
-// CreateKeyPoint creates a new key point for a tour
-func (s *KeyPointService) CreateKeyPoint(tourID uint, authorID uint, req dto.CreateKeyPointRequest) (*models.KeyPoint, error) {
-	// Verify that the tour exists and belongs to the author
-	tours, err := s.TourRepo.FindByAuthorID(authorID)
-	if err != nil {
-		return nil, err
-	}
-
-	var tourExists bool
-	for _, tour := range tours {
-		if tour.ID == tourID {
-			tourExists = true
-			break
-		}
-	}
-
-	if !tourExists {
-		return nil, errors.New("tour not found or you don't have permission to modify it")
-	}
-
-	// Validate coordinates
-	if req.Latitude < -90 || req.Latitude > 90 {
-		return nil, errors.New("invalid latitude value")
-	}
-	if req.Longitude < -180 || req.Longitude > 180 {
-		return nil, errors.New("invalid longitude value")
-	}
-
-	keyPoint := &models.KeyPoint{
-		TourID:      tourID,
-		Name:        req.Name,
-		Description: req.Description,
-		Latitude:    req.Latitude,
-		Longitude:   req.Longitude,
-		Image:       req.Image,
-		Order:       req.Order,
-	}
-
-	err = s.KeyPointRepo.Create(keyPoint)
-	if err != nil {
-		return nil, err
-	}
-
-	return keyPoint, nil
-}
-
 // GetKeyPointsByTour gets all key points for a specific tour
 func (s *KeyPointService) GetKeyPointsByTour(tourID uint) ([]models.KeyPoint, error) {
 	return s.KeyPointRepo.FindByTourID(tourID)

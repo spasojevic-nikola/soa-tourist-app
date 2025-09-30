@@ -73,9 +73,9 @@ h2::after {
   box-shadow: 0 3px 8px rgba(0,0,0,0.1), 0 0 0 3px rgba(0, 123, 255, 0.2);
 }
 
-/* Stil za file input */
 .file-input {
   cursor: pointer;
+  color: transparent;
 }
 
 .file-input::file-selector-button {
@@ -99,13 +99,6 @@ h2::after {
   color: #666;
   margin-top: 0.4rem;
   font-style: italic;
-}
-
-/* Koordinate u redu */
-.coordinates-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
 }
 
 textarea.form-control {
@@ -140,32 +133,6 @@ textarea.form-control {
   box-shadow: none;
 }
 
-.form-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.secondary-btn {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #007bff;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: transparent;
-  color: #007bff;
-  transition: all 0.3s ease;
-}
-
-.secondary-btn:hover {
-  background: #007bff;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
-}
-
 .validation-error {
   color: #e74c3c;
   font-size: 0.85rem;
@@ -190,115 +157,6 @@ textarea.form-control {
 .error-message {
   color: #e74c3c;
   background-color: #fbe9e7;
-}
-
-/* Lista dodatih keypoints */
-.added-keypoints {
-  margin-top: 2.5rem;
-  padding-top: 2rem;
-  border-top: 2px solid #eef;
-}
-
-.added-keypoints h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.keypoints-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.keypoint-card {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid #e9ecef;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.keypoint-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.keypoint-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.keypoint-header h4 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #2c3e50;
-  flex: 1;
-}
-
-.delete-btn {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  margin-left: 1rem;
-}
-
-.delete-btn:hover {
-  background: #c0392b;
-  transform: scale(1.1);
-}
-
-.keypoint-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.keypoint-description {
-  margin: 0;
-  color: #555;
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
-
-.keypoint-details {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.coordinate {
-  font-size: 0.9rem;
-  color: #666;
-  background: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  border: 1px solid #dee2e6;
-}
-
-.coordinate strong {
-  color: #2c3e50;
-}
-
-.keypoint-image {
-  margin-top: 0.5rem;
 }
 
 .image-preview-container {
@@ -343,38 +201,4 @@ textarea.form-control {
   border-radius: 6px;
   border: 2px solid #dee2e6;
   object-fit: contain;
-}
-
-.file-input {
-  color: transparent;
-}
-
-.keypoint-thumbnail {
-  max-width: 150px;
-  max-height: 100px;
-  border-radius: 8px;
-  border: 2px solid #e9ecef;
-  object-fit: cover;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .keypoint-header {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .delete-btn {
-    align-self: flex-end;
-    margin-left: 0;
-  }
-  
-  .keypoint-details {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .coordinates-row {
-    grid-template-columns: 1fr;
-  }
 }

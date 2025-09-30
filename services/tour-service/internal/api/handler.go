@@ -21,6 +21,7 @@ func NewHandler(s *service.TourService, kps *service.KeyPointService) *Handler {
 	}
 }
 
+// CreateTour kreira turu SA keypointsima
 func (h *Handler) CreateTour(w http.ResponseWriter, r *http.Request) {
 	userID, _ := r.Context().Value("userID").(uint)
 
@@ -54,36 +55,6 @@ func (h *Handler) GetMyTours(w http.ResponseWriter, r *http.Request) {
 }
 
 // KEYPOINT METHODS:
-
-// CreateKeyPoint creates a new key point for a tour
-func (h *Handler) CreateKeyPoint(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value("userID").(uint)
-	
-	// Get tour ID from URL path
-	vars := mux.Vars(r)
-	tourIDStr := vars["tourId"]
-	tourID, err := strconv.ParseUint(tourIDStr, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid tour ID", http.StatusBadRequest)
-		return
-	}
-
-	var req dto.CreateKeyPointRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	keyPoint, err := h.KeyPointService.CreateKeyPoint(uint(tourID), userID, req)
-	if err != nil {
-		http.Error(w, "Failed to create key point: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(keyPoint)
-}
-
 // GetKeyPointsByTour gets all key points for a specific tour
 func (h *Handler) GetKeyPointsByTour(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

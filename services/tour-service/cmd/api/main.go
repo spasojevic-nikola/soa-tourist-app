@@ -34,7 +34,6 @@ func main() {
 	apiV1.Handle("", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetMyTours))).Methods("GET")
 
 	// KeyPoint routes
-	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateKeyPoint))).Methods("POST")
 	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetKeyPointsByTour))).Methods("GET")
 	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.UpdateKeyPoint))).Methods("PUT")
 	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.DeleteKeyPoint))).Methods("DELETE")

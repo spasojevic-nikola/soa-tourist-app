@@ -1,0 +1,87 @@
+<div class="map-creation-container">
+  <div class="header">
+    <h2>Add Key Points to Your Tour</h2>
+    <p>Click on the map to add key points. They will be connected with a blue route.</p>
+  </div>
+
+  <div class="map-container">
+    <div id="map" class="map"></div>
+    
+    <!-- Forma za dodavanje key pointa -->
+    <div *ngIf="isFormVisible" class="keypoint-form-overlay">
+      <div class="keypoint-form">
+        <h3>Add Key Point</h3>
+        
+        <form [formGroup]="keyPointsForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" formControlName="name" class="form-control" placeholder="Enter key point name">
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea formControlName="description" class="form-control" placeholder="Describe this key point..."></textarea>
+          </div>
+
+          <div class="coordinates">
+            <div class="form-group">
+              <label>Latitude</label>
+              <input type="number" formControlName="latitude" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label>Longitude</label>
+              <input type="number" formControlName="longitude" class="form-control" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Order</label>
+            <input type="number" formControlName="order" class="form-control" min="1">
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="closeForm()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="keyPointsForm.invalid">Add Key Point</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista dodatih keypoints -->
+  <div *ngIf="keyPoints.length > 0" class="keypoints-list-section">
+    <h3>Added Key Points ({{ keyPoints.length }})</h3>
+    
+    <div class="keypoints-list">
+      <div *ngFor="let keyPoint of keyPoints; let i = index" class="keypoint-item">
+        <div class="keypoint-header">
+          <h4>{{ keyPoint.order }}. {{ keyPoint.name }}</h4>
+          <button 
+            type="button" 
+            class="delete-btn"
+            (click)="removeKeyPoint(i)">
+            ×
+          </button>
+        </div>
+        
+        <div class="keypoint-content">
+          <p class="keypoint-description">{{ keyPoint.description }}</p>
+          <div class="keypoint-details">
+            <span class="coordinate">Lat: {{ keyPoint.latitude | number:'1.4-4' }}</span>
+            <span class="coordinate">Lng: {{ keyPoint.longitude | number:'1.4-4' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBRISI STARO "Finish" dugme i DODAJ OVA DVA DUGMETA -->
+  <div class="wizard-actions">
+    <button type="button" class="btn-back" (click)="backToStep1()">
+      ← Back to Basic Info
+    </button>
+    <button type="button" class="btn-create-tour" (click)="finishTour()" [disabled]="keyPoints.length === 0">
+      {{ keyPoints.length === 0 ? 'Add at least one key point' : 'Create Tour' }}
+    </button>
+  </div>
+</div>

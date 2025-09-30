@@ -41,7 +41,7 @@
     </div>
 
     <button type="submit" class="submit-btn" [disabled]="tourForm.invalid || isSubmitting">
-      {{ isSubmitting ? 'Creating...' : 'Create Tour' }}
+      {{ isSubmitting ? 'Creating...' : 'Next Step' }}  
     </button>
   </form>
 
@@ -53,32 +53,3 @@
   </div>
 </div>
 
-<!-- Key Points Dialog -->
-<div *ngIf="showKeyPointDialog" class="dialog-overlay">
-  <div class="dialog-container">
-    <div class="dialog-header">
-      <h3>Tour Created Successfully! 🎉</h3>
-    </div>
-    
-    <div class="dialog-body">
-      <p>Would you like to add key points to this tour now?</p>
-      <p class="dialog-note">Key points will help tourists follow the route more easily.</p>
-    </div>
-
-    <div class="dialog-actions">
-      <button 
-        type="button" 
-        class="btn-primary" 
-        (click)="onAddKeyPoints()">
-        Add Key Points
-      </button>
-      
-      <button 
-        type="button" 
-        class="btn-secondary" 
-        (click)="onSkipKeyPoints()">
-        Later
-      </button>
-    </div>
-  </div>
-</div>

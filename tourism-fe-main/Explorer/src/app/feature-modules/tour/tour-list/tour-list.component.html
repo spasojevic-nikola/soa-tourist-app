@@ -23,15 +23,6 @@
             <span class="stat-value">€{{ tour.price }}</span>
           </div>
         </div>
-
-        <div class="card-actions">
-          <button 
-            class="add-keypoints-btn"
-            [disabled]="hasKeypoints(tour.id)" 
-            (click)="navigateToKeyPoints(tour.id)">
-            {{ hasKeypoints(tour.id) ? 'Key Points Added' : 'Add Key Points' }}
-          </button>
-        </div>
       </div>
 
     </div>
