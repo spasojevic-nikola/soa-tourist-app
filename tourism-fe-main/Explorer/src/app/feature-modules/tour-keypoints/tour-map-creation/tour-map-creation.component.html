@@ -27,8 +27,9 @@
         <div class="keypoint-content">
           <p class="keypoint-description">{{ keyPoint.description }}</p>
           <div class="keypoint-details">
-            <span class="coordinate">Lat: {{ keyPoint.latitude | number:'1.4-4' }}</span>
-            <span class="coordinate">Lng: {{ keyPoint.longitude | number:'1.4-4' }}</span>
+            <span class="address">
+              📍 {{ keyPoint.address }}
+            </span>
             <span *ngIf="keyPoint.image" class="image-indicator">📷 Has image</span>
           </div>
         </div>
@@ -41,7 +42,7 @@
       ← Back to Basic Info
     </button>
     <button type="button" class="btn-create-tour" (click)="finishTour()" [disabled]="keyPoints.length === 0">
-      {{ keyPoints.length === 0 ? 'Add at least one key point' : 'Create Tour' }}
+      {{ keyPoints.length < 2 ? 'Add at least two key points' : 'Create Tour' }}
     </button>
   </div>
 </div>

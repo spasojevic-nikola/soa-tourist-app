@@ -18,4 +18,5 @@ export interface CreateKeyPointPayload {
   longitude: number;
   image: File | null;
   order: number;
+    address?: string
 }

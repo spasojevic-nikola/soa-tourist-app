@@ -2,6 +2,10 @@ import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CreateKeyPointPayload } from '../model/keypoint.model';
 import { KeypointDialogService } from '../../tour/services/keypoint-dialog.service';
+import { MapService } from '../../tour/services/map-service.service';
+import { KeyPoint } from '../model/keypoint.model';
+import { Observable, of, from } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 
 declare let L: any;
 
@@ -20,10 +24,12 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   markers: any[] = [];
   polyline: any;
   tempMarker: any;
+  private addressCache = new Map<string, string>();
 
   constructor(
     private fb: FormBuilder,
-    private keypointDialogService: KeypointDialogService
+    private keypointDialogService: KeypointDialogService,
+    private mapService: MapService
   ) {}
 
   ngOnInit(): void {}
@@ -66,8 +72,14 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   openKeypointDialog(lat: number, lng: number): void {
     const order = this.keyPoints.length + 1;
     
-    this.keypointDialogService.openKeypointDialog(lat, lng, order).subscribe((result) => {
+    this.keypointDialogService.openKeypointDialog(lat, lng, order).subscribe(async (result) => {
       if (result) {
+        try {
+          result.address = await this.mapService.reverseGeocode(result.latitude, result.longitude);
+        } catch (error) {
+          result.address = `Lat: ${result.latitude.toFixed(4)}, Lng: ${result.longitude.toFixed(4)}`;
+        }
+
         this.keyPoints.push(result);
         this.drawExistingKeyPoints();
       }
@@ -115,8 +127,8 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   }
 
   finishTour(): void {
-    if (this.keyPoints.length === 0) {
-      alert('Please add at least one key point before creating the tour.');
+    if (this.keyPoints.length < 2) {
+      alert('Please add at least two key points before creating the tour.');
       return;
     }
     this.keyPointsCompleted.emit(this.keyPoints);
@@ -125,4 +137,22 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   backToStep1(): void {
     this.goBack.emit();
   }
+
+  getAddressDisplay(keyPoint: CreateKeyPointPayload): Observable<string> {
+    const cacheKey = `${keyPoint.latitude},${keyPoint.longitude}`;
+    
+    if (this.addressCache.has(cacheKey)) {
+      return of(this.addressCache.get(cacheKey)!);
+    }
+    
+    return from(this.mapService.reverseGeocode(keyPoint.latitude, keyPoint.longitude)).pipe(
+      tap(address => this.addressCache.set(cacheKey, address)),
+      catchError(error => {
+        const fallback = `Lat: ${keyPoint.latitude.toFixed(4)}, Lng: ${keyPoint.longitude.toFixed(4)}`;
+        this.addressCache.set(cacheKey, fallback);
+        return of(fallback);
+      })
+    );
+  }
+
 }

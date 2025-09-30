@@ -1,5 +1,8 @@
 <div class="form-container">
-  <h2>Add Key Point</h2>
+  <div class="form-header">
+    <h2>Add Key Point</h2>
+    <button type="button" class="close-btn" (click)="onCancel()">×</button>
+  </div>
 
   <form [formGroup]="keyPointsForm" (ngSubmit)="onSubmit()" novalidate>
     
@@ -39,7 +42,6 @@
     </div>
 
     <div class="form-actions">
-      <button type="button" class="btn-cancel" (click)="onCancel()">Cancel</button>
       <button type="submit" class="submit-btn" [disabled]="keyPointsForm.invalid || isSubmitting">
         {{ isSubmitting ? 'Adding...' : 'Add Key Point' }}
       </button>
