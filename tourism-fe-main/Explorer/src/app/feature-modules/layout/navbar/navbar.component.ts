@@ -55,4 +55,8 @@ export class NavbarComponent implements OnInit {
       this.router.navigate(['/search'], { queryParams: { q: query } });
     }
   }
+  
+  clearSearch(): void {
+    this.searchControl.setValue('');
+  }
 }
