@@ -1,113 +1,130 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
-	"time"
 
-	"blog-service/internal/models" 
+	"blog-service/internal/dto"
+	"blog-service/internal/service"
 
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
+
+// Handler sadrži referencu na BlogService
 type Handler struct {
-	DB *mongo.Database
+	Service *service.BlogService
 }
 
-func NewHandler(db *mongo.Database) *Handler {
-	return &Handler{DB: db}
+// NewHandler kreira novu instancu Handler-a
+func NewHandler(service *service.BlogService) *Handler {
+	return &Handler{Service: service}
 }
 
+// CreateBlog endpoint za kreiranje bloga
 func (h *Handler) CreateBlog(w http.ResponseWriter, r *http.Request) {
-	// Citamo userID kao uint iz konteksta
-	authorID, _ := r.Context().Value("userID").(uint)
-
-	var blog models.Blog
-	if err := json.NewDecoder(r.Body).Decode(&blog); err != nil {
+	var req dto.CreateBlogRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	blog.ID = primitive.NewObjectID()
-	blog.AuthorID = authorID
-	blog.CreatedAt = time.Now()
-	blog.UpdatedAt = time.Now()
-	blog.Comments = []models.Comment{}
-	blog.Likes = []uint{}
+	authorID := r.Context().Value("userID").(uint)
 
-	_, err := h.DB.Collection("blogs").InsertOne(context.Background(), blog)
+	blog, err := h.Service.CreateBlog(r.Context(), req, authorID)
 	if err != nil {
-		http.Error(w, "Failed to create blog", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(blog)
 }
 
+// AddComment endpoint za dodavanje komentara
 func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
-	blogID, _ := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
-	//Citamo userID kao uint
-	authorID, _ := r.Context().Value("userID").(uint)
-
-	var commentData struct{ Text string `json:"text"` }
-	json.NewDecoder(r.Body).Decode(&commentData)
-
-	newComment := models.Comment{
-		AuthorID:  authorID,
-		Text:      commentData.Text,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	update := bson.M{"$push": bson.M{"comments": newComment}}
-	_, err := h.DB.Collection("blogs").UpdateOne(context.Background(), bson.M{"_id": blogID}, update)
-	if err != nil {
-		http.Error(w, "Failed to add comment", http.StatusInternalServerError)
+	var req dto.AddCommentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newComment)
+	authorID := r.Context().Value("userID").(uint)
+
+	vars := mux.Vars(r)
+	idParam := vars["id"]
+	blogID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+		return
+	}
+
+	comment, err := h.Service.AddComment(r.Context(), blogID, req, authorID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(comment)
 }
 
+// ToggleLike endpoint za lajkovanje/unlajkovanje
 func (h *Handler) ToggleLike(w http.ResponseWriter, r *http.Request) {
-	blogID, _ := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
-	// Citamo userID kao uint
-	userID, _ := r.Context().Value("userID").(uint)
+	userID := r.Context().Value("userID").(uint)
 
-	var blog models.Blog
-	h.DB.Collection("blogs").FindOne(context.Background(), bson.M{"_id": blogID}).Decode(&blog)
-
-	alreadyLiked := false
-	for _, id := range blog.Likes {
-		if id == userID {
-			alreadyLiked = true
-			break
-		}
-	}
-	
-	var update bson.M
-	message := ""
-	if alreadyLiked {
-		update = bson.M{"$pull": bson.M{"likes": userID}}
-		message = "Blog unliked successfully"
-	} else {
-		update = bson.M{"$addToSet": bson.M{"likes": userID}}
-		message = "Blog liked successfully"
-	}
-
-	_, err := h.DB.Collection("blogs").UpdateOne(context.Background(), bson.M{"_id": blogID}, update)
+	vars := mux.Vars(r)
+	idParam := vars["id"]
+	blogID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		http.Error(w, "Failed to update like status", http.StatusInternalServerError)
+		http.Error(w, "Invalid blog ID", http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": message})
+	message, err := h.Service.ToggleLike(r.Context(), blogID, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]string{"message": message}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// GetAllBlogs endpoint za dobijanje svih blogova
+func (h *Handler) GetAllBlogs(w http.ResponseWriter, r *http.Request) {
+	blogs, err := h.Service.GetAllBlogs(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(blogs)
+}
+
+// GetBlogByID endpoint za dobijanje bloga po ID-ju
+func (h *Handler) GetBlogByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idParam := vars["id"]
+	blogID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+		return
+	}
+
+	blog, err := h.Service.GetBlogByID(r.Context(), blogID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if blog == nil {
+		http.Error(w, "Blog not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(blog)
 }

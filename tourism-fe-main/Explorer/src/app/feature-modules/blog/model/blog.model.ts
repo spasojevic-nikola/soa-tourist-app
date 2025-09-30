@@ -15,8 +15,19 @@ export interface CreateBlogPayload {
     createdAt: string;
     updatedAt: string;
     images?: string[];
-    comments: any[]; // Za sada može any, kasnije ćete definisati Comment model
+    comments: BlogComment[]; // Za sada može any, kasnije ćete definisati Comment model
     likes: number[];
   }
   
-  
+  export interface BlogComment {
+  authorId: number;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+  id?: string;
+  authorUsername?: string;
+}
+
+export interface AddCommentPayload {
+  text: string;
+}

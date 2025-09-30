@@ -16,11 +16,22 @@ import { JwtInterceptor } from './infrastructure/auth/jwt/jwt.interceptor';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
 import { TourModule } from './feature-modules/tour/tour.module';
+import { BlogViewComponent } from './feature-modules/blog-view/blog-view.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+
+
+
 
 @NgModule({
   declarations: [
     AppComponent,
-    AdminDashboardComponent
+    AdminDashboardComponent,
+    BlogViewComponent,
+
   ],
   imports: [
     BrowserModule,
@@ -33,7 +44,13 @@ import { TourModule } from './feature-modules/tour/tour.module';
     AuthModule,
     HttpClientModule,
     MatIconModule,
-    TourModule
+    TourModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatProgressSpinnerModule,
+    MatInputModule,
+    MatButtonModule
   ],
   providers: [
     {
