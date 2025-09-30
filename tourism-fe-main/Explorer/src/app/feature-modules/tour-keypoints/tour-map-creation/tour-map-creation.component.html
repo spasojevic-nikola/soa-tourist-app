@@ -4,9 +4,16 @@
     <p>Click on the map to add key points. They will be connected with a blue route.</p>
   </div>
 
-  <div class="map-container">
-    <div id="map" class="map"></div>
+<div class="map-container">
+  <div *ngIf="isEditMode" class="edit-mode-indicator">
+    <div class="edit-mode-message">
+      ✏️ Editing key point {{editingIndex !== null ? editingIndex + 1 : ''}} - Click on map to select new location
+      <button class="cancel-edit-btn" (click)="cancelEdit()">Cancel</button>
+    </div>
   </div>
+  
+  <div id="map" class="map"></div>
+</div>
 
   <div *ngIf="keyPoints.length > 0" class="keypoints-list-section">
     <h3>Added Key Points ({{ keyPoints.length }})</h3>
@@ -15,12 +22,22 @@
       <div *ngFor="let keyPoint of keyPoints; let i = index" class="keypoint-item">
         <div class="keypoint-header">
           <h4>{{ keyPoint.order }}. {{ keyPoint.name }}</h4>
-          <button 
-            type="button" 
-            class="delete-btn"
-            (click)="removeKeyPoint(i)">
-            ×
-          </button>
+          <div class="keypoint-actions">
+    <button 
+      type="button" 
+      class="edit-btn"
+      (click)="startEditKeyPoint(i)"
+          title="Edit key point">
+          ✏️
+        </button>
+        <button 
+          type="button" 
+          class="delete-btn"
+          (click)="removeKeyPoint(i)"
+          title="Delete key point">
+          ×
+        </button>
+      </div>
         </div>
         
         <div class="keypoint-content">

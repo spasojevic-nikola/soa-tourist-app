@@ -26,6 +26,8 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   tempMarker: any;
   private addressCache = new Map<string, string>();
   private imagePreviews = new Map<number, string>();
+  isEditMode = false;
+  editingIndex: number | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -54,6 +56,11 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   }
 
   onMapClick(e: any): void {
+    if (this.isEditMode && this.editingIndex !== null) {
+      this.finishEditKeyPoint(e.latlng.lat, e.latlng.lng);
+      return;
+    }
+    
     if (this.tempMarker) {
       this.map.removeLayer(this.tempMarker);
     }
@@ -71,31 +78,31 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   }
 
   openKeypointDialog(lat: number, lng: number): void {
-  const order = this.keyPoints.length + 1;
-  
-  this.keypointDialogService.openKeypointDialog(lat, lng, order).subscribe(async (result) => {
-    if (result) {
-      try {
-        result.address = await this.mapService.reverseGeocode(result.latitude, result.longitude);
-      } catch (error) {
-        result.address = `Lat: ${result.latitude.toFixed(4)}, Lng: ${result.longitude.toFixed(4)}`;
-      }
-
-      // result.image JE VEĆ BASE64 STRING IZ DIJALOGA!
-      if (result.image && typeof result.image === 'string') {
-        this.imagePreviews.set(this.keyPoints.length, result.image);
-      }
-
-      this.keyPoints.push(result);
-      this.drawExistingKeyPoints();
-    }
+    const order = this.keyPoints.length + 1;
     
-    if (this.tempMarker) {
-      this.map.removeLayer(this.tempMarker);
-      this.tempMarker = null;
-    }
-  });
-}
+    this.keypointDialogService.openKeypointDialog(lat, lng, order).subscribe(async (result) => {
+      if (result) {
+        try {
+          result.address = await this.mapService.reverseGeocode(result.latitude, result.longitude);
+        } catch (error) {
+          result.address = `Lat: ${result.latitude.toFixed(4)}, Lng: ${result.longitude.toFixed(4)}`;
+        }
+
+        if (result.image && typeof result.image === 'string') {
+          this.imagePreviews.set(this.keyPoints.length, result.image);
+        }
+
+        this.keyPoints.push(result);
+        this.drawExistingKeyPoints();
+      }
+      
+      if (this.tempMarker) {
+        this.map.removeLayer(this.tempMarker);
+        this.tempMarker = null;
+      }
+    });
+  }
+
   drawExistingKeyPoints(): void {
     this.markers.forEach(marker => this.map.removeLayer(marker));
     if (this.polyline) {
@@ -173,5 +180,83 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
 
   getImagePreview(index: number): string | null {
     return this.imagePreviews.get(index) || null;
+  }
+
+  startEditKeyPoint(index: number): void {
+    this.isEditMode = true;
+    this.editingIndex = index;
+  }
+
+  async finishEditKeyPoint(lat: number, lng: number): Promise<void> {
+    if (this.editingIndex === null) return;
+
+    const existingKeyPoint = this.keyPoints[this.editingIndex];
+    
+    // Dodaj temporary marker na novu lokaciju
+    if (this.tempMarker) {
+      this.map.removeLayer(this.tempMarker);
+    }
+    
+    this.tempMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: 'temp-marker',
+        html: '📍',
+        iconSize: [30, 30]
+      })
+    }).addTo(this.map);
+
+    // Kreiraj ažurirani key point sa NOVOM LOKACIJOM
+    const updatedKeyPoint: CreateKeyPointPayload = {
+      ...existingKeyPoint,
+      latitude: lat,  // Koristi NOVE koordinate
+      longitude: lng  // Koristi NOVE koordinate
+    };
+
+    // Otvori edit dijalog sa ažuriranim podacima
+    this.openEditKeypointDialog(lat, lng, this.editingIndex, updatedKeyPoint);
+  }
+
+  cancelEdit(): void {
+    this.isEditMode = false;
+    this.editingIndex = null;
+    
+    if (this.tempMarker) {
+      this.map.removeLayer(this.tempMarker);
+      this.tempMarker = null;
+    }
+  }
+
+  openEditKeypointDialog(lat: number, lng: number, index: number, existingKeyPoint: CreateKeyPointPayload): void {
+    this.keypointDialogService.openKeypointDialog(
+      lat, 
+      lng, 
+      existingKeyPoint.order,
+      existingKeyPoint
+    ).subscribe(async (result) => {
+      if (result) {
+        try {
+          result.address = await this.mapService.reverseGeocode(result.latitude, result.longitude);
+        } catch (error) {
+          result.address = `Lat: ${result.latitude.toFixed(4)}, Lng: ${result.longitude.toFixed(4)}`;
+        }
+
+        // Ažuriraj postojeći key point
+        this.keyPoints[index] = result;
+        
+        if (result.image && typeof result.image === 'string') {
+          this.imagePreviews.set(index, result.image);
+        }
+        
+        this.drawExistingKeyPoints();
+      }
+      
+      this.isEditMode = false;
+      this.editingIndex = null;
+      
+      if (this.tempMarker) {
+        this.map.removeLayer(this.tempMarker);
+        this.tempMarker = null;
+      }
+    });
   }
 }

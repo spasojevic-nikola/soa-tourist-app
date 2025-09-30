@@ -1,6 +1,6 @@
 <div class="form-container">
   <div class="form-header">
-    <h2>Add Key Point</h2>
+    <h2>{{ isEditMode ? 'Update Key Point' : 'Add Key Point' }}</h2>
     <button type="button" class="close-btn" (click)="onCancel()">×</button>
   </div>
 
@@ -43,7 +43,7 @@
 
     <div class="form-actions">
       <button type="submit" class="submit-btn" [disabled]="keyPointsForm.invalid || isSubmitting">
-        {{ isSubmitting ? 'Adding...' : 'Add Key Point' }}
+        {{ isSubmitting ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Key Point' : 'Add Key Point') }}
       </button>
     </div>
   </form>

@@ -7,6 +7,7 @@ export interface KeypointDialogData {
   latitude: number;
   longitude: number;
   order: number;
+  existingKeyPoint?: CreateKeyPointPayload;
 }
 
 @Component({
@@ -20,6 +21,7 @@ export class TourKeypointsComponent implements OnInit {
   successMessage: string | null = null;
   errorMessage: string | null = null;
   imagePreview: string | null = null;
+  isEditMode = false;
 
   constructor(
     private fb: FormBuilder,
@@ -30,6 +32,33 @@ export class TourKeypointsComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.patchFormWithData();
+
+    // Ako postoje postojeći podaci, popuni formu
+  if (this.data.existingKeyPoint) {
+    this.patchFormWithExistingData();
+  }
+}
+
+patchFormWithExistingData(): void {
+  const existing = this.data.existingKeyPoint;
+  if(existing != null)
+  {
+    this.keyPointsForm.patchValue({
+    name: existing.name,
+    description: existing.description,
+    latitude: existing.latitude,
+    longitude: existing.longitude,
+    order: existing.order
+  });
+
+    // Ako postoji slika, postavi preview
+    if (existing.image && typeof existing.image === 'string') {
+      this.imagePreview = existing.image;
+    }
+
+    this.isEditMode = true;
+  }
+  
   }
 
   initForm(): void {
