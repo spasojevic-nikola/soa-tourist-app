@@ -38,3 +38,26 @@ func (repo *FollowerRepository) Follow(followerId, followedId uint) error {
 
 	return err
 }
+
+// Unfollow brise :FOLLOWS vezu između dva korisnika
+func (repo *FollowerRepository) Unfollow(followerId, followedId uint) error {
+	ctx := context.Background()
+	session := repo.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(ctx)
+
+	query := `
+		MATCH (follower:User {id: $followerId})-[r:FOLLOWS]->(followed:User {id: $followedId})
+		DELETE r
+	`
+	params := map[string]interface{}{
+		"followerId": followerId,
+		"followedId": followedId,
+	}
+
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		_, err := tx.Run(ctx, query, params)
+		return nil, err
+	})
+
+	return err
+}

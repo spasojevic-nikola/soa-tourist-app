@@ -7,6 +7,8 @@ import { RegistrationComponent } from '../auth/registration/registration.compone
 import { ProfileComponent } from 'src/app/feature-modules/user-profile/profile/profile.component';
 import { AdminDashboardComponent } from 'src/app/admin-dashboard/admin-dashboard.component';
 import { BlogViewComponent } from 'src/app/feature-modules/blog-view/blog-view.component';
+import { NavbarComponent } from 'src/app/feature-modules/layout/navbar/navbar.component';
+import { SearchResultsComponent } from 'src/app/feature-modules/search-results/search-results.component';
 
 const routes: Routes = [
   {path: 'home', component: HomeComponent},
@@ -14,6 +16,7 @@ const routes: Routes = [
   {path: 'register', component: RegistrationComponent},
   { path: 'blog/view', component: BlogViewComponent },
   { path: 'blogs/:id', component: BlogViewComponent },
+  { path: 'search', component: SearchResultsComponent, canActivate: [AuthGuard] },
 
 
   {

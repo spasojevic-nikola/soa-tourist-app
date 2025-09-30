@@ -69,3 +69,35 @@ button[mat-icon-button] mat-icon {
 ::ng-deep .mat-mdc-menu-item mat-icon {
   margin: 0 !important;
 }
+
+.search-form-field {
+  width: 250px;
+  margin-left: 20px;
+}
+/* Stil za svaku stavku (opciju) u padajućem meniju */
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Ovo je ključni deo - smanjujemo sliku */
+.search-result-item .avatar {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+}
+
+/* Stil za tekst pored slike */
+.search-result-item span {
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+::ng-deep .search-form-field .mdc-notched-outline > * { border-color: rgba(255, 255, 255, 0.3) !important; }
+::ng-deep .search-form-field:hover .mdc-notched-outline > * { border-color: rgba(255, 255, 255, 0.7) !important; }
+::ng-deep .search-form-field.mat-focused .mdc-notched-outline > * { border-color: #fff !important; border-width: 2px !important; }
+::ng-deep .search-form-field .mat-mdc-form-field-icon-prefix,
+::ng-deep .search-form-field .mat-mdc-input-element,
+::ng-deep .search-form-field .mat-mdc-floating-label { color: #fff !important; }
+::ng-deep .search-form-field .mat-mdc-form-field-subscript-wrapper { display: none; }
+::ng-deep .search-form-field .mat-mdc-form-field-flex { height: 48px; padding-top: 12px !important; padding-bottom: 12px !important; }

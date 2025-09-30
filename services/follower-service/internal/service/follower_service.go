@@ -23,3 +23,7 @@ func (s *FollowerService) Follow(followerId, followedId uint) error {
 
 	return s.Repo.Follow(followerId, followedId)
 }
+
+func (s *FollowerService) Unfollow(followerId, followedId uint) error {
+	return s.Repo.Unfollow(followerId, followedId)
+}

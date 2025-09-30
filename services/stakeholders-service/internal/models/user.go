@@ -9,6 +9,7 @@ import (
 // User model predstavlja korisnika u stakeholders_users tabeli
 type User struct {
 	ID           uint      `json:"id" gorm:"primaryKey"`
+	Username     string    `json:"username" gorm:"unique"`
 	FirstName    string    `json:"first_name"`
 	LastName     string    `json:"last_name"`
 	ProfileImage string    `json:"profile_image"`

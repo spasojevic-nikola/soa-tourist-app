@@ -22,6 +22,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { SearchResultsComponent } from './feature-modules/search-results/search-results.component';
 
 
 
@@ -31,6 +32,7 @@ import { MatButtonModule } from '@angular/material/button';
     AppComponent,
     AdminDashboardComponent,
     BlogViewComponent,
+    SearchResultsComponent,
 
   ],
   imports: [
