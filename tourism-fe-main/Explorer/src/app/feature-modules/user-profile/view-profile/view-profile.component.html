@@ -1,52 +1,48 @@
 <div class="profile-container">
-    <!-- Prikazujemo profil ako nije u stanju učitavanja i ako postoji korisnik -->
-    <ng-container *ngIf="!isLoading && user; else loadingOrError">
-      <div class="profile-card">
-  
-        <!-- Gornji deo sa slikom i imenom -->
-        <div class="profile-header">
-          <div class="profile-image-container">
-            <img [src]="user.profile_image || 'assets/images/default_profile.png'" alt="Profile Picture" class="profile-image" />
-          </div>
-          
+  <ng-container *ngIf="!isLoading && user; else loadingOrError">
+    <div class="profile-card">
+
+      <div class="profile-header">
+        <div class="profile-image-container">
+          <img [src]="user.profile_image || 'assets/images/default_profile.png'" alt="Profile Picture" class="profile-image" />
+        </div>
+
+        <div class="name-and-action">
           <h2 class="profile-name">
             {{ user.first_name || user.last_name ? (user.first_name + ' ' + user.last_name) : user.username }}
           </h2>
           
-          <p class="profile-username">@{{ user.username }}</p>
-          <p class="profile-role">{{ user.role | titlecase }}</p>
-        </div>
-  
-        <!-- Donji deo sa detaljima (biografija i moto) -->
-        <div class="profile-details">
-          <div class="detail-item">
-            <label>Motto:</label>
-            <p>{{ user.motto || 'Not set' }}</p>
-          </div>
-  
-          <div class="detail-item">
-            <label>Biography:</label>
-            <p>{{ user.biography || 'Not set' }}</p>
+          <div *ngIf="!isMyProfile" class="profile-actions-inline"> 
+            <button *ngIf="!isFollowing" (click)="follow()" class="follow-btn">Follow</button>
+            <button *ngIf="isFollowing" (click)="unfollow()" class="unfollow-btn">Unfollow</button>
           </div>
         </div>
-  
-        <!-- DUGME ZA PRAĆENJE -->
-  
-        <div *ngIf="!isMyProfile" class="profile-actions">
-          <button *ngIf="!isFollowing" (click)="follow()" class="follow-btn">Follow</button>
-          
-          <button *ngIf="isFollowing" (click)="unfollow()" class="unfollow-btn">Unfollow</button>
+        
+        <p class="profile-username">@{{ user.username }}</p>
+        <p class="profile-role">{{ user.role | titlecase }}</p>
+      </div>
+
+      <div class="profile-details">
+        <div class="detail-item">
+          <label>Motto:</label>
+          <p>{{ user.motto || 'Not set' }}</p>
+        </div>
+
+        <div class="detail-item">
+          <label>Biography:</label>
+          <p>{{ user.biography || 'Not set' }}</p>
         </div>
       </div>
-    </ng-container>
-  
-    <!-- Prikazuje se dok se učitava ili ako dođe do greške -->
-    <ng-template #loadingOrError>
-      <div *ngIf="isLoading" class="loading-message">
-        Loading profile...
+      
       </div>
-      <div *ngIf="!isLoading" class="error-message">
-        Could not load user profile.
-      </div>
-    </ng-template>
-  </div>
+  </ng-container>
+
+  <ng-template #loadingOrError>
+    <div *ngIf="isLoading" class="loading-message">
+      Loading profile...
+    </div>
+    <div *ngIf="!isLoading" class="error-message">
+      Could not load user profile.
+    </div>
+  </ng-template>
+</div>
