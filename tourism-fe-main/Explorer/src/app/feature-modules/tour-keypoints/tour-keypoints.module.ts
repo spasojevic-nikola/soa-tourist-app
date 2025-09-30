@@ -4,6 +4,7 @@ import { KeypointsRoutingModule } from './tour-keypoints-routing.module'
 import { TourKeypointsComponent } from './tour-keypoints/tour-keypoints.component'
 import { ReactiveFormsModule } from '@angular/forms';
 import { TourMapCreationComponent } from './tour-map-creation/tour-map-creation.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -13,7 +14,8 @@ import { TourMapCreationComponent } from './tour-map-creation/tour-map-creation.
   imports: [
     CommonModule,
     KeypointsRoutingModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatDialogModule
   ],
   exports: [
     TourMapCreationComponent   

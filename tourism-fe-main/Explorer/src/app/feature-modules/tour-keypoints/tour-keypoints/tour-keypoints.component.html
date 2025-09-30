@@ -38,15 +38,8 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="order">Order in Tour</label>
-      <input id="order" type="number" class="form-control" formControlName="order" placeholder="1">
-      <div *ngIf="keyPointsForm.get('order')?.touched && keyPointsForm.get('order')?.invalid" class="validation-error">
-        Order is required (minimum 1).
-      </div>
-    </div>
-
     <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="onCancel()">Cancel</button>
       <button type="submit" class="submit-btn" [disabled]="keyPointsForm.invalid || isSubmitting">
         {{ isSubmitting ? 'Adding...' : 'Add Key Point' }}
       </button>

@@ -6,46 +6,6 @@
 
   <div class="map-container">
     <div id="map" class="map"></div>
-    
-    <!-- Forma za dodavanje key pointa -->
-    <div *ngIf="isFormVisible" class="keypoint-form-overlay">
-      <div class="keypoint-form">
-        <h3>Add Key Point</h3>
-        
-        <form [formGroup]="keyPointsForm" (ngSubmit)="onSubmit()">
-          <div class="form-group">
-            <label>Name</label>
-            <input type="text" formControlName="name" class="form-control" placeholder="Enter key point name">
-          </div>
-
-          <div class="form-group">
-            <label>Description</label>
-            <textarea formControlName="description" class="form-control" placeholder="Describe this key point..."></textarea>
-          </div>
-
-          <div class="coordinates">
-            <div class="form-group">
-              <label>Latitude</label>
-              <input type="number" formControlName="latitude" class="form-control" readonly>
-            </div>
-            <div class="form-group">
-              <label>Longitude</label>
-              <input type="number" formControlName="longitude" class="form-control" readonly>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Order</label>
-            <input type="number" formControlName="order" class="form-control" min="1">
-          </div>
-
-          <div class="form-actions">
-            <button type="button" class="btn-cancel" (click)="closeForm()">Cancel</button>
-            <button type="submit" class="btn-submit" [disabled]="keyPointsForm.invalid">Add Key Point</button>
-          </div>
-        </form>
-      </div>
-    </div>
   </div>
 
   <!-- Lista dodatih keypoints -->
@@ -69,13 +29,13 @@
           <div class="keypoint-details">
             <span class="coordinate">Lat: {{ keyPoint.latitude | number:'1.4-4' }}</span>
             <span class="coordinate">Lng: {{ keyPoint.longitude | number:'1.4-4' }}</span>
+            <span *ngIf="keyPoint.image" class="image-indicator">📷 Has image</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- OBRISI STARO "Finish" dugme i DODAJ OVA DVA DUGMETA -->
   <div class="wizard-actions">
     <button type="button" class="btn-back" (click)="backToStep1()">
       ← Back to Basic Info

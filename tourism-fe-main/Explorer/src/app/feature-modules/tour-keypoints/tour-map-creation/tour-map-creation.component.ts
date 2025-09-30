@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CreateKeyPointPayload } from '../model/keypoint.model';
+import { KeypointDialogService } from '../../tour/services/keypoint-dialog.service';
 
 declare let L: any;
 
@@ -14,21 +15,18 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   @Output() goBack = new EventEmitter<void>();
 
   map: any;
-  keyPoints: CreateKeyPointPayload[] = []; // Promenjeno u CreateKeyPointPayload[]
-  keyPointsForm: FormGroup;
-  isFormVisible = false;
+  keyPoints: CreateKeyPointPayload[] = [];
   selectedPosition: { lat: number; lng: number } | null = null;
   markers: any[] = [];
   polyline: any;
   tempMarker: any;
 
   constructor(
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private keypointDialogService: KeypointDialogService
   ) {}
 
-  ngOnInit(): void {
-    this.initForm();
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -62,23 +60,22 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
     }).addTo(this.map);
 
     this.selectedPosition = { lat: e.latlng.lat, lng: e.latlng.lng };
-    this.isFormVisible = true;
-    
-    this.keyPointsForm.patchValue({
-      latitude: e.latlng.lat,
-      longitude: e.latlng.lng,
-      order: this.keyPoints.length + 1
-    });
+    this.openKeypointDialog(e.latlng.lat, e.latlng.lng);
   }
 
-  initForm(): void {
-    this.keyPointsForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3)]],
-      description: ['', [Validators.required, Validators.minLength(10)]],
-      latitude: ['', Validators.required],
-      longitude: ['', Validators.required],
-      image: [''],
-      order: [1, [Validators.required, Validators.min(1)]]
+  openKeypointDialog(lat: number, lng: number): void {
+    const order = this.keyPoints.length + 1;
+    
+    this.keypointDialogService.openKeypointDialog(lat, lng, order).subscribe((result) => {
+      if (result) {
+        this.keyPoints.push(result);
+        this.drawExistingKeyPoints();
+      }
+      
+      if (this.tempMarker) {
+        this.map.removeLayer(this.tempMarker);
+        this.tempMarker = null;
+      }
     });
   }
 
@@ -112,44 +109,11 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.keyPointsForm.invalid) return;
-
-    const payload: CreateKeyPointPayload = {
-      ...this.keyPointsForm.value,
-      latitude: parseFloat(this.keyPointsForm.value.latitude),
-      longitude: parseFloat(this.keyPointsForm.value.longitude),
-      order: parseInt(this.keyPointsForm.value.order)
-    };
-
-    // Dodaj keypoint lokalno (ne šalji na backend)
-    this.keyPoints.push(payload);
-    this.drawExistingKeyPoints();
-    this.closeForm();
-    
-    if (this.tempMarker) {
-      this.map.removeLayer(this.tempMarker);
-      this.tempMarker = null;
-    }
-  }
-
-  closeForm(): void {
-    this.isFormVisible = false;
-    this.selectedPosition = null;
-    this.keyPointsForm.reset({ order: this.keyPoints.length + 1 });
-    
-    if (this.tempMarker) {
-      this.map.removeLayer(this.tempMarker);
-      this.tempMarker = null;
-    }
-  }
-
   removeKeyPoint(index: number): void {
     this.keyPoints.splice(index, 1);
     this.drawExistingKeyPoints();
   }
 
-  // Nova metoda za završetak - emituje keypoints wizard-u
   finishTour(): void {
     if (this.keyPoints.length === 0) {
       alert('Please add at least one key point before creating the tour.');
@@ -158,7 +122,6 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
     this.keyPointsCompleted.emit(this.keyPoints);
   }
 
-  // Nova metoda za povratak na step 1
   backToStep1(): void {
     this.goBack.emit();
   }

@@ -1,8 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { KeypointService } from '../keypoint.service';
-import { CreateKeyPointPayload, KeyPoint } from '../model/keypoint.model';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { CreateKeyPointPayload } from '../model/keypoint.model';
+
+export interface KeypointDialogData {
+  latitude: number;
+  longitude: number;
+  order: number;
+}
 
 @Component({
   selector: 'xp-tour-keypoints',
@@ -10,23 +15,21 @@ import { CreateKeyPointPayload, KeyPoint } from '../model/keypoint.model';
   styleUrls: ['./tour-keypoints.component.css']
 })
 export class TourKeypointsComponent implements OnInit {
-  tourId: number;
   keyPointsForm: FormGroup;
   isSubmitting = false;
   successMessage: string | null = null;
   errorMessage: string | null = null;
-  imagePreview: string | null = null;  
-  addedKeyPoints: KeyPoint[] = [];
+  imagePreview: string | null = null;
 
   constructor(
-    private route: ActivatedRoute,
     private fb: FormBuilder,
-    private keyPointService: KeypointService
+    public dialogRef: MatDialogRef<TourKeypointsComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: KeypointDialogData
   ) {}
 
   ngOnInit(): void {
-    this.tourId = +this.route.snapshot.paramMap.get('tourId')!;
     this.initForm();
+    this.patchFormWithData();
   }
 
   initForm(): void {
@@ -40,7 +43,14 @@ export class TourKeypointsComponent implements OnInit {
     });
   }
 
-  // METODA ZA BASE64 CONVERSION
+  patchFormWithData(): void {
+    this.keyPointsForm.patchValue({
+      latitude: this.data.latitude,
+      longitude: this.data.longitude,
+      order: this.data.order
+    });
+  }
+
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
@@ -81,45 +91,16 @@ export class TourKeypointsComponent implements OnInit {
       description: formValue.description,
       latitude: parseFloat(formValue.latitude),
       longitude: parseFloat(formValue.longitude),
-      image: formValue.image, // BASE64 STRING
+      image: formValue.image,
       order: parseInt(formValue.order)
     };
 
-    this.keyPointService.createKeyPoint(this.tourId, payload).subscribe({
-      next: (createdKeyPoint) => {
-        this.addedKeyPoints.push(createdKeyPoint);
-        this.successMessage = `Key point "${createdKeyPoint.name}" added successfully!`;
-        this.keyPointsForm.reset();
-        this.imagePreview = null;
-        this.isSubmitting = false;
-      },
-      error: (err) => {
-        this.errorMessage = `Error: ${err.error?.error || err.error || 'Please check your data and try again.'}`;
-        console.error(err);
-        this.isSubmitting = false;
-      }
-    });
+    // Zatvori dialog i vrati podatke
+    this.dialogRef.close(payload);
   }
 
-  addAnother(): void {
-    this.successMessage = null;
-    this.keyPointsForm.reset();
-    this.imagePreview = null;
+  onCancel(): void {
+    this.dialogRef.close(); // Zatvori bez podataka
   }
 
-  finish(): void {
-    window.history.back();
-  }
-
-  removeKeyPoint(keyPointId: number, index: number): void {
-    this.keyPointService.deleteKeyPoint(keyPointId).subscribe({
-      next: () => {
-        this.addedKeyPoints.splice(index, 1);
-        this.successMessage = 'Key point removed successfully!';
-      },
-      error: (err) => {
-        this.errorMessage = `Error removing key point: ${err.error?.error || err.error || 'Please try again.'}`;
-      }
-    });
-  }
 }
