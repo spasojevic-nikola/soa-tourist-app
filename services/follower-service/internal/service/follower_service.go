@@ -27,3 +27,7 @@ func (s *FollowerService) Follow(followerId, followedId uint) error {
 func (s *FollowerService) Unfollow(followerId, followedId uint) error {
 	return s.Repo.Unfollow(followerId, followedId)
 }
+
+func (s *FollowerService) CheckFollows(followerId, followedId uint) (bool, error) {
+	return s.Repo.CheckFollows(followerId, followedId)
+}

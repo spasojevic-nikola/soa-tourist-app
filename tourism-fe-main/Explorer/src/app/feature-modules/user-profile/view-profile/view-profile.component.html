@@ -30,9 +30,13 @@
           </div>
         </div>
   
-        <!-- MOŽETE DODATI DUGME ZA PRAĆENJE OVDE KASNIJE -->
-        <!-- <button class="follow-btn">Follow</button> -->
+        <!-- DUGME ZA PRAĆENJE -->
   
+        <div *ngIf="!isMyProfile" class="profile-actions">
+          <button *ngIf="!isFollowing" (click)="follow()" class="follow-btn">Follow</button>
+          
+          <button *ngIf="isFollowing" (click)="unfollow()" class="unfollow-btn">Unfollow</button>
+        </div>
       </div>
     </ng-container>
   

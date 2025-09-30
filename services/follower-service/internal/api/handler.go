@@ -48,11 +48,23 @@ func (h *Handler) Follow(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// Opciono: Handler za proveru da li postoji veza - trebace za blog-service
 func (h *Handler) CheckFollow(w http.ResponseWriter, r *http.Request) {
-    // Implementacija ove funkcije će biti potrebna kasnije za integraciju
-    // ...
-    json.NewEncoder(w).Encode(map[string]bool{"follows": true})
+	followerId, _ := r.Context().Value(userKey).(uint)
+	vars := mux.Vars(r)
+	followedId, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	follows, err := h.Service.CheckFollows(followerId, uint(followedId))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"follows": follows})
 }
 
 func (h *Handler) Unfollow(w http.ResponseWriter, r *http.Request) {

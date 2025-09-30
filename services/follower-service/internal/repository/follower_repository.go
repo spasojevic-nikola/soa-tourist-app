@@ -61,3 +61,32 @@ func (repo *FollowerRepository) Unfollow(followerId, followedId uint) error {
 
 	return err
 }
+	//proveri jel zapratio
+func (repo *FollowerRepository) CheckFollows(followerId, followedId uint) (bool, error) {
+	ctx := context.Background()
+	session := repo.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	query := `
+		RETURN EXISTS( (:User {id: $followerId})-[:FOLLOWS]->(:User {id: $followedId}) )
+	`
+	params := map[string]interface{}{
+		"followerId": followerId,
+		"followedId": followedId,
+	}
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		res, err := tx.Run(ctx, query, params)
+		if err != nil {
+			return false, err
+		}
+		if res.Next(ctx) {
+			return res.Record().Values[0], nil
+		}
+		return false, res.Err()
+	})
+	if err != nil {
+		return false, err
+	}
+	return result.(bool), nil
+}

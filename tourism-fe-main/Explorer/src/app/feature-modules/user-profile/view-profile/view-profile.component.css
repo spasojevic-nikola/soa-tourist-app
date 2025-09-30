@@ -101,3 +101,37 @@
   .error-message {
     color: #dc3545;
   }
+  .profile-actions {
+    margin-top: 2rem;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 2rem;
+  }
+  
+  .follow-btn, .unfollow-btn {
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 150px;
+  }
+  
+  .follow-btn {
+    background-color: #007bff;
+    color: white;
+  }
+  .follow-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+  }
+  
+  .unfollow-btn {
+    background-color: #e9ecef;
+    color: #333;
+    border: 1px solid #ced4da;
+  }
+  .unfollow-btn:hover {
+    background-color: #dee2e6;
+  }
