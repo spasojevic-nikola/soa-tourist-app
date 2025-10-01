@@ -11,6 +11,7 @@ type Blog struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Title     string             `bson:"title" json:"title"`
 	Content   string             `bson:"content" json:"content"`
+	HTMLContent string 			 `bson:"htmlContent" json:"htmlContent"`
 	AuthorID  uint               `bson:"authorId" json:"authorId"` // ISPRAVKA: Sada je uint
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`

@@ -11,6 +11,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	md "github.com/gomarkdown/markdown"
+	mdhtml "github.com/gomarkdown/markdown/html"
 )
 
 // BlogService sadrži reference na repository.
@@ -25,13 +27,25 @@ func NewBlogService(repo repository.BlogRepository) *BlogService {
 
 // CreateBlog kreira novi blog.
 func (s *BlogService) CreateBlog(ctx context.Context, req dto.CreateBlogRequest, authorID uint) (*models.Blog, error) {
+
+	// 1. KONVERZIJA MARKDOWN-a U HTML
+    rawMarkdown := []byte(req.Content)
+    
+    // Konfiguracija HTML renderera (Standardne opcije + otvaranje linkova u novom tabu)
+    opts := mdhtml.RendererOptions{Flags: mdhtml.CommonFlags | mdhtml.HrefTargetBlank}
+    renderer := mdhtml.NewRenderer(opts)
+    
+    // Generisanje HTML-a
+    htmlOutput := md.ToHTML(rawMarkdown, nil, renderer)
+
 	blog := &models.Blog{
 		ID:        primitive.NewObjectID(),
 		Title:     req.Title,
 		Content:   req.Content,
+		HTMLContent: string(htmlOutput), // Čuvamo generisani HTML
 		AuthorID:  authorID,
 		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now(),	
 		Images:    req.Images,
 		Comments:  []models.Comment{},
 		Likes:     []uint{},

@@ -3,7 +3,7 @@ export interface CreateBlogPayload {
     title: string;
     content: string; // Ovo je polje za Markdown
     images?: string[]; // Niz Base64 stringova slika, opciono
-    createdAt: string;
+   // createdAt: string;
   }
   
   // Definiše kompletan Blog objekat koji dobijamo kao odgovor od servera
@@ -11,6 +11,7 @@ export interface CreateBlogPayload {
     id: string;
     title: string;
     content: string;
+    htmlContent: string; 
     authorId: number;
     createdAt: string;
     updatedAt: string;
