@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"soa-tourist-app/follower-service/internal/repository"
+	"soa-tourist-app/follower-service/internal/models" 
 )
 
 type FollowerService struct {
@@ -30,4 +31,8 @@ func (s *FollowerService) Unfollow(followerId, followedId uint) error {
 
 func (s *FollowerService) CheckFollows(followerId, followedId uint) (bool, error) {
 	return s.Repo.CheckFollows(followerId, followedId)
+}
+
+func (s *FollowerService) GetRecommendations(currentUserID uint) ([]models.RecommendationModel, error) {
+	return s.Repo.GetRecommendations(currentUserID)
 }

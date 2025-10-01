@@ -54,6 +54,14 @@
       </div>
     </form>
 
+    <div *ngIf="!isEditing" class="recommendation-link-container">
+      <button 
+          [routerLink]="['/recommendations']" 
+          class="view-recommendations-btn">
+          ✨ Pogledaj preporuke za praćenje
+      </button>
+  </div>
+
   </ng-container>
 
   <ng-template #loadingOrError>

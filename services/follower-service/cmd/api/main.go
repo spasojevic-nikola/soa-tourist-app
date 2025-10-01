@@ -34,6 +34,7 @@ func main() {
 	protectedRoutes.HandleFunc("/follow/{id:[0-9]+}", handler.Follow).Methods("POST")
 	protectedRoutes.HandleFunc("/unfollow/{id:[0-9]+}", handler.Unfollow).Methods("DELETE")
 	protectedRoutes.HandleFunc("/check-follow/{id:[0-9]+}", handler.CheckFollow).Methods("GET")
+	protectedRoutes.HandleFunc("/recommendations", handler.GetRecommendations).Methods("GET")
 	
 	// Podesavanje CORS-a
 	corsHandler := handlers.CORS(

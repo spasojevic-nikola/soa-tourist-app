@@ -1,0 +1,64 @@
+.recommendations-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.recommendation-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.recommendation-card:last-child {
+    border-bottom: none;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.user-id {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.score {
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: 4px;
+}
+
+.follow-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.follow-btn:hover {
+    background-color: #1e7e34;
+}
+
+.no-recommendations, .loading-message, .error-message {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}

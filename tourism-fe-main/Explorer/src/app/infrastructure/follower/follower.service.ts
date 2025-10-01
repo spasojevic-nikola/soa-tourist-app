@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { Recommendation } from 'src/app/shared/model/recommendation.model';
 import { environment } from 'src/env/environment';
 
 @Injectable({
@@ -25,4 +26,7 @@ export class FollowerService {
     return this.http.delete<any>(`${this.apiBaseUrl}/unfollow/${userId}`);
   }
 
+  getRecommendations(): Observable<Recommendation[]> {
+    return this.http.get<Recommendation[]>(`${this.apiBaseUrl}/recommendations`);
+  }
 }

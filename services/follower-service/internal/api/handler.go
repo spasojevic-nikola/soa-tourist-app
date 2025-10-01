@@ -89,3 +89,21 @@ func (h *Handler) Unfollow(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handler) GetRecommendations(w http.ResponseWriter, r *http.Request) {
+	// Izvuci ID ulogovanog korisnika iz konteksta
+	currentUserID, ok := r.Context().Value(userKey).(uint)
+	if !ok || currentUserID == 0 { // Proverite da li je ID validan
+		http.Error(w, "Unauthorized or missing user ID", http.StatusUnauthorized)
+		return
+	}
+
+	recommendations, err := h.Service.GetRecommendations(currentUserID)
+	if err != nil {
+		http.Error(w, "Error fetching recommendations: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(recommendations)
+}

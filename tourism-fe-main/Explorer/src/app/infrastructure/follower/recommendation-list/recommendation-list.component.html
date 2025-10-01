@@ -1,0 +1,28 @@
+<div class="recommendations-container">
+    <h2>Preporučeni profili</h2>
+
+    <div *ngIf="isLoading" class="loading-message">
+        Učitavanje preporuka...
+    </div>
+
+    <div *ngIf="error" class="error-message">
+        {{ error }}
+    </div>
+
+    <div *ngIf="!isLoading && recommendations.length === 0 && !error" class="no-recommendations">
+        Trenutno nemamo novih preporuka za vas.
+    </div>
+
+    <div *ngIf="recommendations.length > 0" class="recommendation-list">
+        <div *ngFor="let rec of recommendations" class="recommendation-card">
+            
+            <div class="user-info">
+                <span class="user-id">ID: {{ rec.userId }}</span>
+                <span class="score">Popularnost: {{ rec.score }} zajedničkih praćenja</span>
+            </div>
+
+            <button (click)="followUser(rec.userId)" class="follow-btn">Zapratite</button>
+            
+        </div>
+    </div>
+</div>
