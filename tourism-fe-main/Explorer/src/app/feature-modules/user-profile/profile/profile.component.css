@@ -224,3 +224,29 @@ body {
 input[type="file"] {
     display: none;
 }
+
+.recommendation-link-container {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #f0f0f0;
+    text-align: center;
+}
+
+.view-recommendations-btn {
+    background-color: #3151b7; /* Primarna boja */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.view-recommendations-btn:hover {
+    background-color: #274191;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}

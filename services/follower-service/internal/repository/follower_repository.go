@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"soa-tourist-app/follower-service/internal/models"
 )
 
 
@@ -60,4 +61,83 @@ func (repo *FollowerRepository) Unfollow(followerId, followedId uint) error {
 	})
 
 	return err
+}
+	//proveri jel zapratio
+func (repo *FollowerRepository) CheckFollows(followerId, followedId uint) (bool, error) {
+	ctx := context.Background()
+	session := repo.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	query := `
+		RETURN EXISTS( (:User {id: $followerId})-[:FOLLOWS]->(:User {id: $followedId}) )
+	`
+	params := map[string]interface{}{
+		"followerId": followerId,
+		"followedId": followedId,
+	}
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		res, err := tx.Run(ctx, query, params)
+		if err != nil {
+			return false, err
+		}
+		if res.Next(ctx) {
+			return res.Record().Values[0], nil
+		}
+		return false, res.Err()
+	})
+	if err != nil {
+		return false, err
+	}
+	return result.(bool), nil
+}
+
+func (repo *FollowerRepository) GetRecommendations(currentUserID uint) ([]models.RecommendationModel, error) {
+	ctx := context.Background()
+	session := repo.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(ctx)
+
+	query := `
+        MATCH (ja:User {id: $currentUserID})-[:FOLLOWS]->(prijatelj:User)
+        MATCH (prijatelj)-[:FOLLOWS]->(kandidat:User)
+        WHERE NOT (ja)-[:FOLLOWS]->(kandidat)
+          AND ja.id <> kandidat.id
+        RETURN kandidat.id AS recommendedUserID, 
+               count(prijatelj) AS score
+        ORDER BY score DESC
+        LIMIT 10
+    `
+	params := map[string]interface{}{
+		"currentUserID": currentUserID,
+	}
+
+	recommendations := make([]models.RecommendationModel, 0)
+
+	_, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		result, err := tx.Run(ctx, query, params)
+		if err != nil {
+			return nil, err
+		}
+
+		for result.Next(ctx) {
+			record := result.Record()
+			
+			userID, ok := record.Get("recommendedUserID")
+			if !ok {
+				continue
+			}
+			score, _ := record.Get("score")
+
+			recommendations = append(recommendations, models.RecommendationModel{
+				UserID: uint(userID.(int64)), 
+				Score:  int(score.(int64)),
+			})
+		}
+		if result.Err() != nil {
+			return nil, result.Err()
+		}
+		return nil, nil
+	})
+
+	return recommendations, err
 }

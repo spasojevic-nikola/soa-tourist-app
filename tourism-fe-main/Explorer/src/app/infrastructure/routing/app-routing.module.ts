@@ -9,6 +9,7 @@ import { AdminDashboardComponent } from 'src/app/admin-dashboard/admin-dashboard
 import { BlogViewComponent } from 'src/app/feature-modules/blog-view/blog-view.component';
 import { NavbarComponent } from 'src/app/feature-modules/layout/navbar/navbar.component';
 import { SearchResultsComponent } from 'src/app/feature-modules/search-results/search-results.component';
+import { RecommendationListComponent } from '../follower/recommendation-list/recommendation-list.component';
 
 const routes: Routes = [
   {path: 'home', component: HomeComponent},
@@ -44,7 +45,12 @@ const routes: Routes = [
     path: 'keypoints',
     loadChildren: () => import('../../feature-modules/tour-keypoints/tour-keypoints.module').then(m => m.TourKeypointsModule),
     canActivate: [AuthGuard]
-  }
+  },
+  { 
+    path: 'recommendations', 
+    component: RecommendationListComponent,
+    canActivate: [AuthGuard] 
+  },
 
 ];
 

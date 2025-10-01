@@ -33,13 +33,15 @@ func main() {
 	// Definišemo rute na pod-ruteru
 	protectedRoutes.HandleFunc("/follow/{id:[0-9]+}", handler.Follow).Methods("POST")
 	protectedRoutes.HandleFunc("/unfollow/{id:[0-9]+}", handler.Unfollow).Methods("DELETE")
+	protectedRoutes.HandleFunc("/check-follow/{id:[0-9]+}", handler.CheckFollow).Methods("GET")
+	protectedRoutes.HandleFunc("/recommendations", handler.GetRecommendations).Methods("GET")
 	
 	// Podesavanje CORS-a
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Promenite ako je potrebno
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)(r)
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
+		)(r)
 
 	// Pokretanje servera
 	fmt.Println("Follower service running on port 8080")

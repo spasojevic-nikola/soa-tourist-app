@@ -31,7 +31,7 @@ func main() {
 	corsOpts := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
 	)
 
 	apiV1 := r.PathPrefix("/api/v1/blogs").Subrouter()

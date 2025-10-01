@@ -69,4 +69,7 @@ export class AuthService {
     };
     this.user$.next(user);
   }
+  getToken(): string | null {
+    return this.tokenStorage.getAccessToken();
+  }
 }
