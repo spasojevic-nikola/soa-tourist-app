@@ -36,10 +36,11 @@ func main() {
 
 	apiV1 := r.PathPrefix("/api/v1/blogs").Subrouter()
 
-	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.CreateBlog)).Methods("POST")
+	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.CreateBlog)).Methods("POST") //dodavanje blogova
 	apiV1.HandleFunc("/{id}/comments", api.AuthMiddleware(blogHandler.AddComment)).Methods("POST")
 	apiV1.HandleFunc("/{id}/like", api.AuthMiddleware(blogHandler.ToggleLike)).Methods("POST")
-	apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
+	//apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
+	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.GetAllBlogs)).Methods("GET")
 	apiV1.HandleFunc("/{id}", blogHandler.GetBlogByID).Methods("GET")
 
 

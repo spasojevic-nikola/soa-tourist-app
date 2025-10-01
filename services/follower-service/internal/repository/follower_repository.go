@@ -141,3 +141,46 @@ func (repo *FollowerRepository) GetRecommendations(currentUserID uint) ([]models
 
 	return recommendations, err
 }
+
+//  vraca listu ID-jeva korisnika koje dati korisnik prati
+func (repo *FollowerRepository) GetFollowingIDs(followerId uint) ([]uint, error) {
+    ctx := context.Background()
+    session := repo.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+    defer session.Close(ctx)
+
+    query := `
+        MATCH (follower:User {id: $followerId})-[:FOLLOWS]->(followed:User)
+        RETURN followed.id AS followedId
+    `
+    params := map[string]interface{}{
+        "followerId": followerId,
+    }
+
+    followingIDs := make([]uint, 0)
+
+    result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+        res, err := tx.Run(ctx, query, params)
+        if err != nil {
+            return nil, err
+        }
+
+        for res.Next(ctx) {
+            record := res.Record()
+            id, ok := record.Get("followedId")
+            if ok {
+                followingIDs = append(followingIDs, uint(id.(int64)))
+            }
+        }
+        return nil, res.Err()
+    })
+
+    if err != nil {
+        return nil, err
+    }
+    
+    // Provera da li je result nil, iako ExecuteRead vraca (interface{}, error)
+    if result != nil {
+    }
+
+    return followingIDs, nil
+}
