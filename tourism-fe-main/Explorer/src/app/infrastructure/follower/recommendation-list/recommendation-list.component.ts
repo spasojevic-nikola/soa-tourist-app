@@ -32,7 +32,7 @@ export class RecommendationListComponent {
         catchError(err => {
           console.error("Greška pri dohvatanju preporuka:", err);
           this.error = 'Greška pri dohvatanju preporuka. Pokušajte ponovo.';
-          return EMPTY; // Zaustavlja tok
+          return EMPTY; 
         })
       )
       .subscribe(data => {
