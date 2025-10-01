@@ -93,16 +93,26 @@ func (h *Handler) ToggleLike(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// GetAllBlogs endpoint za dobijanje svih blogova
-func (h *Handler) GetAllBlogs(w http.ResponseWriter, r *http.Request) {
-	blogs, err := h.Service.GetAllBlogs(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+/* GetAllBlogs endpoint za dobijanje svih blogova*/
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(blogs)
+// GetAllBlogs endpoint za dobijanje svih blogova (sada je ovo feed)
+func (h *Handler) GetAllBlogs(w http.ResponseWriter, r *http.Request) {
+    // Izvuci ID ulogovanog korisnika iz konteksta
+    userID, ok := r.Context().Value("userID").(uint)
+    if !ok {
+        http.Error(w, "User ID not found in context", http.StatusUnauthorized)
+        return
+    }
+
+    // Pozovi novu logiku servisa
+    blogs, err := h.Service.GetFeedForUser(r.Context(), userID)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(blogs)
 }
 
 // GetBlogByID endpoint za dobijanje bloga po ID-ju

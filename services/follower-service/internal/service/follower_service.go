@@ -36,3 +36,6 @@ func (s *FollowerService) CheckFollows(followerId, followedId uint) (bool, error
 func (s *FollowerService) GetRecommendations(currentUserID uint) ([]models.RecommendationModel, error) {
 	return s.Repo.GetRecommendations(currentUserID)
 }
+func (s *FollowerService) GetFollowingIDs(followerId uint) ([]uint, error) {
+    return s.Repo.GetFollowingIDs(followerId)
+}

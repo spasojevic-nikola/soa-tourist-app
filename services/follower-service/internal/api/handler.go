@@ -107,3 +107,21 @@ func (h *Handler) GetRecommendations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(recommendations)
 }
+
+func (h *Handler) GetFollowingIDs(w http.ResponseWriter, r *http.Request) {
+    // Izvuci ID ulogovanog korisnika iz konteksta
+    currentUserID, ok := r.Context().Value(userKey).(uint)
+    if !ok {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
+
+    ids, err := h.Service.GetFollowingIDs(currentUserID)
+    if err != nil {
+        http.Error(w, "Failed to get following list", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(ids)
+}
