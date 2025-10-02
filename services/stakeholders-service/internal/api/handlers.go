@@ -9,6 +9,7 @@ import (
 	"stakeholders-service/internal/models"
 	"time"
 	"strconv" 
+	"strings" 
 
 	"github.com/gorilla/mux" 
 	"gorm.io/gorm"
@@ -213,4 +214,37 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	// 3. Vracamo pronađenog korisnika kao JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
+}
+
+// dobavlja listu korisnika na osnovu liste ID-jeva
+func (h *Handler) GetUsersBatch(w http.ResponseWriter, r *http.Request) {
+	idsQuery := r.URL.Query().Get("ids")
+	if idsQuery == "" {
+		http.Error(w, "Query parameter 'ids' is required", http.StatusBadRequest)
+		return
+	}
+
+	idsStr := strings.Split(idsQuery, ",")
+	var ids []uint
+	for _, idStr := range idsStr {
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err == nil {
+			ids = append(ids, uint(id))
+		}
+	}
+
+	if len(ids) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("[]"))
+		return
+	}
+
+	var users []models.User
+	if err := h.DB.Where("id IN ?", ids).Find(&users).Error; err != nil {
+		http.Error(w, "Failed to fetch users", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
 }
