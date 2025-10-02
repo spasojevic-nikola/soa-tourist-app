@@ -38,6 +38,9 @@ func main() {
 	apiV1.Handle("/users/search", api.AuthMiddleware(apiHandler.SearchUsers)).Methods("GET")
 	apiV1.Handle("/users/{id:[0-9]+}", api.AuthMiddleware(apiHandler.GetUserById)).Methods("GET")
 
+	// NOVA RUTA ZA INTERNU KOMUNIKACIJU ZA FOLLOWERS
+	apiV1.HandleFunc("/users/batch", apiHandler.GetUsersBatch).Methods("GET")
+
 	// Health check ruta može ostati ovde
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

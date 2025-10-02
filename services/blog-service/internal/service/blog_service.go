@@ -140,7 +140,7 @@ func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models
     client := &http.Client{}
     resp, err := client.Do(req)
     if err != nil {
-        // Ovo se dešava ako je Follower Service pao ili mreža ne radi
+        // Ovo se desava ako je Follower Service pao ili mreža ne radi
         return nil, fmt.Errorf("follower service is unavailable: %w", err)
     }
     defer resp.Body.Close()

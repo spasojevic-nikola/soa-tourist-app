@@ -1,28 +1,28 @@
 <div class="recommendations-container">
-    <h2>Preporučeni profili</h2>
+    <h2>Recommended profiles for tracking</h2>
 
-    <div *ngIf="isLoading" class="loading-message">
-        Učitavanje preporuka...
-    </div>
-
-    <div *ngIf="error" class="error-message">
-        {{ error }}
-    </div>
-
+    <div *ngIf="isLoading" class="loading-message">Loading recommendations...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
     <div *ngIf="!isLoading && recommendations.length === 0 && !error" class="no-recommendations">
-        Trenutno nemamo novih preporuka za vas.
+        We currently have no new recommendations for you.
     </div>
 
-    <div *ngIf="recommendations.length > 0" class="recommendation-list">
-        <div *ngFor="let rec of recommendations" class="recommendation-card">
-            
+    <div *ngIf="!isLoading && recommendations.length > 0" class="recommendation-list">
+      <div *ngFor="let rec of recommendations" class="recommendation-card">
+          
+          <a class="user-profile-link" [routerLink]="['/profile', rec.userId]">
+            <img [src]="rec.profileImage || 'assets/images/user.png'" alt="Profile image" class="avatar">
             <div class="user-info">
-                <span class="user-id">ID: {{ rec.userId }}</span>
-                <span class="score">Popularnost: {{ rec.score }} zajedničkih praćenja</span>
+              <span class="full-name">{{ rec.firstName }} {{ rec.lastName }}</span>
+              <span class="username">@{{ rec.username }}</span>
             </div>
+          </a>
 
-            <button (click)="followUser(rec.userId)" class="follow-btn">Zapratite</button>
-            
-        </div>
+          <div class="recommendation-details">
+            <span class="score">{{ rec.score }} of your friends follows this profile</span>
+            <button (click)="followUser(rec.userId)" class="follow-btn">Follow</button>
+          </div>
+          
+      </div>
     </div>
 </div>
