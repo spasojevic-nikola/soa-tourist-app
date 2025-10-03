@@ -203,6 +203,43 @@ services:
       - soa-network
 
 
+  # logovanje
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: soa-app-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - soa-network
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: soa-app-promtail
+    volumes:
+      # KRITIČNO: Dajemo Promtailu pristup Docker logovima!
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml:ro # Tvoj novi konfiguracioni fajl
+    networks:
+      - soa-network
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: soa-app-grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - soa-network
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+
+
 # JEDAN 'volumes' BLOK NA KRAJU
 volumes:
   postgres_data:
@@ -210,6 +247,7 @@ volumes:
   postgres_tour_data: # Dodat volume za bazu tura
   mongo_data:
   neo4j_data:
+  loki_storage:
 
 
 # JEDAN 'networks' BLOK NA KRAJU

@@ -6,8 +6,8 @@ import (
 	"strconv"
 )
 
-// AuthMiddleware osigurava da je korisnik autentifikovan.
-// Za sada, MOCK: čita X-User-ID header postavljen od strane API Gateway-a.
+// AuthMiddleware osigurava da je korisnik autentifikovan
+// Za sada, MOCK: čita X-User-ID header postavljen od strane API Gateway-a??
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userIDHeader := r.Header.Get("X-User-ID")

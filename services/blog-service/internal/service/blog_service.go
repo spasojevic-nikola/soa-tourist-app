@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"     
 	"net/http" 
+	"log" 
 
 
 	"blog-service/internal/dto"
@@ -56,8 +57,10 @@ func (s *BlogService) CreateBlog(ctx context.Context, req dto.CreateBlogRequest,
 	}
 
 	if err := s.Repo.CreateBlog(ctx, blog); err != nil {
+		log.Printf("ERROR: Failed to save blog to DB for User %d. Title: %s. Error: %v", authorID, req.Title, err)
 		return nil, errors.New("failed to save blog to database")
 	}
+	log.Printf("SUCCESS: User %d created blog %s.", authorID, blog.ID.Hex())
 	return blog, nil
 }
 
@@ -73,9 +76,10 @@ func (s *BlogService) AddComment(ctx context.Context, blogID primitive.ObjectID,
 	update := bson.M{"$push": bson.M{"comments": newComment}}
 
 	if err := s.Repo.UpdateBlog(ctx, blogID, update); err != nil {
+		log.Printf("ERROR: Failed to add comment to blog %s by User %d. Error: %v", blogID.Hex(), authorID, err)
 		return nil, errors.New("failed to add comment to blog")
 	}
-
+	log.Printf("INFO: User %d added comment to blog %s.", authorID, blogID.Hex())
 	return &newComment, nil
 }
 
@@ -96,6 +100,7 @@ func (s *BlogService) ToggleLike(ctx context.Context, blogID primitive.ObjectID,
 
 	var update bson.M
 	message := ""
+	action := ""
 	if alreadyLiked {
 		update = bson.M{"$pull": bson.M{"likes": userID}}
 		message = "Blog unliked successfully"
@@ -105,9 +110,11 @@ func (s *BlogService) ToggleLike(ctx context.Context, blogID primitive.ObjectID,
 	}
 
 	if err := s.Repo.UpdateBlog(ctx, blogID, update); err != nil {
+		log.Printf("ERROR: Failed to update like status on blog %s for User %d. Error: %v", blogID.Hex(), userID, err)
 		return "", errors.New("failed to update like status in database")
 	}
 
+	log.Printf("INFO: User %d successfully %s blog %s.", userID, action, blogID.Hex())
 	return message, nil
 }
 
@@ -128,6 +135,7 @@ func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models
     
     req, err := http.NewRequestWithContext(ctx, "GET", followerServiceURL, nil)
     if err != nil {
+		log.Printf("S2S ERROR: Follower service is unavailable for User %d. Error: %v", userID, err)
         return nil, fmt.Errorf("failed to create request to follower service: %w", err)
     }
 
@@ -141,6 +149,7 @@ func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models
     resp, err := client.Do(req)
     if err != nil {
         // Ovo se desava ako je Follower Service pao ili mreža ne radi
+		log.Printf("S2S ERROR: Follower service returned bad status for User %d: %s", userID, resp.Status)
         return nil, fmt.Errorf("follower service is unavailable: %w", err)
     }
     defer resp.Body.Close()
@@ -162,7 +171,7 @@ func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models
     if len(followedIDs) == 0 {
         followedIDs = []uint{userID}
     }
-
+	log.Printf("INFO: User %d successfully fetched feed data from Follower Service.", userID)
     // 5. POZIV REPOSITORY-JA SA LISTOM ID-JEVA
     return s.Repo.GetBlogsByAuthorIDs(ctx, followedIDs)
 }

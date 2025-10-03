@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"blog-service/internal/models"
+	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -34,6 +35,9 @@ func NewBlogRepository(db *mongo.Database) BlogRepository {
 // CreateBlog dodaje novi blog u bazu.
 func (r *mongoBlogRepository) CreateBlog(ctx context.Context, blog *models.Blog) error {
 	_, err := r.collection.InsertOne(ctx, blog)
+	if err != nil {
+        log.Printf("DB ERROR: Failed to insert blog %s. Error: %v", blog.ID.Hex(), err)
+    }	
 	return err
 }
 
@@ -50,6 +54,9 @@ func (r *mongoBlogRepository) GetBlogByID(ctx context.Context, id primitive.Obje
 // UpdateBlog ažurira blog po ID-ju.
 func (r *mongoBlogRepository) UpdateBlog(ctx context.Context, id primitive.ObjectID, update bson.M) error {
 	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": id}, update)
+	if err != nil {
+        log.Printf("DB ERROR: Failed to update blog %s. Error: %v", id.Hex(), err)
+    }
 	return err
 }
 

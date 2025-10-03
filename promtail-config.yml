@@ -1,0 +1,23 @@
+# promtail-config.yml
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  # Loki je na portu 3100 u Docker mreži
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+# Konfiguracija za čitanje logova tvog Blog servisa
+- job_name: soa-blog-logs
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      __path__: /var/lib/docker/containers/*/*log
+      job: soa-blog-logs
+      # Važno: Filter koji cilja logove samo TVOG BLOG KONTEJNERA
+      __deobfuscate_container_id: /soa-tourist-app-blog-service/
