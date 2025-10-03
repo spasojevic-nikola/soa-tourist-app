@@ -28,6 +28,7 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
   private imagePreviews = new Map<number, string>();
   isEditMode = false;
   editingIndex: number | null = null;
+  totalDistance: number = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -94,6 +95,7 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
 
         this.keyPoints.push(result);
         this.drawExistingKeyPoints();
+        this.calculateTotalDistance();
       }
       
       if (this.tempMarker) {
@@ -147,6 +149,7 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
     this.imagePreviews = newImagePreviews;
     
     this.drawExistingKeyPoints();
+    this.calculateTotalDistance();
   }
 
   finishTour(): void {
@@ -248,6 +251,7 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
         }
         
         this.drawExistingKeyPoints();
+        this.calculateTotalDistance();
       }
       
       this.isEditMode = false;
@@ -258,5 +262,76 @@ export class TourMapCreationComponent implements OnInit, AfterViewInit {
         this.tempMarker = null;
       }
     });
+  }
+
+  /**
+   * Calculates total distance between all keypoints using Haversine formula
+   */
+  calculateTotalDistance(): void {
+    if (this.keyPoints.length < 2) {
+      this.totalDistance = 0;
+      return;
+    }
+
+    let distance = 0;
+    const sortedKeyPoints = [...this.keyPoints].sort((a, b) => a.order - b.order);
+
+    for (let i = 0; i < sortedKeyPoints.length - 1; i++) {
+      const kp1 = sortedKeyPoints[i];
+      const kp2 = sortedKeyPoints[i + 1];
+      distance += this.haversineDistance(
+        kp1.latitude,
+        kp1.longitude,
+        kp2.latitude,
+        kp2.longitude
+      );
+    }
+
+    this.totalDistance = distance;
+  }
+
+  /**
+   * Haversine formula - calculates distance between two GPS coordinates in kilometers
+   */
+  private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const earthRadius = 6371; // Earth radius in kilometers
+
+    // Convert degrees to radians
+    const lat1Rad = (lat1 * Math.PI) / 180;
+    const lat2Rad = (lat2 * Math.PI) / 180;
+    const deltaLat = ((lat2 - lat1) * Math.PI) / 180;
+    const deltaLon = ((lon2 - lon1) * Math.PI) / 180;
+
+    // Haversine formula
+    const a =
+      Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+      Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+    const c = 2 * Math.asin(Math.sqrt(a));
+
+    return earthRadius * c;
+  }
+
+  /**
+   * Calculate estimated time by car (average speed: 40 km/h in city)
+   */
+  getCarTime(): number {
+    if (this.totalDistance === 0) return 0;
+    return (this.totalDistance / 40) * 60; // returns minutes
+  }
+
+  /**
+   * Calculate estimated time by bicycle (average speed: 15 km/h)
+   */
+  getBicycleTime(): number {
+    if (this.totalDistance === 0) return 0;
+    return (this.totalDistance / 15) * 60; // returns minutes
+  }
+
+  /**
+   * Calculate estimated time walking (average speed: 5 km/h)
+   */
+  getWalkingTime(): number {
+    if (this.totalDistance === 0) return 0;
+    return (this.totalDistance / 5) * 60; // returns minutes
   }
 }

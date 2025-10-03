@@ -20,9 +20,8 @@
       </xp-tour-create>
     </div>
 
-    <!-- Step 2: Map with Key Points -->
+    <!-- Korak 2: Mapa sa Keypointima -->
     <div *ngIf="currentStep === 2" class="step-content">
-      <!-- Uklonjen tourData input jer tour-map-creation ne treba tourData -->
       <xp-tour-map-creation
         (keyPointsCompleted)="onStep2Completed($event)"
         (goBack)="goBack()">
@@ -30,7 +29,7 @@
     </div>
   </div>
 
-  <!-- Loading Overlay -->
+  <!-- Ucitaj Overlay -->
   <div *ngIf="isSubmitting" class="loading-overlay">
     <div class="loading-spinner">Creating tour...</div>
   </div>

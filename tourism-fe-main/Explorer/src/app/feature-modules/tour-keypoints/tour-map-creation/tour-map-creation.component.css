@@ -325,3 +325,55 @@
     width: 100%;
   }
 }
+
+/* Distance Info Section - Minimalist Style */
+.distance-info-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.distance-summary {
+  background-color: #f8f9fa;
+  border-left: 3px solid #007bff;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+.distance-text {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  color: #495057;
+}
+
+.distance-text strong {
+  color: #212529;
+  font-size: 1rem;
+}
+
+.time-estimates {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.time-item {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.time-item span {
+  font-weight: 600;
+  color: #495057;
+}
+
+@media (max-width: 768px) {
+  .time-estimates {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
