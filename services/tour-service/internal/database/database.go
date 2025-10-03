@@ -21,7 +21,7 @@ func InitDB() *gorm.DB {
 	// --- KLJUČNA IZMENA JE OVDE ---
 	// Eksplicitno proveravamo da li je migracija uspela.
 	// Ako ne uspe, aplikacija će se srušiti i ispisati tačnu grešku.
-	err = db.AutoMigrate(&models.Tour{}, &models.KeyPoint{}, &models.TourDuration{})
+	err = db.AutoMigrate(&models.Tour{}, &models.KeyPoint{}, &models.TourDuration{}, &models.Review{})
 	if err != nil {
 		log.Fatal("!!! FAILED TO MIGRATE DATABASE:", err)
 	}
