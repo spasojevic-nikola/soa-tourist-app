@@ -186,6 +186,22 @@ services:
     networks:
       - soa-network
 
+  # SHOPPING CART SERVIS
+  shopping-cart-service:
+    build: ./services/shopping-cart-service
+    container_name: soa-tourist-app-shopping-cart-service
+    ports:
+      - "8087:8081" # lokalni port 8087 na interni 8081
+    depends_on:
+      - mongo 
+    restart: on-failure
+    environment:
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_DB=purchase_db
+    networks:
+      - soa-network
+
 
 # JEDAN 'volumes' BLOK NA KRAJU
 volumes:
