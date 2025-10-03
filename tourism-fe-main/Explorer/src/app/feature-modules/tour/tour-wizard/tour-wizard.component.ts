@@ -50,7 +50,8 @@ export class TourWizardComponent {
     this.tourService.createTour(payload).subscribe({
       next: (createdTour) => {
         this.isSubmitting = false;
-        this.router.navigate(['/tours']);
+        alert('Tour created successfully in Draft status!');
+        this.router.navigate(['/tours']); // Navigate to tour list
       },
       error: (err) => {
         this.isSubmitting = false;

@@ -54,6 +54,19 @@
         </div>
       </div>
     </div>
+
+    <!-- Total Distance Display - Minimalist -->
+    <div class="distance-info-section" *ngIf="totalDistance > 0">
+      <div class="distance-summary">
+        <p class="distance-text">📏 Distance: <strong>{{ totalDistance | number:'1.2-2' }} km</strong></p>
+        
+        <div class="time-estimates">
+          <p class="time-item">🚗 Car: <span>{{ getCarTime() | number:'1.0-0' }} min</span></p>
+          <p class="time-item">🚴 Bicycle: <span>{{ getBicycleTime() | number:'1.0-0' }} min</span></p>
+          <p class="time-item">🚶 Walking: <span>{{ getWalkingTime() | number:'1.0-0' }} min</span></p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="wizard-actions">

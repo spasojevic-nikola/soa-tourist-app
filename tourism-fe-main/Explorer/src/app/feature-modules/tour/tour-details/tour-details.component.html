@@ -1,0 +1,82 @@
+<div class="tour-details-container">
+  <div *ngIf="isLoading" class="loading">
+    <p>Loading tour details...</p>
+  </div>
+
+  <div *ngIf="!isLoading && !tour" class="error">
+    <p>Tour not found.</p>
+  </div>
+
+  <div *ngIf="!isLoading && tour" class="tour-details">
+    <!-- Header Section -->
+    <div class="tour-header">
+      <h1>{{ tour.name }}</h1>
+      <span class="badge badge-published">Published</span>
+    </div>
+
+    <!-- Description -->
+    <div class="tour-description">
+      <p>{{ tour.description }}</p>
+    </div>
+
+    <!-- Tour Stats -->
+    <div class="tour-stats">
+      <div class="stat-card">
+        <span class="stat-icon">📏</span>
+        <div class="stat-content">
+          <span class="stat-label">Distance</span>
+          <span class="stat-value">{{ tour.distance | number:'1.2-2' }} km</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-icon">⭐</span>
+        <div class="stat-content">
+          <span class="stat-label">Difficulty</span>
+          <span class="stat-value">{{ tour.difficulty }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card" *ngIf="tour.price">
+        <span class="stat-icon">💰</span>
+        <div class="stat-content">
+          <span class="stat-label">Price</span>
+          <span class="stat-value">{{ tour.price }} RSD</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="tour-tags" *ngIf="tour.tags && tour.tags.length > 0">
+      <span *ngFor="let tag of tour.tags" class="tag">{{ tag }}</span>
+    </div>
+
+    <!-- First Keypoint Section -->
+    <div class="keypoint-section" *ngIf="tour.keyPoints && tour.keyPoints.length > 0">
+      <h2>Starting Point</h2>
+      <div class="keypoint-card">
+        <div class="keypoint-header">
+          <h3>📍 {{ tour.keyPoints[0].name }}</h3>
+        </div>
+        <p class="keypoint-description">{{ tour.keyPoints[0].description }}</p>
+        <div class="keypoint-details">
+          <span class="detail-item">
+            <strong>Location:</strong> {{ keypointAddress || 'Loading address...' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="btn btn-purchase" (click)="onPurchase()">
+        <mat-icon class="btn-icon">shopping_cart</mat-icon>
+        <span>Purchase Tour</span>
+      </button>
+      <button class="btn btn-review" (click)="onLeaveReview()">
+        <mat-icon class="btn-icon">rate_review</mat-icon>
+        <span>Leave a Review</span>
+      </button>
+    </div>
+  </div>
+</div>

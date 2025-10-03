@@ -7,12 +7,14 @@ import { TourRoutingModule } from './tour-routing.module';
 import { TourListComponent } from './tour-list/tour-list.component';
 import { TourWizardComponent } from './tour-wizard/tour-wizard.component';
 import { TourKeypointsModule } from '../tour-keypoints/tour-keypoints.module';
+import { TourDetailsComponent } from './tour-details/tour-details.component';
 
 @NgModule({
   declarations: [
     TourCreateComponent,
     TourListComponent,
-    TourWizardComponent
+    TourWizardComponent,
+    TourDetailsComponent
   ],
   imports: [
     CommonModule,

@@ -8,7 +8,7 @@ import (
 
 	"tour-service/internal/api"
 	"tour-service/internal/database"
-	"tour-service/internal/repository" 
+	"tour-service/internal/repository"
 	"tour-service/internal/service"
 
 	"github.com/gorilla/handlers"
@@ -17,7 +17,7 @@ import (
 
 func main() {
 	db := database.InitDB()
-	
+
 	tourRepo := repository.NewTourRepository(db)
 	keyPointRepo := repository.NewKeyPointRepository(db)
 
@@ -32,6 +32,12 @@ func main() {
 	// Tour routes
 	apiV1.Handle("/create-tour", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateTour))).Methods("POST")
 	apiV1.Handle("", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetMyTours))).Methods("GET")
+	apiV1.Handle("/published", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetAllPublishedTours))).Methods("GET")
+	apiV1.Handle("/{tourId}", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetTourByID))).Methods("GET")
+	apiV1.Handle("/{tourId}/publish", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.PublishTour))).Methods("PUT")
+	apiV1.Handle("/{tourId}/archive", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ArchiveTour))).Methods("PUT")
+	apiV1.Handle("/{tourId}/activate", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ActivateTour))).Methods("PUT")
+	apiV1.Handle("/{tourId}/duration", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.AddDuration))).Methods("POST")
 
 	// KeyPoint routes
 	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetKeyPointsByTour))).Methods("GET")
@@ -43,12 +49,12 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 	}).Methods("GET")
-	
+
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
-		)(r)
+	)(r)
 
 	fmt.Println("Tour service running on internal port 8080")
 	log.Fatal(http.ListenAndServe(":8080", corsHandler))
