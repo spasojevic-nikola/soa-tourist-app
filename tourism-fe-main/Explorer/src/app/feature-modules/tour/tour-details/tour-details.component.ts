@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { TourService } from '../tour.service';
 import { ReviewService } from '../review.service';
@@ -26,7 +26,8 @@ export class TourDetailsComponent implements OnInit {
     private tourService: TourService,
     private reviewService: ReviewService,
     private mapService: MapService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router 
   ) {}
 
   ngOnInit(): void {
@@ -87,8 +88,8 @@ export class TourDetailsComponent implements OnInit {
   }
 
   onPurchase(): void {
-    // Placeholder for purchase functionality
-    alert('Purchase functionality coming soon!');
+    this.router.navigate(['/shopping-cart']); 
+    console.log('Navigating to shopping cart view...');
   }
 
   onLeaveReview(): void {
