@@ -1,0 +1,160 @@
+.review-dialog {
+  min-width: 500px;
+}
+
+h2 {
+  margin: 0;
+  color: #212529;
+  font-size: 1.5rem;
+}
+
+.tour-name {
+  color: #007bff;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.form-field {
+  margin-bottom: 1.5rem;
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.star-rating {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s;
+}
+
+.star-btn:hover {
+  transform: scale(1.2);
+}
+
+.star-btn mat-icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  color: #ddd;
+}
+
+.star-btn.active mat-icon {
+  color: #ffc107;
+}
+
+.date-input,
+.comment-textarea,
+.image-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.date-input:focus,
+.comment-textarea:focus,
+.image-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.comment-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.file-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px dashed #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.file-input:hover {
+  border-color: #007bff;
+}
+
+.image-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 2px solid #e9ecef;
+}
+
+.remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #dc3545;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s;
+}
+
+.remove-btn:hover {
+  background: #c82333;
+}
+
+.remove-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin: 0.25rem 0;
+}
+
+mat-dialog-actions {
+  padding: 1rem 0 0 0;
+}
+
+@media (max-width: 600px) {
+  .review-dialog {
+    min-width: 300px;
+  }
+}

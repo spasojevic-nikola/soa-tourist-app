@@ -20,11 +20,14 @@ func main() {
 
 	tourRepo := repository.NewTourRepository(db)
 	keyPointRepo := repository.NewKeyPointRepository(db)
+	reviewRepo := repository.NewReviewRepository(db)
 
 	tourService := service.NewTourService(tourRepo)
 	keyPointService := service.NewKeyPointService(keyPointRepo, tourRepo)
+	reviewService := service.NewReviewService(reviewRepo, tourRepo)
 
 	apiHandler := api.NewHandler(tourService, keyPointService)
+	reviewHandler := api.NewReviewHandler(reviewService)
 
 	r := mux.NewRouter()
 	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
@@ -43,6 +46,14 @@ func main() {
 	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetKeyPointsByTour))).Methods("GET")
 	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.UpdateKeyPoint))).Methods("PUT")
 	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.DeleteKeyPoint))).Methods("DELETE")
+
+	// Review routes
+	apiV1.Handle("/{tourId}/reviews", api.AuthMiddleware(http.HandlerFunc(reviewHandler.CreateReview))).Methods("POST")
+	apiV1.Handle("/{tourId}/reviews", http.HandlerFunc(reviewHandler.GetReviewsByTour)).Methods("GET")
+	apiV1.Handle("/{tourId}/reviews/stats", http.HandlerFunc(reviewHandler.GetTourRatingStats)).Methods("GET")
+	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.UpdateReview))).Methods("PUT")
+	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.DeleteReview))).Methods("DELETE")
+	apiV1.Handle("/my-reviews", api.AuthMiddleware(http.HandlerFunc(reviewHandler.GetMyReviews))).Methods("GET")
 
 	// Health check ruta
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

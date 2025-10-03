@@ -1,0 +1,81 @@
+<div class="review-dialog">
+  <h2 mat-dialog-title>{{ isEditMode ? 'Edit Review' : 'Leave a Review' }}</h2>
+  
+  <mat-dialog-content>
+    <p class="tour-name">{{ data.tourName }}</p>
+    
+    <form [formGroup]="reviewForm">
+      <!-- Rating -->
+      <div class="form-field">
+        <label>Rating *</label>
+        <div class="star-rating">
+          <button
+            *ngFor="let star of ratingArray"
+            type="button"
+            class="star-btn"
+            [class.active]="star <= reviewForm.get('rating')?.value"
+            (click)="reviewForm.patchValue({ rating: star })"
+          >
+            <mat-icon>{{ star <= reviewForm.get('rating')?.value ? 'star' : 'star_border' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Visit Date -->
+      <div class="form-field">
+        <label>Visit Date *</label>
+        <input
+          type="date"
+          formControlName="visitDate"
+          [max]="maxDate | date:'yyyy-MM-dd'"
+          class="date-input"
+        />
+      </div>
+
+      <!-- Comment -->
+      <div class="form-field">
+        <label>Your Review *</label>
+        <textarea
+          formControlName="comment"
+          rows="6"
+          placeholder="Share your experience with this tour..."
+          class="comment-textarea"
+        ></textarea>
+      </div>
+
+      <!-- Images Upload -->
+      <div class="form-field">
+        <label>Images (Optional)</label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          (change)="onFileSelected($event)"
+          class="file-input"
+        />
+        
+        <!-- Image Previews -->
+        <div class="image-previews" *ngIf="imagePreviews.length > 0">
+          <div *ngFor="let preview of imagePreviews; let i = index" class="image-preview-item">
+            <img [src]="preview" alt="Preview" class="preview-image" />
+            <button type="button" class="remove-btn" (click)="removeImage(i)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="!reviewForm.valid"
+    >
+      {{ isEditMode ? 'Update' : 'Submit' }} Review
+    </button>
+  </mat-dialog-actions>
+</div>
