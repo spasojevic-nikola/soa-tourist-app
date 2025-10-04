@@ -6,6 +6,7 @@ import { User as AuthUser } from 'src/app/infrastructure/auth/model/user.model';
 import { AuthService } from 'src/app/infrastructure/auth/auth.service';
 import { User } from 'src/app/feature-modules/user-profile/profile/model/profile.model';
 import { StakeholdersService } from 'src/app/infrastructure/stakeholders.service';
+import { CartStateService } from '../../shopping-cart/services/cart-state.service';
 
 @Component({
   selector: 'xp-navbar',
@@ -17,14 +18,20 @@ export class NavbarComponent implements OnInit {
   user: AuthUser | undefined;
   searchControl = new FormControl('');
   filteredUsers$: Observable<User[]>;
+  
+  cartItemCount$: Observable<number>; 
+
 
   constructor(private authService: AuthService,    
     private stakeholdersService: StakeholdersService,
-    private router: Router) {}
+    private router: Router,
+    private cartStateService: CartStateService 
+  ) {}
 
     ngOnInit(): void {
       this.authService.user$.subscribe(user => {
         this.user = user;
+        this.cartItemCount$ = this.cartStateService.cartItemCount$; 
       });
   
       // Logika za "live search"

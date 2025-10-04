@@ -8,7 +8,7 @@ import (
 
 //  predstavlja jednu stavku (turu) u ShoppingCart-u
 type OrderItem struct {
-	TourID primitive.ObjectID `bson:"tourId" json:"tourId"` // ID ture iz Tour microservice-a
+	TourID string `bson:"tourId" json:"tourId"` // ID ture iz Tour microservice-a
 	Name   string             `bson:"name" json:"name"`
 	Price  float64            `bson:"price" json:"price"`
 }
@@ -24,9 +24,9 @@ type ShoppingCart struct {
 
 // dodeljuje se nakon uspešne kupovine za svaku stavku
 type TourPurchaseToken struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ID           primitive.ObjectID 			`bson:"_id,omitempty" json:"id"`
 	UserID       uint               `bson:"userId" json:"userId"`
-	TourID       primitive.ObjectID `bson:"tourId" json:"tourId"`
+	TourID       string `bson:"tourId" json:"tourId"`
 	PurchaseTime time.Time          `bson:"purchaseTime" json:"purchaseTime"`
 }
 

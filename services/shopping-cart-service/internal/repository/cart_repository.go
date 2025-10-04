@@ -17,7 +17,8 @@ type CartRepository interface {
 	GetCartByUserID(ctx context.Context, userID uint) (*models.ShoppingCart, error)
 	CreateCart(ctx context.Context, cart *models.ShoppingCart) error
 	UpdateCart(ctx context.Context, cart *models.ShoppingCart) error
-	DeleteCart(ctx context.Context, userID uint) error
+    RemoveItem(ctx context.Context, userID uint, tourID string) error 
+	DeleteCart(ctx context.Context, userID uint) error 
 	CreatePurchaseTokens(ctx context.Context, tokens []models.TourPurchaseToken) ([]primitive.ObjectID, error)
 }
 
@@ -73,6 +74,18 @@ func (r *mongoCartRepository) UpdateCart(ctx context.Context, cart *models.Shopp
 func (r *mongoCartRepository) DeleteCart(ctx context.Context, userID uint) error {
 	_, err := r.cartCollection.DeleteOne(ctx, bson.M{"userId": userID})
 	return err
+}
+
+func (r *mongoCartRepository) RemoveItem(ctx context.Context, userID uint, tourID string) error {
+    update := bson.M{
+        "$pull": bson.M{
+            "items": bson.M{"tourId": tourID},
+        },
+    }
+    
+    // Tražimo korpu po UserID-ju
+    _, err := r.cartCollection.UpdateOne(ctx, bson.M{"userId": userID}, update)
+    return err
 }
 
 //  snima tokene kupljenih tura

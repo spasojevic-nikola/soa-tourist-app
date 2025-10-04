@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"shopping-cart-service/internal/dto"
 	"shopping-cart-service/internal/service"
 )
@@ -71,4 +72,23 @@ func (h *Handler) Checkout(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+func (h *Handler) RemoveItem(w http.ResponseWriter, r *http.Request) {
+    userID := GetUserID(r)
+    vars := mux.Vars(r)
+    tourID := vars["tourId"] // ID ture iz URL-a
+
+    if tourID == "" {
+        http.Error(w, "Tour ID is required", http.StatusBadRequest)
+        return
+    }
+
+    cart, err := h.Service.RemoveItem(r.Context(), userID, tourID)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(cart)
 }

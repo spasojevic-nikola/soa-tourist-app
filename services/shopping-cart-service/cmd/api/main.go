@@ -36,6 +36,7 @@ func main() {
 	apiV1 := r.PathPrefix("/api/v1/cart").Subrouter()
 
 	// Rute za korpu (zahtevaju autentikaciju)
+	apiV1.HandleFunc("/items/{tourId}", api.AuthMiddleware(cartHandler.RemoveItem)).Methods("DELETE") 
 	apiV1.HandleFunc("", api.AuthMiddleware(cartHandler.GetCart)).Methods("GET")
 	apiV1.HandleFunc("/items", api.AuthMiddleware(cartHandler.AddItemToCart)).Methods("POST") 
 	apiV1.HandleFunc("/checkout", api.AuthMiddleware(cartHandler.Checkout)).Methods("POST")

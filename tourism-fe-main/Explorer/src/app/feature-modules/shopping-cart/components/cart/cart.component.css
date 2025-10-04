@@ -1,0 +1,165 @@
+/* Osnovni kontejner stranice */
+.cart-page-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+h2 {
+    color: #3f51b5; 
+    text-align: center;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    font-size: 2em;
+}
+
+/* --- Layout za stavke i rezime --- */
+.main-cart-layout {
+    display: flex;
+    gap: 30px;
+}
+
+.cart-items-list {
+    flex-grow: 1;
+}
+
+.cart-summary-card {
+    flex-basis: 350px; 
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+}
+
+/* --- Stanje prazne korpe (Unchanged, ostaje lepo) --- */
+.empty-cart {
+    text-align: center;
+    padding: 80px 20px;
+    font-size: 1.2em;
+    color: #666;
+    background-color: #e3f2fd;
+    border: 1px dashed #90caf9;
+    border-radius: 8px;
+    margin-top: 30px;
+}
+
+.empty-cart .icon-large {
+    font-size: 60px;
+    height: 60px;
+    width: 60px;
+    color: #3f51b5;
+    margin-bottom: 15px;
+}
+
+/* --- Kartica za stavku (Veće i lepše) --- */
+.cart-item-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+    border-left: 6px solid #ff4081; /* Opet akcentna boja */
+}
+
+.cart-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.item-main-details {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.tour-icon {
+    font-size: 40px;
+    height: 40px;
+    width: 40px;
+    color: #3f51b5;
+    margin-right: 20px;
+}
+
+.details-text h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.4em; /* Povećaj ime ture */
+    color: #333;
+}
+
+.tour-id-label {
+    font-size: 0.8em;
+    color: #999;
+    display: block;
+    margin-top: 5px;
+}
+
+/* --- Cena i Akcije --- */
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.price-value {
+    font-weight: bold;
+    font-size: 1.5em; /* Povećaj cenu */
+    color: #388e3c; 
+    min-width: 100px;
+    text-align: right;
+}
+
+/* --- Summary kartica (Unchanged - ostaje lepo) --- */
+.cart-summary-card h3 {
+    margin-top: 0;
+    font-size: 1.3em;
+    color: #3f51b5;
+}
+
+.summary-details {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+}
+
+.total-line {
+    border-top: 2px solid #ccc;
+    padding-top: 15px;
+    margin-top: 15px !important;
+    font-size: 1.2em;
+}
+
+.checkout-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1.1em;
+    margin-top: 20px;
+}
+
+/* --- Responsivnost (Mobilni telefoni) --- */
+@media (max-width: 900px) {
+    .main-cart-layout {
+        flex-direction: column; 
+    }
+
+    .cart-summary-card {
+        flex-basis: auto;
+        order: -1; 
+        margin-bottom: 20px;
+    }
+    
+    .cart-item-card {
+        flex-wrap: wrap; /* Omogući prelamanje na mobilnom */
+    }
+
+    .item-main-details {
+        margin-bottom: 10px;
+    }
+
+    .item-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

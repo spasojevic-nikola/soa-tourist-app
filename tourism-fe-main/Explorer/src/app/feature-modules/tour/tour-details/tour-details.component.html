@@ -69,9 +69,24 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button class="btn btn-purchase" (click)="onPurchase()">
-        <mat-icon class="btn-icon">shopping_cart</mat-icon>
-        <span>Purchase Tour</span>
+      <button 
+          class="btn btn-purchase" 
+          (click)="onPurchase()"
+          
+          [disabled]="isAddingToCart || !tour || tour.status !== 'Published' || tour.price <= 0" >
+          
+          <!-- 💡 Prikaz spinnera i teksta kada je zahtev u toku -->
+          <ng-container *ngIf="isAddingToCart">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Adding to Cart...</span>
+          </ng-container>
+  
+          <!-- 💡 Prikaz standardne ikonice kada zahtev NIJE u toku -->
+          <ng-container *ngIf="!isAddingToCart">
+              <mat-icon class="btn-icon">shopping_cart</mat-icon>
+              <span>Purchase Tour</span>
+          </ng-container>
+  
       </button>
       <button class="btn btn-review" (click)="onLeaveReview()">
         <mat-icon class="btn-icon">rate_review</mat-icon>

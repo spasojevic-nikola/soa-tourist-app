@@ -4,7 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // koristi se za dodavanje stavke u korpu.
 type AddItemRequest struct {
-	TourID primitive.ObjectID `json:"tourId"`
+	TourID string `json:"tourId"`
 	Name   string             `json:"name"`
 	Price  float64            `json:"price"`
 }
