@@ -142,3 +142,7 @@ func (s *CartService) RemoveItem(ctx context.Context, userID uint, tourID string
 	log.Printf("INFO: User %d removed item %s. New Total: %.2f", userID, tourID, cart.Total)
 	return cart, nil
 }
+
+func (s *CartService) HasPurchaseToken(ctx context.Context, userID uint, tourID string) (bool, error) {
+    return s.Repo.HasPurchaseToken(ctx, userID, tourID)
+}

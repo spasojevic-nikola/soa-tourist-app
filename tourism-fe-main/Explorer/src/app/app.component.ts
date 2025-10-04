@@ -23,7 +23,7 @@ export class AppComponent implements OnInit {
         this.cartService.getCart().subscribe(); // Automatski ažurira count kroz tap()
       }
     });
-  
+    
   }
   
   private checkIfUserExists(): void {

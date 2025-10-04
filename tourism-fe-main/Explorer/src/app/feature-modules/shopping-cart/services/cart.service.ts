@@ -42,4 +42,7 @@ export class CartService {
       tap(cart => this.cartStateService.updateCartCount(cart.items.length))
     );
   }
+  hasPurchased(tourId: string): Observable<{ isPurchased: boolean }> {
+    return this.http.get<{ isPurchased: boolean }>(`${this.apiUrl}/purchase-status/${tourId}`);
+  }
 }

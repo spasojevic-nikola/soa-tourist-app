@@ -40,6 +40,9 @@ func main() {
 	apiV1.HandleFunc("", api.AuthMiddleware(cartHandler.GetCart)).Methods("GET")
 	apiV1.HandleFunc("/items", api.AuthMiddleware(cartHandler.AddItemToCart)).Methods("POST") 
 	apiV1.HandleFunc("/checkout", api.AuthMiddleware(cartHandler.Checkout)).Methods("POST")
+	//da li korisnik ima token
+	apiV1.HandleFunc("/purchase-status/{tourId}", api.AuthMiddleware(cartHandler.HasPurchaseToken)).Methods("GET") 
+
 
 	// Health check
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
