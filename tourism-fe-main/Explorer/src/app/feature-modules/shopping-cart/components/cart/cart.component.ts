@@ -4,6 +4,7 @@ import { CartService } from '../../services/cart.service';
 import { PurchaseTokenResponse } from '../../services/dto/purchase-token-response.dto';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CartStateService } from '../../services/cart-state.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'xp-cart',
@@ -19,7 +20,8 @@ export class CartComponent implements OnInit {
   constructor(
     private cartService: CartService,
     private snackBar: MatSnackBar,
-    private cartStateService : CartStateService
+    private cartStateService : CartStateService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -83,5 +85,8 @@ export class CartComponent implements OnInit {
             this.snackBar.open('Failed to remove item. Check console.', 'Dismiss', { duration: 4000 });
         }
     });
+}
+navigateToTour(tourId: string): void {
+  this.router.navigate(['/tours', tourId]);
 }
 }

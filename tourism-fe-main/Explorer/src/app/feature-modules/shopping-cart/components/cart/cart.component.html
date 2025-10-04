@@ -10,7 +10,7 @@
     <div *ngIf="!isLoading && (!cart || cart.items.length === 0)" class="empty-cart">
         <mat-icon class="icon-large">sentiment_very_dissatisfied</mat-icon>
         <p>Your cart is currently empty. Ready to find some adventure?</p>
-        <button mat-raised-button color="primary" [routerLink]="['/tours']">Browse Tours</button>
+        <button mat-raised-button color="primary" [routerLink]="['/home']">Browse Tours</button>
     </div>
 
     <!-- Full Cart View -->
@@ -21,13 +21,17 @@
             <mat-card *ngFor="let item of cart.items" class="cart-item-card">
                 
                 <!-- Glavne informacije o turi i ID -->
-                <div class="item-main-details">
-                    <mat-icon class="tour-icon">explore</mat-icon>
-                    <div class="details-text">
-                        <h4>{{ item.name }}</h4>
-                        <span class="tour-id-label">Tour ID: {{ item.tourId }}</span>
-                    </div>
-                </div>
+                <div class="item-main-details" 
+                [routerLink]="['/tours', item.tourId]"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="navigateToTour(item.tourId)"
+                (keydown.space)="navigateToTour(item.tourId)">
+               <mat-icon class="tour-icon">explore</mat-icon>
+               <div class="details-text">
+                   <h4>{{ item.name }}</h4>
+               </div>
+           </div>
                 
                 <!-- Cena i Dugme za uklanjanje -->
                 <div class="item-actions">
@@ -52,7 +56,7 @@
             <mat-divider></mat-divider>
 
             <div class="summary-details">
-                <p>Items ({{ cart.items.length }})</p>
+                <p>Total items in cart ({{ cart.items.length }})</p>
             </div>
 
             <div class="summary-details total-line">
