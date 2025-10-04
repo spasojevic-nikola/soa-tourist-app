@@ -32,4 +32,8 @@ export class CartService {
     const url = `${this.apiUrl}/items/${tourId}`;
     return this.http.delete<ShoppingCart>(url);
   }
+  checkToken(tourId: string): Observable<{ hasAccess: boolean }> {
+    const url = `${this.apiUrl}/check-token?tourId=${tourId}`;
+    return this.http.get<{ hasAccess: boolean }>(url);
+  }
 }

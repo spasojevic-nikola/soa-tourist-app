@@ -33,6 +33,7 @@ export class CartComponent implements OnInit {
       next: (data) => {
         // Uspesno ucitavanje podataka
         this.cart = data;
+        this.cartStateService.updateCartCount(data.items.length);
         this.isLoading = false;
       },
       error: (err) => {
@@ -60,6 +61,7 @@ export class CartComponent implements OnInit {
         
         // Ažuriraj lokalno stanje na praznu korpu (UI odmah reaguje)
         this.cart = { ...this.cart!, items: [], total: 0 }; 
+        this.cartStateService.updateCartCount(0);
       },
       error: (err) => {
         console.error('Checkout failed:', err);
@@ -69,7 +71,11 @@ export class CartComponent implements OnInit {
     });
   }
 
-  onRemoveItem(tourId: string, itemName: string): void {
+  onRemoveItem(tourId: string, itemName: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     this.cartService.removeItem(tourId).subscribe({
         next: (updatedCart) => {
             // Ažuriraj lokalno stanje na novu korpu

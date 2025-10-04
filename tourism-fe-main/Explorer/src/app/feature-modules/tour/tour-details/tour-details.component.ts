@@ -10,6 +10,7 @@ import { ReviewDialogComponent } from '../review-dialog/review-dialog.component'
 import { CartService } from '../../shopping-cart/services/cart.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CartStateService } from '../../shopping-cart/services/cart-state.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'xp-tour-details',
@@ -25,6 +26,7 @@ export class TourDetailsComponent implements OnInit {
   loadingReviews = false;
 
   isAddingToCart: boolean = false; 
+  hasPurchased = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -43,6 +45,22 @@ export class TourDetailsComponent implements OnInit {
     this.loadTourDetails(tourId);
     this.loadReviews(tourId);
     this.loadReviewStats(tourId);
+    this.checkIfTourInCart(tourId); // Dodato: provera da li je tura već u korpi
+  }
+
+  checkIfTourInCart(tourId: number): void {
+    this.cartService.getCart().subscribe({
+      next: (cart) => {
+        // Provera da li postoji item u korpi sa ovim tourId
+        const tourInCart = cart.items.some(item => 
+          item.tourId === String(tourId)
+        );
+        this.hasPurchased = tourInCart;
+      },
+      error: (err) => {
+        console.error('Error checking cart:', err);
+      }
+    });
   }
 
   loadTourDetails(tourId: number): void {
@@ -96,52 +114,38 @@ export class TourDetailsComponent implements OnInit {
   }
 
   onPurchase(): void {
-    // 1. Provera postojanja podataka i uslova za kupovinu
-    if (this.isAddingToCart) return; 
-    const isPublished = this.tour?.status === 'Published';
-
-    if (!this.tour || !this.tour.id || !this.tour.name) {
-        this.snackBar.open('Tour details are incomplete or still loading.', 'Dismiss', { duration: 3000 });
-        return;
-    }
+    if (this.isAddingToCart) return;
     
-    if (!isPublished ) {
-        let message = '';
-        if (!isPublished) {
-             message = 'Cannot purchase: The tour must be published.';
-        } 
-        this.snackBar.open(message, 'Dismiss', { duration: 4000 });
-        return;
+    // Prvo se proverava 'hasPurchased' status
+    if (this.hasPurchased) {
+      this.snackBar.open('You have already purchased this tour.', 'Dismiss', { duration: 3000 });
+      return;
     }
 
-    this.isAddingToCart = true; 
- 
-    const itemToAdd = {
-        tourId: String(this.tour.id), // KONVERTOVAN NUMBER U STRING
-        name: this.tour.name,
-        price: this.tour.price
-    };
+    if (!this.tour || !this.tour.id || this.tour.status !== 'Published') {
+      this.snackBar.open('This tour is not available for purchase.', 'Dismiss', { duration: 3000 });
+      return;
+    }
 
-    // 3. POZIV BACKENDA
+    this.isAddingToCart = true;
+    const itemToAdd = { tourId: String(this.tour.id) }; // Sada se šalje samo tourId
+
     this.cartService.addItem(itemToAdd).subscribe({
-        next: (updatedCart) => {
-            this.snackBar.open(`"${itemToAdd.name}" added to cart! Total: ${updatedCart.total} RSD`, 'View Cart', { duration: 4000 })
-                .onAction()
-                .subscribe(() => {
-                    this.router.navigate(['/shopping-cart']); 
-                });
-            
-            // AZURIRAJ NAVBAR
-            this.cartStateService.updateCartCount(updatedCart.items.length);
-            this.isAddingToCart = false; 
-        },
-        error: (err) => {
-            console.error('Error adding item to cart:', err);
-            this.snackBar.open('Failed to add item. Check log for details.', 'Dismiss', { duration: 5000 });
-            this.isAddingToCart = false;
-        }
+      next: (updatedCart) => {
+        this.snackBar.open(`"${this.tour?.name}" added to cart!`, 'View Cart', { duration: 4000 })
+          .onAction().subscribe(() => this.router.navigate(['/shopping-cart']));
+        
+        this.cartStateService.updateCartCount(updatedCart.items.length);
+        this.hasPurchased = true; // Status se odmah ažurira nakon uspešne kupovine
+        this.isAddingToCart = false;
+      },
+      error: (err) => {
+        const errorMessage = err.error?.message || 'Failed to add item to cart.';
+        this.snackBar.open(errorMessage, 'Dismiss', { duration: 5000 });
+        this.isAddingToCart = false;
+      }
     });
-}
+  }
 
   onLeaveReview(): void {
     if (!this.tour) return;
