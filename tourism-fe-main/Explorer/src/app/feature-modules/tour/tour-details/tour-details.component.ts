@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { TourService } from '../tour.service';
 import { ReviewService } from '../review.service';
@@ -7,6 +7,9 @@ import { Tour } from '../model/tour.model';
 import { Review, ReviewStats } from '../model/review.model';
 import { MapService } from '../services/map-service.service';
 import { ReviewDialogComponent } from '../review-dialog/review-dialog.component';
+import { CartService } from '../../shopping-cart/services/cart.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { CartStateService } from '../../shopping-cart/services/cart-state.service';
 
 @Component({
   selector: 'xp-tour-details',
@@ -21,12 +24,18 @@ export class TourDetailsComponent implements OnInit {
   reviewStats: ReviewStats | null = null;
   loadingReviews = false;
 
+  isAddingToCart: boolean = false; 
+
   constructor(
     private route: ActivatedRoute,
     private tourService: TourService,
     private reviewService: ReviewService,
     private mapService: MapService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router,
+    private cartService: CartService, 
+    private cartStateService: CartStateService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -87,9 +96,52 @@ export class TourDetailsComponent implements OnInit {
   }
 
   onPurchase(): void {
-    // Placeholder for purchase functionality
-    alert('Purchase functionality coming soon!');
-  }
+    // 1. Provera postojanja podataka i uslova za kupovinu
+    if (this.isAddingToCart) return; 
+    const isPublished = this.tour?.status === 'Published';
+
+    if (!this.tour || !this.tour.id || !this.tour.name) {
+        this.snackBar.open('Tour details are incomplete or still loading.', 'Dismiss', { duration: 3000 });
+        return;
+    }
+    
+    if (!isPublished ) {
+        let message = '';
+        if (!isPublished) {
+             message = 'Cannot purchase: The tour must be published.';
+        } 
+        this.snackBar.open(message, 'Dismiss', { duration: 4000 });
+        return;
+    }
+
+    this.isAddingToCart = true; 
+ 
+    const itemToAdd = {
+        tourId: String(this.tour.id), // KONVERTOVAN NUMBER U STRING
+        name: this.tour.name,
+        price: this.tour.price
+    };
+
+    // 3. POZIV BACKENDA
+    this.cartService.addItem(itemToAdd).subscribe({
+        next: (updatedCart) => {
+            this.snackBar.open(`"${itemToAdd.name}" added to cart! Total: ${updatedCart.total} RSD`, 'View Cart', { duration: 4000 })
+                .onAction()
+                .subscribe(() => {
+                    this.router.navigate(['/shopping-cart']); 
+                });
+            
+            // AZURIRAJ NAVBAR
+            this.cartStateService.updateCartCount(updatedCart.items.length);
+            this.isAddingToCart = false; 
+        },
+        error: (err) => {
+            console.error('Error adding item to cart:', err);
+            this.snackBar.open('Failed to add item. Check log for details.', 'Dismiss', { duration: 5000 });
+            this.isAddingToCart = false;
+        }
+    });
+}
 
   onLeaveReview(): void {
     if (!this.tour) return;

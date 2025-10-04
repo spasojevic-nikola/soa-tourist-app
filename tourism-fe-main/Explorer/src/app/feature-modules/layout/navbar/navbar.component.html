@@ -42,9 +42,15 @@
       <button *ngIf="user && user.username === ''" color="accent" mat-raised-button [routerLink]="['login']">Login</button>
       
       <ng-container *ngIf="user && user.username !== ''">
-        <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
-          <mat-icon>account_circle</mat-icon>
-        </button>
+        <button mat-icon-button 
+            [routerLink]="['/shopping-cart']" 
+            aria-label="Shopping Cart"
+            [matBadge]="cartItemCount$ | async" [matBadgeHidden]="(cartItemCount$ | async) === 0" matBadgeColor="warn">
+        <mat-icon>shopping_cart</mat-icon>
+    </button>
+          <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
+            <mat-icon>account_circle</mat-icon>
+          </button>
 
         <button color="accent" mat-raised-button (click)="onLogout()">Log out</button>
       </ng-container>

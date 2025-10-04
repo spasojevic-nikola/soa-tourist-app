@@ -11,6 +11,10 @@ import { TourWizardComponent } from './tour-wizard/tour-wizard.component';
 import { TourKeypointsModule } from '../tour-keypoints/tour-keypoints.module';
 import { TourDetailsComponent } from './tour-details/tour-details.component';
 import { ReviewDialogComponent } from './review-dialog/review-dialog.component';
+import { MatSnackBarModule } from '@angular/material/snack-bar'; 
+import { HttpClientModule } from '@angular/common/http'; 
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; 
+
 
 @NgModule({
   declarations: [
@@ -27,7 +31,11 @@ import { ReviewDialogComponent } from './review-dialog/review-dialog.component';
     MatButtonModule,
     ReactiveFormsModule, 
     TourRoutingModule,  
-    TourKeypointsModule  
+    TourKeypointsModule,
+    MatSnackBarModule,
+    HttpClientModule,
+    MatProgressSpinnerModule
+
   ]
 })
 export class TourModule { }

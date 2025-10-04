@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"time"
 
 	"shopping-cart-service/internal/dto"
 	"shopping-cart-service/internal/models"
@@ -114,4 +116,29 @@ func (s *CartService) Checkout(ctx context.Context, userID uint) (*dto.TourPurch
 		Tokens: tokenIDs,
 		Message: fmt.Sprintf("Purchase successful. %d items bought for %.2f.", len(cart.Items), cart.Total),
 	}, nil
+}
+func (s *CartService) RemoveItem(ctx context.Context, userID uint, tourID string) (*models.ShoppingCart, error) {
+	// 1. Ukloni stavku iz baze
+	if err := s.Repo.RemoveItem(ctx, userID, tourID); err != nil {
+		log.Printf("ERROR: Failed to remove item %s from cart of User %d. Error: %v", tourID, userID, err)
+		return nil, fmt.Errorf("failed to remove item from cart: %w", err)
+	}
+
+	// 2. Dohvati azuriranu korpu
+	cart, err := s.Repo.GetCartByUserID(ctx, userID)
+	if err != nil || cart == nil {
+		return nil, errors.New("cart not found after removal, internal inconsistency")
+	}
+
+	// 3. Ponovo izracunaj total
+	cart.Total = calculateTotal(cart.Items)
+	cart.Updated = time.Now() // Koristimo time.Now()
+
+	// 4. Ažuriraj total u bazi (koristeći ReplaceOne u UpdateCart)
+	if err := s.Repo.UpdateCart(ctx, cart); err != nil {
+		return nil, fmt.Errorf("failed to recalculate cart total: %w", err)
+	}
+    
+	log.Printf("INFO: User %d removed item %s. New Total: %.2f", userID, tourID, cart.Total)
+	return cart, nil
 }

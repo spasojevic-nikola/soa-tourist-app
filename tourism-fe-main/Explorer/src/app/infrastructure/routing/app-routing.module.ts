@@ -51,6 +51,11 @@ const routes: Routes = [
     component: RecommendationListComponent,
     canActivate: [AuthGuard] 
   },
+  {
+    path: 'shopping-cart', // Ovo je putanja na koju se rutirate iz komponente (npr. router.navigate(['/shopping-cart']))
+    loadChildren: () => import('../../feature-modules/shopping-cart/shopping-cart.module').then(m => m.ShoppingCartModule),
+    canActivate: [AuthGuard] // Korpa zahteva da korisnik bude prijavljen
+  }
 
 ];
 
