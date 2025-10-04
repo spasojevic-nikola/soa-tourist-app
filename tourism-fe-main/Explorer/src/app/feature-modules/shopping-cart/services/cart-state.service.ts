@@ -19,4 +19,7 @@ export class CartStateService {
   updateCartCount(newCount: number): void {
     this.cartItemCountSubject.next(newCount);
   }
+  clearCartCount(): void {
+    this.cartItemCountSubject.next(0);
+  }
 }
