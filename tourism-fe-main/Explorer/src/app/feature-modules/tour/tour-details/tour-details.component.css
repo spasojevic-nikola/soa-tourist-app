@@ -400,4 +400,15 @@
     flex-direction: column;
     gap: 0.75rem;
   }
+  .btn-disabled-purchased {
+    background: #95a5a6 !important;
+    color: #ecf0f1 !important;
+    cursor: not-allowed !important;
+  }
+  
+  .btn-disabled-purchased:hover {
+    background: #95a5a6 !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
 }
