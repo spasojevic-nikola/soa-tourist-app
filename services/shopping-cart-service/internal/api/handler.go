@@ -92,3 +92,23 @@ func (h *Handler) RemoveItem(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(cart)
 }
+
+func (h *Handler) HasPurchaseToken(w http.ResponseWriter, r *http.Request) {
+    userID := GetUserID(r)
+    vars := mux.Vars(r)
+    tourID := vars["tourId"]
+
+    if tourID == "" {
+        http.Error(w, "Tour ID is required", http.StatusBadRequest)
+        return
+    }
+
+    hasPurchased, err := h.Service.HasPurchaseToken(r.Context(), userID, tourID)
+    if err != nil {
+        http.Error(w, "Failed to check purchase status", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]bool{"isPurchased": hasPurchased})
+}

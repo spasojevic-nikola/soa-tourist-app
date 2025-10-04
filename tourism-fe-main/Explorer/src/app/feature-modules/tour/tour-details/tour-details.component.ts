@@ -26,6 +26,11 @@ export class TourDetailsComponent implements OnInit {
 
   isAddingToCart: boolean = false; 
 
+    // Status kupovine
+    isTourPurchased: boolean = false;
+    checkingPurchaseStatus: boolean = true;
+  
+
   constructor(
     private route: ActivatedRoute,
     private tourService: TourService,
@@ -43,32 +48,53 @@ export class TourDetailsComponent implements OnInit {
     this.loadTourDetails(tourId);
     this.loadReviews(tourId);
     this.loadReviewStats(tourId);
+    this.checkPurchaseStatus(tourId);
+
   }
 
-  loadTourDetails(tourId: number): void {
-    this.tourService.getTourById(tourId).subscribe({
-      next: async (tour) => {
-        this.tour = tour;
-        // Load address for first keypoint if exists
-        if (tour.keyPoints && tour.keyPoints.length > 0) {
-          const firstKeypoint = tour.keyPoints[0];
-          if (firstKeypoint.address) {
-            this.keypointAddress = firstKeypoint.address;
-          } else {
-            this.keypointAddress = await this.mapService.reverseGeocode(
-              firstKeypoint.latitude,
-              firstKeypoint.longitude
-            );
-          }
-        }
-        this.isLoading = false;
+  checkPurchaseStatus(tourId: number): void {
+    this.checkingPurchaseStatus = true;
+    this.cartService.hasPurchased(String(tourId)).subscribe({
+      next: (response) => {
+        this.isTourPurchased = response.isPurchased;
+        this.checkingPurchaseStatus = false;
       },
       error: (err) => {
-        console.error('Error loading tour details:', err);
-        this.isLoading = false;
+        console.error('Error checking purchase status:', err);
+        this.isTourPurchased = false;
+        this.checkingPurchaseStatus = false;
       }
     });
   }
+
+  loadTourDetails(tourId: number): void {
+  this.tourService.getTourById(tourId).subscribe({
+    next: async (tour) => {
+      this.tour = tour;
+      
+      // Učitaj adrese za sve keypoints
+      if (tour.keyPoints && tour.keyPoints.length > 0) {
+        for (let keypoint of tour.keyPoints) {
+          if (!keypoint.address) {
+            keypoint.address = await this.mapService.reverseGeocode(
+              keypoint.latitude,
+              keypoint.longitude
+            );
+          }
+        }
+        
+        // Postavi adresu prvog keypointa za prikaz kada nije kupljeno
+        this.keypointAddress = tour.keyPoints[0].address || 'Loading address...';
+      }
+      
+      this.isLoading = false;
+    },
+    error: (err) => {
+      console.error('Error loading tour details:', err);
+      this.isLoading = false;
+    }
+  });
+}
 
   loadReviews(tourId: number): void {
     this.loadingReviews = true;

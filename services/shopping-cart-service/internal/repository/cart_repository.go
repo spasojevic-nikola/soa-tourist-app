@@ -20,6 +20,7 @@ type CartRepository interface {
     RemoveItem(ctx context.Context, userID uint, tourID string) error 
 	DeleteCart(ctx context.Context, userID uint) error 
 	CreatePurchaseTokens(ctx context.Context, tokens []models.TourPurchaseToken) ([]primitive.ObjectID, error)
+	HasPurchaseToken(ctx context.Context, userID uint, tourID string) (bool, error) 
 }
 
 type mongoCartRepository struct {
@@ -110,4 +111,19 @@ func (r *mongoCartRepository) CreatePurchaseTokens(ctx context.Context, tokens [
 		objectIDs[i] = id.(primitive.ObjectID)
 	}
 	return objectIDs, nil
+}
+
+//da li korisnik ima token
+func (r *mongoCartRepository) HasPurchaseToken(ctx context.Context, userID uint, tourID string) (bool, error) {
+    filter := bson.M{
+        "userId": userID,
+        "tourId": tourID,
+    }
+    
+    count, err := r.tokenCollection.CountDocuments(ctx, filter)
+    if err != nil {
+        return false, err
+    }
+    
+    return count > 0, nil
 }
