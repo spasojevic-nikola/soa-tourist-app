@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"blog-service/internal/api"
@@ -13,9 +12,21 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	// Konfigurisanje logrus-a za JSON format
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetLevel(log.InfoLevel)
+	log.SetReportCaller(false)
+}
 func main() {
+
+	log.WithFields(log.Fields{
+		"service": "blog-service",
+		"port":    "8081",
+	}).Info("Starting blog service")
 
 	mongoDB := database.InitDB() 
 
@@ -49,6 +60,10 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 	}).Methods("GET")
+
+	log.WithFields(log.Fields{
+		"port": "8081",
+	}).Info("Blog service is ready to accept connections")
 
 	fmt.Println("Blog service running on port 8081")
 	log.Fatal(http.ListenAndServe(":8081", corsOpts(r)))
