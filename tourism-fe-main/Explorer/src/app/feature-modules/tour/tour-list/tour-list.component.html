@@ -7,7 +7,7 @@
       <div *ngFor="let tour of tours" class="tour-card">
         
         <div class="card-image">
-          <span class="tour-status" [ngClass]="tour.status">{{ tour.status }}</span>
+          <span class="tour-status" [ngClass]="tour.status.toLowerCase()">{{ tour.status }}</span>
         </div>
 
         <div class="card-content">
@@ -22,6 +22,21 @@
           <div class="stat-item price">
             <span class="stat-value">€{{ tour.price }}</span>
           </div>
+          <div class="stat-item distance" *ngIf="tour.distance">
+            Distance: <strong class="stat-value">{{ tour.distance | number:'1.2-2' }} km</strong>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button *ngIf="tour.status === 'Draft'" (click)="publishTour(tour.id)" class="btn btn-publish">
+            Publish Tour
+          </button>
+          <button *ngIf="tour.status === 'Published'" (click)="archiveTour(tour.id)" class="btn btn-archive">
+            Archive Tour
+          </button>
+          <button *ngIf="tour.status === 'Archived'" (click)="activateTour(tour.id)" class="btn btn-activate">
+            Activate Tour
+          </button>
         </div>
       </div>
 

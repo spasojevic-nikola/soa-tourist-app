@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"tour-service/internal/models"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -34,8 +35,8 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 func AuthorOrAdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userRole, ok := r.Context().Value("userRole").(string)
-		if !ok || (userRole != "author" && userRole != "administrator") {
-			http.Error(w, "Forbidden: Authors or administrators only", http.StatusForbidden)
+		if !ok || (userRole != "author" && userRole != "guide" && userRole != "administrator") {
+			http.Error(w, "Forbidden: Guides or administrators only", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)

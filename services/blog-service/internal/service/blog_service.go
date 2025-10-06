@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"time"
+	"encoding/json"
+	"fmt"     
+	"net/http" 
+
 
 	"blog-service/internal/dto"
 	"blog-service/internal/models"
@@ -11,6 +15,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	md "github.com/gomarkdown/markdown"
+	mdhtml "github.com/gomarkdown/markdown/html"
 )
 
 // BlogService sadrži reference na repository.
@@ -25,13 +31,25 @@ func NewBlogService(repo repository.BlogRepository) *BlogService {
 
 // CreateBlog kreira novi blog.
 func (s *BlogService) CreateBlog(ctx context.Context, req dto.CreateBlogRequest, authorID uint) (*models.Blog, error) {
+
+	// 1. KONVERZIJA MARKDOWN-a U HTML
+    rawMarkdown := []byte(req.Content)
+    
+    // Konfiguracija HTML renderera (Standardne opcije + otvaranje linkova u novom tabu)
+    opts := mdhtml.RendererOptions{Flags: mdhtml.CommonFlags | mdhtml.HrefTargetBlank}
+    renderer := mdhtml.NewRenderer(opts)
+    
+    // Generisanje HTML-a
+    htmlOutput := md.ToHTML(rawMarkdown, nil, renderer)
+
 	blog := &models.Blog{
 		ID:        primitive.NewObjectID(),
 		Title:     req.Title,
 		Content:   req.Content,
+		HTMLContent: string(htmlOutput), // Čuvamo generisani HTML
 		AuthorID:  authorID,
 		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now(),	
 		Images:    req.Images,
 		Comments:  []models.Comment{},
 		Likes:     []uint{},
@@ -101,4 +119,50 @@ func (s *BlogService) GetAllBlogs(ctx context.Context) ([]models.Blog, error) {
 // GetBlogByID vraća blog po ID-ju.
 func (s *BlogService) GetBlogByID(ctx context.Context, id primitive.ObjectID) (*models.Blog, error) {
 	return s.Repo.GetByID(ctx, id)
+}
+
+func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models.Blog, error) {
+    // 1. KREIRANJE HTTP ZAHTEVA KA FOLLOWER SERVICE-u
+    // U realnoj aplikaciji, URL bi bio u konfiguraciji (npr. env varijabla)
+    followerServiceURL := "http://follower-service:8080/api/followers/following"
+    
+    req, err := http.NewRequestWithContext(ctx, "GET", followerServiceURL, nil)
+    if err != nil {
+        return nil, fmt.Errorf("failed to create request to follower service: %w", err)
+    }
+
+    // 2. PROSLEĐIVANJE IDENTITETA KORISNIKA
+    // Follower service ocekuje X-User-ID header koji postavlja API Gateway
+    // Blog Service mora da prosledi ovaj identitet.
+    req.Header.Set("X-User-ID", fmt.Sprintf("%d", userID))
+
+    // 3. SLANJE ZAHTEVA I OBRADA ODGOVORA
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        // Ovo se desava ako je Follower Service pao ili mreža ne radi
+        return nil, fmt.Errorf("follower service is unavailable: %w", err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        return nil, fmt.Errorf("follower service returned status: %s", resp.Status)
+    }
+
+    var followedIDs []uint
+    if err := json.NewDecoder(resp.Body).Decode(&followedIDs); err != nil {
+        return nil, fmt.Errorf("failed to decode response from follower service: %w", err)
+    }
+
+    // 4. UKLJUCjEM I BLOGOVE SAMOG KORISNIKA
+    // Korisnik uvek treba da vidi i svoje blogove na feed-u.
+    followedIDs = append(followedIDs, userID)
+
+    // Ako korisnik ne prati nikoga, vrati samo njegove blogove
+    if len(followedIDs) == 0 {
+        followedIDs = []uint{userID}
+    }
+
+    // 5. POZIV REPOSITORY-JA SA LISTOM ID-JEVA
+    return s.Repo.GetBlogsByAuthorIDs(ctx, followedIDs)
 }

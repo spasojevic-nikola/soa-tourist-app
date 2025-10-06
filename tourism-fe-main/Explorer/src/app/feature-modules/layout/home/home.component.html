@@ -1,1 +1,45 @@
-<p><b>Home component</b></p>
+<div class="home-container">
+  <div class="hero-section">
+    <h1>Explore Published Tours</h1>
+    <p class="subtitle"><span>Discover </span> <span class="highlight">amazing tours</span> from our community</p>
+  </div>
+
+  <div class="tours-section">
+    <div *ngIf="isLoading" class="loading">
+      <p>Loading tours...</p>
+    </div>
+
+    <div *ngIf="!isLoading && publishedTours.length === 0" class="no-tours">
+      <p>No published tours available yet.</p>
+    </div>
+
+    <div *ngIf="!isLoading && publishedTours.length > 0" class="tours-grid">
+      <div *ngFor="let tour of publishedTours" class="tour-card" [routerLink]="['/tours', tour.id]">
+        <div class="tour-header">
+          <h3>{{ tour.name }}</h3>
+        </div>
+        
+        <p class="tour-description">{{ tour.description }}</p>
+        
+        <div class="tour-stats">
+          <div class="stat-item">
+            <span class="icon">📏</span>
+            <span>{{ tour.distance | number:'1.2-2' }} km</span>
+          </div>
+          <div class="stat-item">
+            <span class="icon">🏔️</span>
+            <span>{{ tour.difficulty }}</span>
+          </div>
+          <div class="stat-item" *ngIf="tour.keyPoints && tour.keyPoints.length > 0">
+            <span class="icon">📍</span>
+            <span>Starting at: {{ tour.keyPoints[0].name }}</span>
+          </div>
+        </div>
+
+        <div class="tour-tags" *ngIf="tour.tags && tour.tags.length > 0">
+          <span *ngFor="let tag of tour.tags" class="tag">{{ tag }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

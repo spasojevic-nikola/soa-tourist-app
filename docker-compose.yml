@@ -186,6 +186,63 @@ services:
     networks:
       - soa-network
 
+  # SHOPPING CART SERVIS
+  shopping-cart-service:
+    build: ./services/shopping-cart-service
+    container_name: soa-tourist-app-shopping-cart-service
+    ports:
+      - "8087:8081" # lokalni port 8087 na interni 8081
+    depends_on:
+      - mongo 
+    restart: on-failure
+    environment:
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_DB=purchase_db
+    networks:
+      - soa-network
+  # LOKI - agregacija logova
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: soa-tourist-app-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - soa-network
+    volumes:
+      - loki_data:/loki
+
+  # PROMTAIL - prikupljanje logova
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: soa-tourist-app-promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - soa-network
+    depends_on:
+      - loki
+
+  # GRAFANA - vizualizacija
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: soa-tourist-app-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - soa-network
+    depends_on:
+      - loki
+
 
   api-gateway:  
     build:
@@ -213,6 +270,8 @@ volumes:
   postgres_tour_data: # Dodat volume za bazu tura
   mongo_data:
   neo4j_data:
+  loki_data:
+  grafana_data:
 
 
 # JEDAN 'networks' BLOK NA KRAJU

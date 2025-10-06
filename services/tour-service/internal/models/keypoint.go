@@ -12,8 +12,9 @@ type KeyPoint struct {
 	Description string    `json:"description"`
 	Latitude    float64   `json:"latitude"`
 	Longitude   float64   `json:"longitude"`
-	Image       string    `json:"image"` // URL or path to image
-	Order       int       `json:"order"` // Order in the tour sequence
+	Address     string    `json:"address"` // Geocoded address
+	Image       string    `json:"image"`   // URL or path to image
+	Order       int       `json:"order"`   // Order in the tour sequence
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }

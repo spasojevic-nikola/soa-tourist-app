@@ -16,6 +16,7 @@ type BlogRepository interface {
 	UpdateBlog(ctx context.Context, id primitive.ObjectID, update bson.M) error
 	GetAll(ctx context.Context) ([]models.Blog, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*models.Blog, error)
+	GetBlogsByAuthorIDs(ctx context.Context, authorIDs []uint) ([]models.Blog, error)
 }
 
 // mongoBlogRepository je konkretna implementacija BlogRepository koristeći MongoDB.
@@ -65,6 +66,24 @@ func (r *mongoBlogRepository) GetAll(ctx context.Context) ([]models.Blog, error)
 		return nil, err
 	}
 	return blogs, nil
+}
+//samo blogove korisnika koje pratim
+func (r *mongoBlogRepository) GetBlogsByAuthorIDs(ctx context.Context, authorIDs []uint) ([]models.Blog, error) {
+    // Kreiramo filter koji traži blogove gde je 'authorId' u nizu 'authorIDs'
+    // Ovo je ekvivalent SQL-ovog "WHERE authorId IN (id1, id2, ...)"
+    filter := bson.M{"authorId": bson.M{"$in": authorIDs}}
+
+    cursor, err := r.collection.Find(ctx, filter)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(ctx)
+
+    var blogs []models.Blog
+    if err = cursor.All(ctx, &blogs); err != nil {
+        return nil, err
+    }
+    return blogs, nil
 }
 
 // GetByID vraća blog po ID-ju (slično GetBlogByID).

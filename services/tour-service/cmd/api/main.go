@@ -8,7 +8,7 @@ import (
 
 	"tour-service/internal/api"
 	"tour-service/internal/database"
-	"tour-service/internal/repository" 
+	"tour-service/internal/repository"
 	"tour-service/internal/service"
 
 	"github.com/gorilla/handlers"
@@ -17,14 +17,17 @@ import (
 
 func main() {
 	db := database.InitDB()
-	
+
 	tourRepo := repository.NewTourRepository(db)
 	keyPointRepo := repository.NewKeyPointRepository(db)
+	reviewRepo := repository.NewReviewRepository(db)
 
 	tourService := service.NewTourService(tourRepo)
 	keyPointService := service.NewKeyPointService(keyPointRepo, tourRepo)
+	reviewService := service.NewReviewService(reviewRepo, tourRepo)
 
 	apiHandler := api.NewHandler(tourService, keyPointService)
+	reviewHandler := api.NewReviewHandler(reviewService)
 
 	r := mux.NewRouter()
 	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
@@ -32,22 +35,36 @@ func main() {
 	// Tour routes
 	apiV1.Handle("/create-tour", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateTour))).Methods("POST")
 	apiV1.Handle("", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetMyTours))).Methods("GET")
+	apiV1.Handle("/published", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetAllPublishedTours))).Methods("GET")
+	apiV1.Handle("/{tourId}", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetTourByID))).Methods("GET")
+	apiV1.Handle("/{tourId}/publish", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.PublishTour))).Methods("PUT")
+	apiV1.Handle("/{tourId}/archive", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ArchiveTour))).Methods("PUT")
+	apiV1.Handle("/{tourId}/activate", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ActivateTour))).Methods("PUT")
+	apiV1.Handle("/{tourId}/duration", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.AddDuration))).Methods("POST")
 
 	// KeyPoint routes
 	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetKeyPointsByTour))).Methods("GET")
 	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.UpdateKeyPoint))).Methods("PUT")
 	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.DeleteKeyPoint))).Methods("DELETE")
 
+	// Review routes
+	apiV1.Handle("/{tourId}/reviews", api.AuthMiddleware(http.HandlerFunc(reviewHandler.CreateReview))).Methods("POST")
+	apiV1.Handle("/{tourId}/reviews", http.HandlerFunc(reviewHandler.GetReviewsByTour)).Methods("GET")
+	apiV1.Handle("/{tourId}/reviews/stats", http.HandlerFunc(reviewHandler.GetTourRatingStats)).Methods("GET")
+	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.UpdateReview))).Methods("PUT")
+	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.DeleteReview))).Methods("DELETE")
+	apiV1.Handle("/my-reviews", api.AuthMiddleware(http.HandlerFunc(reviewHandler.GetMyReviews))).Methods("GET")
+
 	// Health check ruta
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 	}).Methods("GET")
-	
+
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
 	)(r)
 
 	fmt.Println("Tour service running on internal port 8080")

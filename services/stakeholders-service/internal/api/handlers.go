@@ -8,7 +8,10 @@ import (
 	"stakeholders-service/internal/dto"
 	"stakeholders-service/internal/models"
 	"time"
+	"strconv" 
+	"strings" 
 
+	"github.com/gorilla/mux" 
 	"gorm.io/gorm"
 )
 
@@ -166,4 +169,82 @@ func (h *Handler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(userDTOs)
+}
+func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+    // 1. Uzimamo 'username' query parametar iz URL-a
+    // Primer URL-a: /api/v1/users/search?username=pera
+    usernameQuery := r.URL.Query().Get("username")
+    if usernameQuery == "" {
+        http.Error(w, "Query parameter 'username' is required", http.StatusBadRequest)
+        return
+    }
+
+    var users []models.User
+    // 'ILIKE' je kao 'LIKE', ali case-insensitive (ne razlikuje velika i mala slova)
+    queryPattern := fmt.Sprintf("%%%s%%", usernameQuery) // Kreira obrazac "%pera%"
+    if err := h.DB.Where("username ILIKE ?", queryPattern).Find(&users).Error; err != nil {
+        http.Error(w, "Failed to search for users", http.StatusInternalServerError)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    if len(users) == 0 {
+        // Vrati praznu listu umesto 'null' ako nema rezultata
+        w.Write([]byte("[]"))
+        return
+    }
+    json.NewEncoder(w).Encode(users)
+}
+func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
+	// 1. Citamo 'id' parametar iz URL-a (npr. iz /users/7)
+	vars := mux.Vars(r)
+	userId, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Pronalazimo korisnika u bazi po dobijenom ID-ju
+	var user models.User
+	if err := h.DB.First(&user, uint(userId)).Error; err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// 3. Vracamo pronađenog korisnika kao JSON
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
+// dobavlja listu korisnika na osnovu liste ID-jeva
+func (h *Handler) GetUsersBatch(w http.ResponseWriter, r *http.Request) {
+	idsQuery := r.URL.Query().Get("ids")
+	if idsQuery == "" {
+		http.Error(w, "Query parameter 'ids' is required", http.StatusBadRequest)
+		return
+	}
+
+	idsStr := strings.Split(idsQuery, ",")
+	var ids []uint
+	for _, idStr := range idsStr {
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err == nil {
+			ids = append(ids, uint(id))
+		}
+	}
+
+	if len(ids) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("[]"))
+		return
+	}
+
+	var users []models.User
+	if err := h.DB.Where("id IN ?", ids).Find(&users).Error; err != nil {
+		http.Error(w, "Failed to fetch users", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
 }

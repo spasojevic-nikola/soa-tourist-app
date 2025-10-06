@@ -35,6 +35,12 @@ func main() {
 	// Admin ruta za pregled svih korisnika
 	apiV1.Handle("/admin/users", api.AuthMiddleware(api.AdminAuthMiddleware(apiHandler.GetAllUsers))).Methods("GET")
 
+	apiV1.Handle("/users/search", api.AuthMiddleware(apiHandler.SearchUsers)).Methods("GET")
+	apiV1.Handle("/users/{id:[0-9]+}", api.AuthMiddleware(apiHandler.GetUserById)).Methods("GET")
+
+	// NOVA RUTA ZA INTERNU KOMUNIKACIJU ZA FOLLOWERS
+	apiV1.HandleFunc("/users/batch", apiHandler.GetUsersBatch).Methods("GET")
+
 	// Health check ruta može ostati ovde
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -45,7 +51,7 @@ func main() {
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
 	)(r)
 
 	// 6. Pokretanje servera

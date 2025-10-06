@@ -1,0 +1,16 @@
+<div class="results-container">
+    <h1>Search Results for: "{{ searchQuery }}"</h1>
+    <div *ngIf="isLoading" class="info-text">Loading...</div>
+    <div *ngIf="noResults && !isLoading" class="info-text">No users found.</div>
+    <div *ngIf="!isLoading && users.length > 0" class="user-list">
+      <a *ngFor="let user of users" class="user-item-link" [routerLink]="['/profile', user.id]">
+        <div class="user-item">
+          <img [src]="user.profile_image" alt="Profile image" class="avatar">
+          <div class="user-info">
+            <span class="full-name">{{ user.first_name }} {{ user.last_name }}</span>
+            
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>    

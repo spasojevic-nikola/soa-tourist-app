@@ -2,23 +2,23 @@ package service
 
 import (
 	"errors"
+	"math"
 	"tour-service/internal/dto"
 	"tour-service/internal/models"
 	"tour-service/internal/repository"
 )
 
-
 type TourService struct {
 	Repo *repository.TourRepository
 }
 
-// NewTourService kreira novu instancu servisa
+// kreira novu instancu servisa
 func NewTourService(repo *repository.TourRepository) *TourService {
 	return &TourService{Repo: repo}
 }
 
-// CreateTour obrađuje DTO, primenjuje pravila i poziva repozitorijum
-// CreateTour kreira turu SA keypointsima
+// obrađuje DTO, primenjuje pravila i poziva repozitorijum
+// kreira turu SA keypointsima
 func (s *TourService) CreateTour(authorID uint, req dto.CreateTourRequest) (*models.Tour, error) {
 	// Validacija
 	if req.Name == "" {
@@ -62,10 +62,163 @@ func (s *TourService) CreateTour(authorID uint, req dto.CreateTourRequest) (*mod
 		}
 	}
 
+	// racuna distancu ako ima 2+ keypointa
+	if len(req.KeyPoints) >= 2 {
+		s.CalculateDistance(tour.ID)
+	}
+
 	return tour, nil
 }
 
-
 func (s *TourService) GetToursByAuthor(authorID uint) ([]models.Tour, error) {
 	return s.Repo.FindByAuthorID(authorID)
+}
+
+// vraca sve publishovane ture (vidljive svim korisnicima)
+func (s *TourService) GetAllPublishedTours() ([]models.Tour, error) {
+	return s.Repo.FindAllPublished()
+}
+
+// vraca turu po id sa svim relacijama
+func (s *TourService) GetTourByID(tourID uint) (*models.Tour, error) {
+	return s.Repo.FindByIDWithRelations(tourID)
+}
+
+// dodaje trajanje u turu
+func (s *TourService) AddDuration(tourID uint, authorID uint, req dto.AddDurationRequest) (*models.TourDuration, error) {
+	// verifikuj vlasnistvo ture
+	tour, err := s.Repo.FindByID(tourID)
+	if err != nil {
+		return nil, errors.New("tour not found")
+	}
+	if tour.AuthorID != authorID {
+		return nil, errors.New("unauthorized: not tour author")
+	}
+
+	// kreira trajanje
+	duration := &models.TourDuration{
+		TourID:        tourID,
+		TransportType: models.TransportType(req.TransportType),
+		DurationMin:   req.DurationMin,
+	}
+
+	err = s.Repo.CreateDuration(duration)
+	if err != nil {
+		return nil, err
+	}
+
+	return duration, nil
+}
+
+// publishuje turu posle validacije
+func (s *TourService) PublishTour(tourID uint, authorID uint) (*models.Tour, error) {
+	tour, err := s.Repo.FindByIDWithRelations(tourID)
+	if err != nil {
+		return nil, errors.New("tour not found")
+	}
+	if tour.AuthorID != authorID {
+		return nil, errors.New("unauthorized: not tour author")
+	}
+	if tour.Status != models.Draft {
+		return nil, errors.New("only draft tours can be published")
+	}
+
+	// pravila za validaciju
+	if tour.Name == "" || tour.Description == "" {
+		return nil, errors.New("tour must have name and description")
+	}
+	if len(tour.KeyPoints) < 2 {
+		return nil, errors.New("tour must have at least 2 key points")
+	}
+
+	// publishuje turu
+	err = s.Repo.PublishTour(tourID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Repo.FindByIDWithRelations(tourID)
+}
+
+// arhivira publishovanu turu
+func (s *TourService) ArchiveTour(tourID uint, authorID uint) (*models.Tour, error) {
+	tour, err := s.Repo.FindByID(tourID)
+	if err != nil {
+		return nil, errors.New("tour not found")
+	}
+	if tour.AuthorID != authorID {
+		return nil, errors.New("unauthorized: not tour author")
+	}
+	if tour.Status != models.Published {
+		return nil, errors.New("only published tours can be archived")
+	}
+
+	err = s.Repo.ArchiveTour(tourID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Repo.FindByID(tourID)
+}
+
+// reacktivira arhiviranu turu
+func (s *TourService) ActivateTour(tourID uint, authorID uint) (*models.Tour, error) {
+	tour, err := s.Repo.FindByID(tourID)
+	if err != nil {
+		return nil, errors.New("tour not found")
+	}
+	if tour.AuthorID != authorID {
+		return nil, errors.New("unauthorized: not tour author")
+	}
+	if tour.Status != models.Archived {
+		return nil, errors.New("only archived tours can be activated")
+	}
+
+	err = s.Repo.ActivateTour(tourID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Repo.FindByID(tourID)
+}
+
+// racuna distancu po keypointima
+func (s *TourService) CalculateDistance(tourID uint) error {
+	tour, err := s.Repo.FindByIDWithRelations(tourID)
+	if err != nil {
+		return err
+	}
+
+	if len(tour.KeyPoints) < 2 {
+		return nil //nema distance da se racuna
+	}
+
+	totalDistance := 0.0
+	for i := 0; i < len(tour.KeyPoints)-1; i++ {
+		kp1 := tour.KeyPoints[i]
+		kp2 := tour.KeyPoints[i+1]
+		distance := haversineDistance(kp1.Latitude, kp1.Longitude, kp2.Latitude, kp2.Longitude)
+		totalDistance += distance
+	}
+
+	return s.Repo.UpdateDistance(tourID, totalDistance)
+}
+
+// haversineDistance calculates distance between two lat/long points in kilometers
+func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
+	const earthRadius = 6371.0 // Earth radius u kilometrima
+
+	// konvertuje stepene u radijane
+	lat1Rad := lat1 * math.Pi / 180
+	lat2Rad := lat2 * math.Pi / 180
+	deltaLat := (lat2 - lat1) * math.Pi / 180
+	deltaLon := (lon2 - lon1) * math.Pi / 180
+
+	// Haversine formula
+	a := math.Sin(deltaLat/2)*math.Sin(deltaLat/2) +
+		math.Cos(lat1Rad)*math.Cos(lat2Rad)*
+			math.Sin(deltaLon/2)*math.Sin(deltaLon/2)
+	c := 2 * math.Asin(math.Sqrt(a))
+
+	return earthRadius * c
 }

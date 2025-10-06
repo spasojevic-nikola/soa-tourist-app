@@ -7,6 +7,9 @@ import { RegistrationComponent } from '../auth/registration/registration.compone
 import { ProfileComponent } from 'src/app/feature-modules/user-profile/profile/profile.component';
 import { AdminDashboardComponent } from 'src/app/admin-dashboard/admin-dashboard.component';
 import { BlogViewComponent } from 'src/app/feature-modules/blog-view/blog-view.component';
+import { NavbarComponent } from 'src/app/feature-modules/layout/navbar/navbar.component';
+import { SearchResultsComponent } from 'src/app/feature-modules/search-results/search-results.component';
+import { RecommendationListComponent } from '../follower/recommendation-list/recommendation-list.component';
 
 const routes: Routes = [
   {path: 'home', component: HomeComponent},
@@ -14,6 +17,7 @@ const routes: Routes = [
   {path: 'register', component: RegistrationComponent},
   { path: 'blog/view', component: BlogViewComponent },
   { path: 'blogs/:id', component: BlogViewComponent },
+  { path: 'search', component: SearchResultsComponent, canActivate: [AuthGuard] },
 
 
   {
@@ -41,6 +45,16 @@ const routes: Routes = [
     path: 'keypoints',
     loadChildren: () => import('../../feature-modules/tour-keypoints/tour-keypoints.module').then(m => m.TourKeypointsModule),
     canActivate: [AuthGuard]
+  },
+  { 
+    path: 'recommendations', 
+    component: RecommendationListComponent,
+    canActivate: [AuthGuard] 
+  },
+  {
+    path: 'shopping-cart', // Ovo je putanja na koju se rutirate iz komponente (npr. router.navigate(['/shopping-cart']))
+    loadChildren: () => import('../../feature-modules/shopping-cart/shopping-cart.module').then(m => m.ShoppingCartModule),
+    canActivate: [AuthGuard] // Korpa zahteva da korisnik bude prijavljen
   }
 
 ];

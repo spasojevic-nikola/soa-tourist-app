@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from './infrastructure/auth/auth.service';
+import { CartService } from './feature-modules/shopping-cart/services/cart.service';
 
 @Component({
   selector: 'app-root',
@@ -11,11 +12,18 @@ export class AppComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private cartService: CartService
   ) {}
 
 
   ngOnInit(): void {
     this.checkIfUserExists();
+    this.authService.user$.subscribe(user => {
+      if (user && user.username !== '') {
+        this.cartService.getCart().subscribe(); // Automatski ažurira count kroz tap()
+      }
+    });
+    
   }
   
   private checkIfUserExists(): void {
