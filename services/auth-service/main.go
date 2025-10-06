@@ -116,17 +116,26 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	jsonStakeholderUser, err := json.Marshal(stakeholderUser)
 	if err != nil {
 		log.Println("Failed to marshal stakeholder user:", err)
+		db.Delete(&user)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	// Slati POST zahtjev na stakeholders-service
 	resp, err := http.Post("http://stakeholders-service:8080/api/v1/user", "application/json", bytes.NewBuffer(jsonStakeholderUser))
 	if err != nil {
-		log.Println("Failed to create user in stakeholders-service:", err)
+		log.Println("Stakeholders-service unreachable, rolling back user:", err)
+		db.Delete(&user) 
+		http.Error(w, "User creation failed in stakeholders-service. Rolled back auth-service entry.", http.StatusInternalServerError)
+		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		log.Printf("Failed to create user in stakeholders-service. Status: %d", resp.StatusCode)
+		log.Printf("Stakeholders-service error (%d). Rolling back user from auth-service.\n", resp.StatusCode)
+		db.Delete(&user)
+		http.Error(w, "Stakeholders-service rejected request. Rolled back user from auth-service.", http.StatusInternalServerError)
+		return
 	}
 
 	// Kreiranje tokena
