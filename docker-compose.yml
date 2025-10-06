@@ -244,6 +244,25 @@ services:
       - loki
 
 
+  api-gateway:  
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    # JEDINI IZLOŽEN PORT: host 80 -> container 8080
+    ports:
+      - "8080:8080" 
+    networks:
+      - soa-network
+    depends_on:
+      - auth-service
+      - blog-service
+      - follower-service
+      - stakeholders-service
+      - tour-service
+    restart: always
+
+
 # JEDAN 'volumes' BLOK NA KRAJU
 volumes:
   postgres_data:
