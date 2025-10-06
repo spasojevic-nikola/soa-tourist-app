@@ -10,6 +10,7 @@ import (
 	"tour-service/internal/database"
 	"tour-service/internal/repository"
 	"tour-service/internal/service"
+	"tour-service/internal/clients"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -21,13 +22,17 @@ func main() {
 	tourRepo := repository.NewTourRepository(db)
 	keyPointRepo := repository.NewKeyPointRepository(db)
 	reviewRepo := repository.NewReviewRepository(db)
+	tourExecutionRepo := repository.NewTourExecutionRepository(db)
 
 	tourService := service.NewTourService(tourRepo)
 	keyPointService := service.NewKeyPointService(keyPointRepo, tourRepo)
 	reviewService := service.NewReviewService(reviewRepo, tourRepo)
+	purchaseChecker := clients.NewRESTPurchaseChecker("http://purchase-service:8082")
+	tourExecutionService := service.NewTourExecutionService(tourExecutionRepo, purchaseChecker)
 
 	apiHandler := api.NewHandler(tourService, keyPointService)
 	reviewHandler := api.NewReviewHandler(reviewService)
+	tourExecutionHandler := api.NewTourExecutionHandler(tourExecutionService)
 
 	r := mux.NewRouter()
 	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
@@ -54,6 +59,15 @@ func main() {
 	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.UpdateReview))).Methods("PUT")
 	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.DeleteReview))).Methods("DELETE")
 	apiV1.Handle("/my-reviews", api.AuthMiddleware(http.HandlerFunc(reviewHandler.GetMyReviews))).Methods("GET")
+
+	// TourExecution routes
+	apiV1.Handle("/{tourId}/start", api.AuthMiddleware(tourExecutionHandler.StartTour)).Methods("POST")
+	apiV1.Handle("/executions/{executionId}/check-position", api.AuthMiddleware(tourExecutionHandler.CheckPosition)).Methods("POST")
+	apiV1.Handle("/executions/{executionId}/complete", api.AuthMiddleware(tourExecutionHandler.CompleteTour)).Methods("PUT")
+	apiV1.Handle("/executions/{executionId}/abandon", api.AuthMiddleware(tourExecutionHandler.AbandonTour)).Methods("PUT")
+	apiV1.Handle("/executions/active/{tourId}", api.AuthMiddleware(tourExecutionHandler.GetActiveExecution)).Methods("GET")
+	apiV1.Handle("/executions/{executionId}", api.AuthMiddleware(tourExecutionHandler.GetExecutionDetails)).Methods("GET")
+	apiV1.Handle("/executions/tour/{tourId}", api.AuthMiddleware(tourExecutionHandler.GetExecutionsByTour)).Methods("GET")
 
 	// Health check ruta
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

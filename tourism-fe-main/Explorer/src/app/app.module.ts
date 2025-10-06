@@ -24,9 +24,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { SearchResultsComponent } from './feature-modules/search-results/search-results.component';
 import { RecommendationListComponent } from './infrastructure/follower/recommendation-list/recommendation-list.component';
-
-
-
+import { TourExecutionComponent } from './feature-modules/tour-execution/tour-execution/tour-execution.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +33,7 @@ import { RecommendationListComponent } from './infrastructure/follower/recommend
     BlogViewComponent,
     SearchResultsComponent,
     RecommendationListComponent,
-
+    TourExecutionComponent 
   ],
   imports: [
     BrowserModule,

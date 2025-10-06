@@ -25,6 +25,57 @@
     </button>
   </div>
 
+   <!-- PRECIZAN UNOS KOORDINATA -->
+  <div class="manual-input-section" *ngIf="isMapLoaded">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>pin_drop</mat-icon>
+          Precizan unos koordinata
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="input-fields">
+          <mat-form-field appearance="outline" class="coord-input">
+            <mat-label>Latitude</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              [(ngModel)]="manualLatitude"
+              placeholder="npr. 45.2671"
+              step="0.000001"
+              min="-90"
+              max="90">
+            <span matPrefix>📍 &nbsp;</span>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="coord-input">
+            <mat-label>Longitude</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              [(ngModel)]="manualLongitude"
+              placeholder="npr. 19.8335"
+              step="0.000001"
+              min="-180"
+              max="180">
+            <span matPrefix>🌎 &nbsp;</span>
+          </mat-form-field>
+        </div>
+        
+        <button 
+          mat-raised-button 
+          color="accent" 
+          (click)="goToManualCoordinates()"
+          [disabled]="!manualLatitude || !manualLongitude"
+          class="manual-btn">
+          <mat-icon>navigation</mat-icon>
+          Postavi tačnu lokaciju
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
   <div class="position-info" *ngIf="currentPosition">
     <mat-card>
       <mat-card-header>

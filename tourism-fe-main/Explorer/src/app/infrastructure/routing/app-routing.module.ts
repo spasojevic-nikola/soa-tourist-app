@@ -10,6 +10,7 @@ import { BlogViewComponent } from 'src/app/feature-modules/blog-view/blog-view.c
 import { NavbarComponent } from 'src/app/feature-modules/layout/navbar/navbar.component';
 import { SearchResultsComponent } from 'src/app/feature-modules/search-results/search-results.component';
 import { RecommendationListComponent } from '../follower/recommendation-list/recommendation-list.component';
+import { TourExecutionComponent } from 'src/app/feature-modules/tour-execution/tour-execution/tour-execution.component';
 
 const routes: Routes = [
   {path: 'home', component: HomeComponent},
@@ -18,7 +19,6 @@ const routes: Routes = [
   { path: 'blog/view', component: BlogViewComponent },
   { path: 'blogs/:id', component: BlogViewComponent },
   { path: 'search', component: SearchResultsComponent, canActivate: [AuthGuard] },
-
 
   {
     path: 'profile', 
@@ -55,6 +55,10 @@ const routes: Routes = [
     path: 'shopping-cart', // Ovo je putanja na koju se rutirate iz komponente (npr. router.navigate(['/shopping-cart']))
     loadChildren: () => import('../../feature-modules/shopping-cart/shopping-cart.module').then(m => m.ShoppingCartModule),
     canActivate: [AuthGuard] // Korpa zahteva da korisnik bude prijavljen
+  },
+  {
+     path: 'tour-execution/:id', 
+     component: TourExecutionComponent
   }
 
 ];
