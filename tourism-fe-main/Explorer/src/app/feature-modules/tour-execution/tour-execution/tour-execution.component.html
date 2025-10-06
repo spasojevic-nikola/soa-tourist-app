@@ -72,9 +72,13 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button class="btn btn-complete" (click)="completeTour()">
-        ✅ Complete Tour
-      </button>
+      <button 
+    class="btn btn-complete" 
+    (click)="completeTour()"
+    [disabled]="!canCompleteTour()"
+    [class.disabled]="!canCompleteTour()">
+    ✅ {{ execution.status === 'COMPLETED' ? 'Tour Completed' : 'Complete Tour' }}
+  </button>
       <button class="btn btn-abandon" (click)="abandonTour()">
         🚪 Abandon Tour
       </button>

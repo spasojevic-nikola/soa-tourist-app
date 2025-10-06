@@ -50,6 +50,10 @@ export class TourService {
   return this.http.get(`${this.apiUrl}/executions/active/${tourId}`);
 }
 
+getAllExecutionsForTour(tourId: number): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/executions/tour/${tourId}`);
+}
+
 startTourExecution(tourId: number): Observable<any> {
   const position = this.getCurrentPosition(); 
   

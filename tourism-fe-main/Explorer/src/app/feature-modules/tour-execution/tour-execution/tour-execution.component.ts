@@ -137,6 +137,19 @@ checkPosition(): void {
   });
 }
 
+canCompleteTour(): boolean {
+  if (!this.execution || !this.tour || !this.tour.keyPoints) return false;
+  
+  // Ne može da kompletira ako je već kompletirana
+  if (this.execution.status === 'COMPLETED') return false;
+  
+  // Može da kompletira samo ako su sve tačke završene
+  const totalKeyPoints = this.tour.keyPoints.length;
+  const completedKeyPoints = this.execution.completedKeyPoints?.length || 0;
+  
+  return completedKeyPoints >= totalKeyPoints;
+}
+
   completeTour(): void {
     if (confirm('Are you sure you want to complete this tour?')) {
       this.tourExecutionService.completeTour(this.executionId).subscribe({

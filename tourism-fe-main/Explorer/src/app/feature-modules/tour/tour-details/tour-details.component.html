@@ -17,7 +17,7 @@
     <div class="tour-execution-actions" *ngIf="isTourPurchased">
   <div class="execution-buttons">
     <!-- Start Tour Button -->
-    <button *ngIf="!hasActiveExecution && !checkingExecutionStatus" 
+    <button *ngIf="!hasActiveExecution && !checkingExecutionStatus && !hasCompletedExecution" 
             class="btn btn-start-tour"
             (click)="startTourExecution()">
       <mat-icon class="btn-icon">play_arrow</mat-icon>
@@ -32,6 +32,14 @@
       <span>Continue Tour ({{ executionProgress }}%)</span>
     </button>
 
+    <button *ngIf="hasCompletedExecution && !checkingExecutionStatus" 
+            class="btn btn-completed-tour"
+            disabled>
+      <mat-icon class="btn-icon">check_circle</mat-icon>
+      <span>Tour Completed 🎉</span>
+    </button>
+
+
     <!-- Loading State -->
     <div *ngIf="checkingExecutionStatus" class="execution-loading">
       <mat-spinner diameter="24"></mat-spinner>
@@ -40,7 +48,7 @@
   </div>
 
   <div class="execution-info" *ngIf="hasActiveExecution">
-    <!--<p>🎯 You have an active tour session. Continue where you left off!</p>-->
+    <p>🎯 You have an active tour session. Continue where you left off!</p>
   </div>
 </div>
 

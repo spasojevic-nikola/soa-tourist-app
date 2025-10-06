@@ -480,7 +480,7 @@
 
 .execution-info {
   margin-top: 1rem;
-  color: white;
+  color: black;
   font-size: 0.95rem;
   text-align: center;
 }
@@ -488,6 +488,29 @@
 .execution-info p {
   margin: 0;
   opacity: 0.9;
+}
+
+.btn-completed-tour {
+  background: linear-gradient(135deg, #48bb78, #38a169) !important;
+  color: white !important;
+  cursor: default !important;
+}
+
+.btn-completed-tour:disabled {
+  opacity: 1 !important; /* Ostavi punu vidljivost */
+  cursor: default !important;
+}
+
+/* Stil za completed info poruku */
+.execution-info p {
+  color: #333;
+  font-size: 16px;
+  margin: 10px 0;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  text-align: center;
 }
 
 /* Progress indicator */

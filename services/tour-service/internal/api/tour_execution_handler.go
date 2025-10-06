@@ -114,3 +114,17 @@ func (h *TourExecutionHandler) GetExecutionDetails(w http.ResponseWriter, r *htt
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(execution)
 }
+
+func (h *TourExecutionHandler) GetExecutionsByTour(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    tourID, _ := strconv.ParseUint(vars["tourId"], 10, 32)
+
+    executions, err := h.service.GetExecutionsByTour(uint(tourID))
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(executions)
+}
