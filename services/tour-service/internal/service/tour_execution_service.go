@@ -2,6 +2,8 @@ package service
 
 import (
 	"errors"
+	"log"
+	"math"
 	"time"
 	"tour-service/internal/models"
 	"tour-service/internal/repository"

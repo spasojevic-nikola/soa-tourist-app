@@ -29,7 +29,12 @@ export class TourDetailsComponent implements OnInit {
     // Status kupovine
     isTourPurchased: boolean = false;
     checkingPurchaseStatus: boolean = true;
-  
+
+    // Tour Execution polja
+    hasActiveExecution: boolean = false;
+    activeExecutionId: number | null = null;
+    checkingExecutionStatus: boolean = false;
+    executionProgress: number = 0; 
 
   constructor(
     private route: ActivatedRoute,
@@ -49,7 +54,7 @@ export class TourDetailsComponent implements OnInit {
     this.loadReviews(tourId);
     this.loadReviewStats(tourId);
     this.checkPurchaseStatus(tourId);
-
+    this.checkActiveExecution(tourId);
   }
 
   checkPurchaseStatus(tourId: number): void {
@@ -205,4 +210,48 @@ export class TourDetailsComponent implements OnInit {
     }
     return stars;
   }
+
+   checkActiveExecution(tourId: number): void {
+    this.checkingExecutionStatus = true;
+    this.tourService.getActiveExecution(tourId).subscribe({
+      next: (execution) => {
+        this.hasActiveExecution = !!execution;
+        this.activeExecutionId = execution?.id || null;
+        if (execution && this.tour?.keyPoints) {
+          const totalKeyPoints = this.tour.keyPoints.length;
+          const completed = execution.completedKeyPoints?.length || 0;
+          this.executionProgress = Math.round((completed / totalKeyPoints) * 100);
+        }
+        
+        this.checkingExecutionStatus = false;
+      },
+      error: (err) => {
+        console.error('Error checking active execution:', err);
+        this.hasActiveExecution = false;
+        this.checkingExecutionStatus = false;
+        this.executionProgress = 0;  
+      }
+    });
+  }
+
+  startTourExecution(): void {
+    if (!this.tour) return;
+
+    // Prvo dohvati trenutnu lokaciju iz Position Simulatora
+    this.tourService.startTourExecution(this.tour.id).subscribe({
+      next: (execution) => {
+        this.activeExecutionId = execution.id;
+        this.hasActiveExecution = true;
+        
+        // Redirect na tour execution stranicu
+        this.router.navigate(['/tour-execution', execution.id]);
+      },
+      error: (err) => {
+        console.error('Error starting tour:', err);
+        console.error('Full error:', err.error); 
+        alert('Failed to start tour: ' + err.message);
+      }
+    });
+  }
 }
+

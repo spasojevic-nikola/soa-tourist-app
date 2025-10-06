@@ -83,3 +83,20 @@ func (h *TourExecutionHandler) AbandonTour(w http.ResponseWriter, r *http.Reques
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *TourExecutionHandler) GetActiveExecution(w http.ResponseWriter, r *http.Request) {
+    touristID, _ := r.Context().Value("userID").(uint)
+    
+    vars := mux.Vars(r)
+    tourID, _ := strconv.ParseUint(vars["tourId"], 10, 32)
+
+    execution, err := h.service.GetActiveExecution(touristID, uint(tourID))
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(nil)  
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(execution)
+}

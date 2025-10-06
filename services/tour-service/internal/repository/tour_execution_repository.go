@@ -3,6 +3,7 @@ package repository
 import (
 	"tour-service/internal/models"
 	"gorm.io/gorm"
+	"errors"
 )
 
 type TourExecutionRepository struct {
@@ -34,9 +35,18 @@ func (r *TourExecutionRepository) UpdateStatus(id uint, status models.TourExecut
 }
 
 func (r *TourExecutionRepository) GetActiveExecution(touristID uint, tourID uint) (*models.TourExecution, error) {
-	var execution models.TourExecution
-	err := r.DB.Where("tourist_id = ? AND tour_id = ? AND status = ?", touristID, tourID, models.ExecutionStarted).First(&execution).Error
-	return &execution, err
+    var execution models.TourExecution
+    err := r.DB.Where("tourist_id = ? AND tour_id = ? AND status = ?", touristID, tourID, models.ExecutionStarted).First(&execution).Error
+    
+    if errors.Is(err, gorm.ErrRecordNotFound) {
+        return nil, nil
+    }
+    
+    if err != nil {
+        return nil, err
+    }
+    
+    return &execution, nil
 }
 
 func (r *TourExecutionRepository) GetKeyPointsByTour(tourID uint) ([]models.KeyPoint, error) {

@@ -1,3 +1,9 @@
+package models   
+
+import (
+    "time"
+)
+
 type TourExecutionStatus string
 
 const (

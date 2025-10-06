@@ -412,3 +412,103 @@
     box-shadow: none !important;
   }
 }
+
+
+/* Tour Execution Actions */
+.tour-execution-actions {
+  padding: 1.5rem 2rem;
+
+}
+
+.execution-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-start-tour {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-start-tour:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+.btn-continue-tour {
+  background: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.btn-continue-tour:hover {
+  background: #e0a800;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 193, 7, 0.4);
+}
+
+.execution-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: white;
+  font-weight: 500;
+}
+
+.execution-info {
+  margin-top: 1rem;
+  color: white;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.execution-info p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Progress indicator */
+.execution-progress {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .execution-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn-start-tour,
+  .btn-continue-tour {
+    justify-content: center;
+  }
+}
