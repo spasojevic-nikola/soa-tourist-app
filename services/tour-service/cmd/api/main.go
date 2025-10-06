@@ -66,6 +66,8 @@ func main() {
 	apiV1.Handle("/executions/{executionId}/complete", api.AuthMiddleware(tourExecutionHandler.CompleteTour)).Methods("PUT")
 	apiV1.Handle("/executions/{executionId}/abandon", api.AuthMiddleware(tourExecutionHandler.AbandonTour)).Methods("PUT")
 	apiV1.Handle("/executions/active/{tourId}", api.AuthMiddleware(tourExecutionHandler.GetActiveExecution)).Methods("GET")
+	apiV1.Handle("/executions/{executionId}", api.AuthMiddleware(tourExecutionHandler.GetExecutionDetails)).Methods("GET")
+	
 	// Health check ruta
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

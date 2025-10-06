@@ -7,34 +7,31 @@ import (
 	"time"
 	"tour-service/internal/models"
 	"tour-service/internal/repository"
+
+	"github.com/lib/pq"
 )
 
 type TourExecutionService struct {
-	repo *repository.TourExecutionRepository
+	repo            *repository.TourExecutionRepository
 	purchaseChecker PurchaseChecker
 }
 
 func NewTourExecutionService(repo *repository.TourExecutionRepository, purchaseChecker PurchaseChecker) *TourExecutionService {
 	return &TourExecutionService{
-		repo: repo,
+		repo:            repo,
 		purchaseChecker: purchaseChecker,
 	}
 }
 
 func (s *TourExecutionService) StartTour(tourID uint, touristID uint, startLat, startLng float64) (*models.TourExecution, error) {
-	// Provera da li već postoji aktivna sesija
 	active, _ := s.repo.GetActiveExecution(touristID, tourID)
 	if active != nil {
 		return nil, errors.New("tour already in progress")
 	}
 
-	// PROVERA KUPOVINE - poziv ka purchase servisu
 	hasPurchased, err := s.purchaseChecker.HasPurchasedTour(touristID, tourID)
 	if err != nil {
-		// Ako purchase servis nije dostupan, privremeno dozvoli za testiranje
-		// U produkciji ovo treba da vrati grešku
 		log.Printf("Purchase service unavailable: %v - temporarily allowing tour start", err)
-		// return nil, fmt.Errorf("purchase service unavailable: %v", err)
 	} else if !hasPurchased {
 		return nil, errors.New("must purchase tour before starting")
 	}
@@ -45,7 +42,7 @@ func (s *TourExecutionService) StartTour(tourID uint, touristID uint, startLat, 
 		Status:             models.ExecutionStarted,
 		StartTime:          time.Now(),
 		LastActivity:       time.Now(),
-		CompletedKeyPoints: []uint{},
+		CompletedKeyPoints: pq.Int64Array{},
 		StartingLatitude:   startLat,
 		StartingLongitude:  startLng,
 	}
@@ -53,39 +50,32 @@ func (s *TourExecutionService) StartTour(tourID uint, touristID uint, startLat, 
 	return s.repo.Create(execution)
 }
 
-func (s *TourExecutionService) CheckPosition(executionID uint, currentLat, currentLng float64) ([]uint, error) {
-	// 1. Dohvati execution i turu
+func (s *TourExecutionService) CheckPosition(executionID uint, currentLat, currentLng float64) ([]int, error) {
 	execution, err := s.repo.GetByID(executionID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Dohvati sve key pointove za turu
 	keyPoints, err := s.repo.GetKeyPointsByTour(execution.TourID)
 	if err != nil {
 		return nil, err
 	}
 
-	var newlyCompleted []uint
+	var newlyCompleted []int
 
-	// 3. Proveri svaki key point
 	for _, kp := range keyPoints {
-		// Preskoči već završene
-		if contains(execution.CompletedKeyPoints, kp.ID) {
+		if contains(execution.CompletedKeyPoints, int64(kp.ID)) {
 			continue
 		}
 
-		// 4. Izračunaj distancu do key pointa
 		distance := calculateDistance(currentLat, currentLng, kp.Latitude, kp.Longitude)
-		
-		// 5. Ako je blizu (npr. unutar 50m), označi kao završen
-		if distance <= 0.05 { // 50 metara
-			execution.CompletedKeyPoints = append(execution.CompletedKeyPoints, kp.ID)
-			newlyCompleted = append(newlyCompleted, kp.ID)
+
+		if distance <= 0.05 {
+			execution.CompletedKeyPoints = append(execution.CompletedKeyPoints, int64(kp.ID))
+			newlyCompleted = append(newlyCompleted, int(kp.ID))
 		}
 	}
 
-	// 6. Ažuriraj execution sa novim completed key points
 	if len(newlyCompleted) > 0 {
 		execution.LastActivity = time.Now()
 		_, err = s.repo.Update(execution)
@@ -131,11 +121,12 @@ func (s *TourExecutionService) GetActiveExecution(touristID uint, tourID uint) (
 	return s.repo.GetActiveExecution(touristID, tourID)
 }
 
-// Pomocne funkcije
+func (s *TourExecutionService) GetExecutionDetails(executionID uint) (*models.TourExecution, error) {
+	return s.repo.GetByID(executionID)
+}
+
 func calculateDistance(lat1, lng1, lat2, lng2 float64) float64 {
-	// Haversine formula implementacija
-	const R = 6371 // Earth radius in kilometers
-	
+	const R = 6371
 	lat1Rad := lat1 * math.Pi / 180
 	lat2Rad := lat2 * math.Pi / 180
 	deltaLat := (lat2 - lat1) * math.Pi / 180
@@ -146,11 +137,11 @@ func calculateDistance(lat1, lng1, lat2, lng2 float64) float64 {
 			math.Sin(deltaLng/2)*math.Sin(deltaLng/2)
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
-	distance := R * c // Distance in kilometers
+	distance := R * c
 	return distance
 }
 
-func contains(slice []uint, item uint) bool {
+func contains(slice pq.Int64Array, item int64) bool {
 	for _, v := range slice {
 		if v == item {
 			return true

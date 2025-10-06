@@ -169,6 +169,27 @@
   justify-content: center;
 }
 
+/* STILOVI ZA PRECIZAN UNOS */
+.manual-input-section {
+  margin: 1.5rem 0;
+}
+
+.manual-input-section .input-fields {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.coord-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.manual-btn {
+  margin-top: 0.5rem;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .position-simulator-container {
@@ -198,4 +219,13 @@
     gap: 0.5rem;
     text-align: center;
   }
+
+  .manual-input-section .input-fields {
+    flex-direction: column;
+  }
+  
+  .coord-input {
+    min-width: 100%;
+  }
+
 }

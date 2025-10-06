@@ -4,6 +4,7 @@ import (
 	"tour-service/internal/models"
 	"gorm.io/gorm"
 	"errors"
+	"strconv"
 )
 
 type TourExecutionRepository struct {
@@ -19,9 +20,9 @@ func (r *TourExecutionRepository) Create(execution *models.TourExecution) (*mode
 	return execution, err
 }
 
-func (r *TourExecutionRepository) GetByID(id uint) (*models.TourExecution, error) {
+func (r *TourExecutionRepository) GetByID(executionID uint) (*models.TourExecution, error) {
 	var execution models.TourExecution
-	err := r.DB.First(&execution, id).Error
+	err := r.DB.Where("id = ?", strconv.FormatUint(uint64(executionID), 10)).First(&execution).Error
 	return &execution, err
 }
 

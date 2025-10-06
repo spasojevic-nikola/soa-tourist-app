@@ -40,22 +40,22 @@ func (h *TourExecutionHandler) StartTour(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *TourExecutionHandler) CheckPosition(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	executionID, _ := strconv.ParseUint(vars["executionId"], 10, 32)
+    vars := mux.Vars(r)
+    executionID, _ := strconv.ParseUint(vars["executionId"], 10, 32)
 
-	var req struct {
-		CurrentLat float64 `json:"currentLat"`
-		CurrentLng float64 `json:"currentLng"`
-	}
-	json.NewDecoder(r.Body).Decode(&req)
+    var req struct {
+        CurrentLat float64 `json:"currentLat"`
+        CurrentLng float64 `json:"currentLng"`
+    }
+    json.NewDecoder(r.Body).Decode(&req)
 
-	completed, err := h.service.CheckPosition(uint(executionID), req.CurrentLat, req.CurrentLng)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+    completed, err := h.service.CheckPosition(uint(executionID), req.CurrentLat, req.CurrentLng)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
 
-	json.NewEncoder(w).Encode(completed)
+    json.NewEncoder(w).Encode(completed)
 }
 
 func (h *TourExecutionHandler) CompleteTour(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +93,21 @@ func (h *TourExecutionHandler) GetActiveExecution(w http.ResponseWriter, r *http
     execution, err := h.service.GetActiveExecution(touristID, uint(tourID))
     if err != nil {
         w.Header().Set("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(nil)  
+        json.NewEncoder(w).Encode(nil)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(execution) 
+}
+
+func (h *TourExecutionHandler) GetExecutionDetails(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    executionID, _ := strconv.ParseUint(vars["executionId"], 10, 32)
+
+    execution, err := h.service.GetExecutionDetails(uint(executionID))
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusNotFound)
         return
     }
 

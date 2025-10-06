@@ -13,6 +13,9 @@ export class PositionSimulatorComponent implements OnInit, AfterViewInit {
   currentMarker: L.Marker | null = null;
   isMapLoaded = false;
 
+  manualLatitude: number | null = null;
+  manualLongitude: number | null = null;
+
   constructor(private positionService: PositionSimulatorService) { }
 
   ngOnInit(): void {
@@ -202,4 +205,32 @@ export class PositionSimulatorComponent implements OnInit, AfterViewInit {
       this.updateMapCenter({ lat, lng });
     }
   }
+
+  goToManualCoordinates(): void {
+  if (this.manualLatitude !== null && this.manualLongitude !== null) {
+    // Validacija koordinata
+    if (this.isValidCoordinate(this.manualLatitude, this.manualLongitude)) {
+      this.updatePosition(this.manualLatitude, this.manualLongitude);
+      this.updateMapCenter({ lat: this.manualLatitude, lng: this.manualLongitude });
+      
+      this.showSuccess(`Lokacija postavljena na: ${this.manualLatitude}, ${this.manualLongitude}`);
+    } else {
+      this.showError('Nevalidne koordinate! Proverite unos.');
+    }
+  }
+}
+
+private isValidCoordinate(lat: number, lng: number): boolean {
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+}
+
+private showSuccess(message: string): void {
+  console.log('SUCCESS:', message);
+  alert('✅ ' + message);
+}
+
+private showError(message: string): void {
+  console.error('ERROR:', message);
+  alert('❌ ' + message);
+}
 }

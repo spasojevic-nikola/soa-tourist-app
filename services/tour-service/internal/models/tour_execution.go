@@ -2,6 +2,7 @@ package models
 
 import (
     "time"
+    "github.com/lib/pq"
 )
 
 type TourExecutionStatus string
@@ -20,7 +21,7 @@ type TourExecution struct {
     StartTime          time.Time           `json:"startTime"`
     EndTime            *time.Time          `json:"endTime,omitempty"`
     LastActivity       time.Time           `json:"lastActivity"`
-    CompletedKeyPoints []uint              `json:"completedKeyPoints" gorm:"type:integer[]"`
+    CompletedKeyPoints pq.Int64Array       `json:"completedKeyPoints" gorm:"type:integer[]"`
     StartingLatitude   float64             `json:"startingLatitude"`
     StartingLongitude  float64             `json:"startingLongitude"`
     CreatedAt          time.Time           `json:"createdAt"`
