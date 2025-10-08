@@ -192,6 +192,7 @@ services:
     container_name: soa-tourist-app-shopping-cart-service
     ports:
       - "8087:8081" # lokalni port 8087 na interni 8081
+      - "50051:50051" # gRPC port
     depends_on:
       - mongo 
     restart: on-failure
