@@ -119,7 +119,8 @@ services:
     build: ./services/blog-service
     container_name: soa-tourist-app-blog-service
     ports:
-      - "8081:8081"
+      - "8081:8081" #REST
+      - "50052:50052" #gRPC
     depends_on:
       - mongo
     restart: on-failure

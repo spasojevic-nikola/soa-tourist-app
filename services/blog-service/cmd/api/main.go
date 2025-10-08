@@ -7,6 +7,7 @@ import (
 
 	"blog-service/internal/api"
 	"blog-service/internal/database"
+	"blog-service/internal/grpc"
 	"blog-service/internal/repository" 
 	"blog-service/internal/service" 	
 
@@ -35,6 +36,14 @@ func main() {
 	blogService := service.NewBlogService(blogRepo)
 
 	blogHandler := api.NewHandler(blogService) 
+
+	// pokreni gRPC server u pozadini
+	go func() {
+		log.WithFields(log.Fields{
+			"port": "50052",
+		}).Info("Starting Blog gRPC server")
+		grpc.StartGRPCServer(blogService, "50052")
+	}()
 
 	r := mux.NewRouter()
 
