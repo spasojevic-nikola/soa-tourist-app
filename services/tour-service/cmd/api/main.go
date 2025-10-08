@@ -27,7 +27,10 @@ func main() {
 	tourService := service.NewTourService(tourRepo)
 	keyPointService := service.NewKeyPointService(keyPointRepo, tourRepo)
 	reviewService := service.NewReviewService(reviewRepo, tourRepo)
-	purchaseChecker := clients.NewRESTPurchaseChecker("http://purchase-service:8082")
+	purchaseChecker, err := clients.NewGRPCPurchaseChecker("shopping-cart-service:50051")
+	if err != nil {
+		log.Fatalf("Failed to create gRPC client: %v", err)
+	}
 	tourExecutionService := service.NewTourExecutionService(tourExecutionRepo, purchaseChecker)
 
 	apiHandler := api.NewHandler(tourService, keyPointService)
