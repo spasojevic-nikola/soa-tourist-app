@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package shopping_cart;
+
+option go_package = ".;shopping_cart";
+
+// ShoppingCart service definicija
+service ShoppingCartService {
+  rpc VerifyPurchase(VerifyPurchaseRequest) returns (VerifyPurchaseResponse);
+}
+
+// Zahtjev za verifikaciju kupovine
+message VerifyPurchaseRequest {
+  uint32 tourist_id = 1;    // uint iz Tour servisa
+  string tour_id = 2;       // string za Purchase servis
+}
+
+// Odgovor sa informacijom da li je kupljeno
+message VerifyPurchaseResponse {
+  bool has_purchased = 1;
+  string message = 2;
+}
