@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"blog-service/internal/dto"
 	"blog-service/internal/service"
@@ -223,4 +224,87 @@ func (h *Handler) GetBlogByID(w http.ResponseWriter, r *http.Request) {
 	
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(blog)
+}
+
+// UpdateBlog endpoint za ažuriranje bloga
+func (h *Handler) UpdateBlog(w http.ResponseWriter, r *http.Request) {
+    var req dto.UpdateBlogRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
+
+    userID := r.Context().Value("userID").(uint)
+
+    vars := mux.Vars(r)
+    idParam := vars["id"]
+    blogID, err := primitive.ObjectIDFromHex(idParam)
+    if err != nil {
+        http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+        return
+    }
+
+    blog, err := h.Service.UpdateBlog(r.Context(), blogID, req, userID)
+    if err != nil {
+        // Logika za statusne kodove
+        if strings.Contains(err.Error(), "blog not found") {
+            http.Error(w, err.Error(), http.StatusNotFound)
+            return
+        }
+        if strings.Contains(err.Error(), "unauthorized") {
+            http.Error(w, err.Error(), http.StatusForbidden) // 403 Forbidden
+            return
+        }
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(blog)
+}
+
+// UpdateComment endpoint za ažuriranje komentara
+func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
+    var req dto.UpdateCommentRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
+
+    userID := r.Context().Value("userID").(uint)
+    vars := mux.Vars(r)
+
+    // Dohvatanje Blog ID-ja
+    blogIDParam := vars["id"] // Proverite da li je ključ u ruteru 'id' ili 'blogId'
+    blogID, err := primitive.ObjectIDFromHex(blogIDParam)
+    if err != nil {
+        http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+        return
+    }
+
+    // Dohvatanje Comment ID-ja
+    commentIDParam := vars["commentId"]
+    commentID, err := primitive.ObjectIDFromHex(commentIDParam)
+    if err != nil {
+        http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+        return
+    }
+
+    comment, err := h.Service.UpdateComment(r.Context(), blogID, commentID, req, userID)
+    if err != nil {
+        // Logika za statusne kodove
+        if strings.Contains(err.Error(), "not found") {
+            http.Error(w, err.Error(), http.StatusNotFound)
+            return
+        }
+        if strings.Contains(err.Error(), "unauthorized") {
+            http.Error(w, err.Error(), http.StatusForbidden) // 403 Forbidden
+            return
+        }
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(comment)
 }
