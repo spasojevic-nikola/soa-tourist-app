@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"shopping-cart-service/internal/api"
 	"shopping-cart-service/internal/database"
 	"shopping-cart-service/internal/grpc"
 	"shopping-cart-service/internal/repository"
 	"shopping-cart-service/internal/service"
+	"shopping-cart-service/internal/client"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -19,9 +21,16 @@ func main() {
 	// 1. Inicijalizacija Baze
 	mongoDB := database.InitDB() 
 
+	// 2. Inicijalizacija Klijenata
+    tourServiceURL := os.Getenv("TOUR_SERVICE_URL")
+    if tourServiceURL == "" {
+        tourServiceURL = "http://tour-service:8080" // Port 8080 je u tour-service
+    }
+    tourClient := client.NewTourServiceClient(tourServiceURL)
+
 	// 2. Inicijalizacija Središnjih slojeva
 	cartRepo := repository.NewCartRepository(mongoDB)
-	cartService := service.NewCartService(cartRepo)
+    cartService := service.NewCartService(cartRepo, tourClient)
 	cartHandler := api.NewHandler(cartService) 
 
 	// 3. POKRENI gRPC SERVER U POZADINI 

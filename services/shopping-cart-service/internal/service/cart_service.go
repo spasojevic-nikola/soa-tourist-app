@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"strconv"
 
+	"shopping-cart-service/internal/client"
 	"shopping-cart-service/internal/dto"
 	"shopping-cart-service/internal/models"
 	"shopping-cart-service/internal/repository"
@@ -17,11 +19,15 @@ import (
 // CartService sadrži reference na repository.
 type CartService struct {
 	Repo repository.CartRepository
+	TourServiceClient *client.TourServiceClient 
 }
 
 // NewCartService kreira novu instancu CartService-a.
-func NewCartService(repo repository.CartRepository) *CartService {
-	return &CartService{Repo: repo}
+func NewCartService(repo repository.CartRepository, tourClient *client.TourServiceClient) *CartService {
+	return &CartService{
+		Repo: repo,
+		TourServiceClient: tourClient,
+	}
 }
 
 // calculateTotal računa ukupnu cenu svih stavki.
@@ -54,29 +60,36 @@ func (s *CartService) GetCart(ctx context.Context, userID uint) (*models.Shoppin
 	return cart, nil
 }
 
-// AddItemToCart dodaje stavku u korpu i ažurira total.
 func (s *CartService) AddItemToCart(ctx context.Context, userID uint, req dto.AddItemRequest) (*models.ShoppingCart, error) {
-	// Proveri dostupnost ture u Tour servisu ovde (nije implementirano)
-	
-	cart, err := s.GetCart(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
+    // 1. KORAK: Dobavi detalje ture od tour-service (AGREGACIJA)
+    tourDetails, err := s.TourServiceClient.GetTourDetails(req.TourID)
+    if err != nil {
+        log.Printf("ERROR: Failed to get tour details for TourID %s. Error: %v", req.TourID, err)
+        return nil, errors.New("could not retrieve tour information")
+    }
 
-	newItem := models.OrderItem{
-		TourID: req.TourID,
-		Name:   req.Name,
-		Price:  req.Price,
-	}
+    // 2. KORAK: Dobavi ili kreiraj korpu za korisnika
+    cart, err := s.GetCart(ctx, userID)
+    if err != nil {
+        return nil, err
+    }
+    
+    // 3. KORAK: Kreiraj novu stavku sa POUZDANIM podacima
+    newItem := models.OrderItem{
+        TourID: strconv.FormatUint(uint64(tourDetails.ID), 10), // Pretvaramo uint ID u string
+        Name:   tourDetails.Name,  // Koristimo ime iz odgovora
+        Price:  tourDetails.Price, // Koristimo CENU iz odgovora
+    }
 
-	cart.Items = append(cart.Items, newItem)
-	cart.Total = calculateTotal(cart.Items)
+    // 4. KORAK: Dodaj stavku, preračunaj total i sačuvaj
+    cart.Items = append(cart.Items, newItem)
+    cart.Total = calculateTotal(cart.Items)
 
-	if err := s.Repo.UpdateCart(ctx, cart); err != nil {
-		return nil, fmt.Errorf("failed to update cart: %w", err)
-	}
+    if err := s.Repo.UpdateCart(ctx, cart); err != nil {
+        return nil, fmt.Errorf("failed to update cart: %w", err)
+    }
 
-	return cart, nil
+    return cart, nil
 }
 
 // Checkout obrađuje kupovinu: kreira tokene i briše korpu.
