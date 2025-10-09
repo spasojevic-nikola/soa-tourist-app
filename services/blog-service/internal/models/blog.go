@@ -13,6 +13,7 @@ type Blog struct {
 	Content   string             `bson:"content" json:"content"`
 	HTMLContent string 			 `bson:"htmlContent" json:"htmlContent"`
 	AuthorID  uint               `bson:"authorId" json:"authorId"` // ISPRAVKA: Sada je uint
+	AuthorUsername string        `bson:"authorUsername,omitempty" json:"authorUsername,omitempty"` 
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 	Images    []string           `bson:"images,omitempty" json:"images,omitempty"`

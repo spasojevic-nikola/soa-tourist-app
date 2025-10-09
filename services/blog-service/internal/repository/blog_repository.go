@@ -17,6 +17,7 @@ type BlogRepository interface {
 	GetAll(ctx context.Context) ([]models.Blog, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*models.Blog, error)
 	GetBlogsByAuthorIDs(ctx context.Context, authorIDs []uint) ([]models.Blog, error)
+	UpdateOne(ctx context.Context, filter bson.M, update bson.M) error 
 }
 
 // mongoBlogRepository je konkretna implementacija BlogRepository koristeći MongoDB.
@@ -94,4 +95,10 @@ func (r *mongoBlogRepository) GetByID(ctx context.Context, id primitive.ObjectID
 		return nil, err
 	}
 	return &blog, nil
+}
+
+func (r *mongoBlogRepository) UpdateOne(ctx context.Context, filter bson.M, update bson.M) error {
+    // MongoDB UpdateOne metoda je idealna za ovo
+	_, err := r.collection.UpdateOne(ctx, filter, update)
+	return err
 }

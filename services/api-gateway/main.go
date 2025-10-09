@@ -75,6 +75,15 @@ func router(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Routing GET %s to Blog Service (Get Blog By ID)", path)
 		blogProxy.ServeHTTP(w, r)
 
+	case r.Method == "PUT" && strings.HasPrefix(path, "/api/v1/blogs/") && !strings.Contains(path, "/comments"):
+		log.Printf("Routing PUT %s to Blog Service (Update Blog)", path)	
+	    blogProxy.ServeHTTP(w, r)
+    
+	 case r.Method == "PUT" && strings.Contains(path, "/comments/"):
+		 log.Printf("Routing PUT %s to Blog Service (Update Comment)", path)
+		 blogProxy.ServeHTTP(w, r)
+
+
 	// ====================== AUTH SERVICE ======================
 	case strings.HasPrefix(path, "/api/v1/auth"):
 		log.Printf("Routing Auth: %s", path)

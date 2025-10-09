@@ -62,6 +62,10 @@ func main() {
 	//apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
 	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.GetAllBlogs)).Methods("GET")
 	apiV1.HandleFunc("/{id}", blogHandler.GetBlogByID).Methods("GET")
+	apiV1.HandleFunc("/{id}", api.AuthMiddleware(blogHandler.UpdateBlog)).Methods("PUT")
+	apiV1.HandleFunc("/{id}/comments/{commentId}", api.AuthMiddleware(blogHandler.UpdateComment)).Methods("PUT")
+
+
 
 
 	// Health check
