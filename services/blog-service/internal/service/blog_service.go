@@ -8,6 +8,8 @@ import (
 	"fmt"     
 	"net/http" 
 	"log"
+	"os"
+
 
 
 	"blog-service/internal/dto"
@@ -19,6 +21,7 @@ import (
 	md "github.com/gomarkdown/markdown"
 	mdhtml "github.com/gomarkdown/markdown/html"
 	"go.mongodb.org/mongo-driver/mongo"
+	mdparser "github.com/gomarkdown/markdown/parser"
 )
 
 // BlogService sadrži reference na repository.
@@ -59,7 +62,11 @@ func (s *BlogService) CreateBlog(ctx context.Context, req dto.CreateBlogRequest,
             authorUsername = "Unknown Author"
         }
 	}
-
+	 // 1. Definišemo ekstenzije koje želimo da naš parser podržava
+	 extensions := mdparser.CommonExtensions | mdparser.AutoHeadingIDs | mdparser.Strikethrough
+    
+	 // 2. Kreiramo novi parser sa tim ekstenzijama
+	 p := mdparser.NewWithExtensions(extensions)
 	// 1. KONVERZIJA MARKDOWN-a U HTML
     rawMarkdown := []byte(req.Content)
     
@@ -68,7 +75,7 @@ func (s *BlogService) CreateBlog(ctx context.Context, req dto.CreateBlogRequest,
     renderer := mdhtml.NewRenderer(opts)
     
     // Generisanje HTML-a
-    htmlOutput := md.ToHTML(rawMarkdown, nil, renderer)
+    htmlOutput := md.ToHTML(rawMarkdown, p, renderer)
 
 	blog := &models.Blog{
 		ID:        primitive.NewObjectID(),
@@ -175,8 +182,16 @@ func (s *BlogService) GetBlogByID(ctx context.Context, id primitive.ObjectID) (*
 func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models.Blog, error) {
     // 1. KREIRANJE HTTP ZAHTEVA KA FOLLOWER SERVICE-u
     // U realnoj aplikaciji, URL bi bio u konfiguraciji (npr. env varijabla)
-    followerServiceURL := "http://follower-service:8080/api/followers/following"
-    
+    //followerServiceURL := "http://follower-service:8080/api/followers/following"
+	followerServiceBaseURL := os.Getenv("FOLLOWER_SERVICE_URL")
+
+	if followerServiceBaseURL == "" {
+        log.Fatal("FATAL: FOLLOWER_SERVICE_URL environment variable is not set.")
+    }
+
+    // Sastavljamo pun URL
+    followerServiceURL := fmt.Sprintf("%s/api/followers/following", followerServiceBaseURL)
+
     req, err := http.NewRequestWithContext(ctx, "GET", followerServiceURL, nil)
     if err != nil {
         return nil, fmt.Errorf("failed to create request to follower service: %w", err)

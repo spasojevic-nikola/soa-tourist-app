@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"shopping-cart-service/internal/api"
 	"shopping-cart-service/internal/database"
+	"shopping-cart-service/internal/grpc"
 	"shopping-cart-service/internal/repository"
 	"shopping-cart-service/internal/service"
+	"shopping-cart-service/internal/client"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -18,12 +21,25 @@ func main() {
 	// 1. Inicijalizacija Baze
 	mongoDB := database.InitDB() 
 
+	// 2. Inicijalizacija Klijenata
+    tourServiceURL := os.Getenv("TOUR_SERVICE_URL")
+    if tourServiceURL == "" {
+        tourServiceURL = "http://tour-service:8080" // Port 8080 je u tour-service
+    }
+    tourClient := client.NewTourServiceClient(tourServiceURL)
+
 	// 2. Inicijalizacija Središnjih slojeva
 	cartRepo := repository.NewCartRepository(mongoDB)
-	cartService := service.NewCartService(cartRepo)
+    cartService := service.NewCartService(cartRepo, tourClient)
 	cartHandler := api.NewHandler(cartService) 
 
-	// 3. Postavljanje Routera
+	// 3. POKRENI gRPC SERVER U POZADINI 
+	go func() {
+		log.Println("Starting gRPC server on port 50051...")
+		grpc.StartGRPCServer(cartService, "50051")
+	}()
+
+	// 4. Postavljanje Routera
 	r := mux.NewRouter()
 
 	// CORS opcije
@@ -50,7 +66,7 @@ func main() {
 		fmt.Fprintf(w, `{"status": "healthy"}`)
 	}).Methods("GET")
 
-	// 4. Pokretanje servera
+	// 5. Pokretanje servera
 	fmt.Println("Shopping Cart service running on port 8081")
 	log.Fatal(http.ListenAndServe(":8081", corsOpts(r)))
 }

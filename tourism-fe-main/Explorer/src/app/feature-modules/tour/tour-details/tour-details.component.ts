@@ -132,32 +132,28 @@ export class TourDetailsComponent implements OnInit {
     if (this.isAddingToCart) return; 
     const isPublished = this.tour?.status === 'Published';
 
-    if (!this.tour || !this.tour.id || !this.tour.name) {
+    if (!this.tour || !this.tour.id) { 
         this.snackBar.open('Tour details are incomplete or still loading.', 'Dismiss', { duration: 3000 });
         return;
     }
     
     if (!isPublished ) {
-        let message = '';
-        if (!isPublished) {
-             message = 'Cannot purchase: The tour must be published.';
-        } 
-        this.snackBar.open(message, 'Dismiss', { duration: 4000 });
+        this.snackBar.open('Cannot purchase: The tour must be published.', 'Dismiss', { duration: 4000 });
         return;
     }
-
+  
     this.isAddingToCart = true; 
- 
+  
+    // Kreiramo objekat koji sadrži SAMO ID ture
     const itemToAdd = {
-        tourId: String(this.tour.id), // KONVERTOVAN NUMBER U STRING
-        name: this.tour.name,
-        price: this.tour.price
+        tourId: String(this.tour.id)
     };
-
-    // 3. POZIV BACKENDA
+  
+    // 3. POZIV BACKENDA (sada sa ispravnim, "glupim" objektom)
     this.cartService.addItem(itemToAdd).subscribe({
         next: (updatedCart) => {
-            this.snackBar.open(`"${itemToAdd.name}" added to cart! Total: ${updatedCart.total} RSD`, 'View Cart', { duration: 4000 })
+            // Pošto 'itemToAdd' više nema ime, koristimo 'this.tour.name' za poruku
+            this.snackBar.open(`"${this.tour!.name}" added to cart!`, 'View Cart', { duration: 4000 })
                 .onAction()
                 .subscribe(() => {
                     this.router.navigate(['/shopping-cart']); 
@@ -173,7 +169,7 @@ export class TourDetailsComponent implements OnInit {
             this.isAddingToCart = false;
         }
     });
-}
+  }
 
   onLeaveReview(): void {
     if (!this.tour) return;
