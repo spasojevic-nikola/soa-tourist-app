@@ -41,7 +41,7 @@ func main() {
 	apiV1.Handle("/create-tour", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateTour))).Methods("POST")
 	apiV1.Handle("", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetMyTours))).Methods("GET")
 	apiV1.Handle("/published", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetAllPublishedTours))).Methods("GET")
-	apiV1.Handle("/{tourId}", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetTourByID))).Methods("GET")
+	apiV1.HandleFunc("/{tourId}", apiHandler.GetTourByID).Methods("GET")
 	apiV1.Handle("/{tourId}/publish", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.PublishTour))).Methods("PUT")
 	apiV1.Handle("/{tourId}/archive", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ArchiveTour))).Methods("PUT")
 	apiV1.Handle("/{tourId}/activate", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ActivateTour))).Methods("PUT")
