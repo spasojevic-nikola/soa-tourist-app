@@ -29,11 +29,19 @@ func NewTourServiceClient(baseURL string) *TourServiceClient {
 }
 
 // GetTourDetails dobavlja detalje o turi na osnovu njenog ID-ja
-func (c *TourServiceClient) GetTourDetails(tourID string) (*TourDetails, error) {
-	// Kreiramo URL za poziv, npr: http://tour-service:8080/api/v1/tours/1
+func (c *TourServiceClient) GetTourDetails(tourID string, authorizationHeader string) (*TourDetails, error) {
 	reqURL := fmt.Sprintf("%s/api/v1/tours/%s", c.BaseURL, tourID)
 
-	resp, err := c.Client.Get(reqURL)
+	// Kreiramo novi zahtev da bismo mogli da dodamo header
+	req, err := http.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	//Dodajemo Authorization header u interni poziv
+	req.Header.Set("Authorization", authorizationHeader)
+
+	resp, err := c.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call tour service: %w", err)
 	}

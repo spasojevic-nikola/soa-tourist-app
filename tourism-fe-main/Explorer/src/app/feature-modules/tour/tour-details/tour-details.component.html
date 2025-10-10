@@ -93,11 +93,10 @@
 <!-- All Keypoints Section -->
 <div class="keypoints-section" *ngIf="tour.keyPoints && tour.keyPoints.length > 0">
   <h2>
-    {{ isTourPurchased ? 'All Tour Locations' : 'Starting Point' }}
+    {{ tour.keyPoints.length > 1 ? 'All Tour Locations' : 'Starting Point' }}
   </h2>
   
-  <!-- Ako je kupljena, prikaži SVE keypoints -->
-  <div *ngIf="isTourPurchased" class="all-keypoints">
+  <div class="all-keypoints">
     <div *ngFor="let keypoint of tour.keyPoints; let i = index" class="keypoint-card">
       <div class="keypoint-header">
         <span class="keypoint-number">{{ i + 1 }}</span>
@@ -112,32 +111,14 @@
       <img *ngIf="keypoint.image" [src]="keypoint.image" [alt]="keypoint.name" class="keypoint-image">
     </div>
   </div>
-  
-  <!-- Ako NIJE kupljena, prikaži samo prvi keypoint -->
-  <div *ngIf="!isTourPurchased" class="single-keypoint">
-    <div class="keypoint-card">
-      <div class="keypoint-header">
-        <h3>📍 {{ tour.keyPoints[0].name }}</h3>
-      </div>
-      <p class="keypoint-description">{{ tour.keyPoints[0].description }}</p>
-      <div class="keypoint-details">
-        <span class="detail-item">
-          <strong>Location:</strong> {{ keypointAddress || 'Loading address...' }}
-        </span>
-      </div>
-      <img *ngIf="tour.keyPoints[0].image" [src]="tour.keyPoints[0].image" [alt]="tour.keyPoints[0].name" class="keypoint-image">
-      
-      <!-- Purchase prompt -->
-      <div class="purchase-prompt">
-        <mat-icon>lock</mat-icon>
-        <p>Purchase this tour to unlock {{ tour.keyPoints.length - 1 }} more location{{ tour.keyPoints.length > 2 ? 's' : '' }}</p>
-      </div>
-    </div>
+
+  <div *ngIf="tour.keyPoints.length === 1 && tour.price > 0" class="purchase-prompt">
+    <mat-icon>lock</mat-icon>
+    <p>Purchase this tour to unlock all locations!</p>
   </div>
 </div>
-
     <!-- Action Buttons -->
-    <<div class="action-buttons">
+    <div class="action-buttons">
       <button 
           class="btn btn-purchase" 
           [ngClass]="{'btn-disabled-purchased': isTourPurchased}"

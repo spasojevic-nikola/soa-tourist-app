@@ -233,6 +233,7 @@ func (h *Handler) ActivateTour(w http.ResponseWriter, r *http.Request) {
 
 // vraca turu po id sa svim keypointima i trajanjem
 func (h *Handler) GetTourByID(w http.ResponseWriter, r *http.Request) {
+	// Izvuci ID ture iz URL-a
 	vars := mux.Vars(r)
 	tourIDStr := vars["tourId"]
 	tourID, err := strconv.ParseUint(tourIDStr, 10, 32)
@@ -241,7 +242,13 @@ func (h *Handler) GetTourByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tour, err := h.TourService.GetTourByID(uint(tourID))
+	// Izvuci userID iz konteksta (postavlja ga AuthMiddleware)
+	userID, _ := r.Context().Value("userID").(uint)
+	// Izvuci ceo "Authorization: Bearer ..." header
+	authHeader := r.Header.Get("Authorization")
+
+	// Prosledi sve potrebne podatke servisu
+	tour, err := h.TourService.GetTourByID(uint(tourID), userID, authHeader)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

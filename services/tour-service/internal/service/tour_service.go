@@ -3,18 +3,24 @@ package service
 import (
 	"errors"
 	"math"
+	"fmt"
 	"tour-service/internal/dto"
 	"tour-service/internal/models"
 	"tour-service/internal/repository"
+	"tour-service/internal/interfaces" 
 )
 
 type TourService struct {
 	Repo *repository.TourRepository
+	PurchaseChecker interfaces.PurchaseChecker
 }
 
 // kreira novu instancu servisa
-func NewTourService(repo *repository.TourRepository) *TourService {
-	return &TourService{Repo: repo}
+func NewTourService(repo *repository.TourRepository, checker interfaces.PurchaseChecker) *TourService { 
+	return &TourService{
+	Repo: repo,
+	PurchaseChecker: checker,
+	}
 }
 
 // obrađuje DTO, primenjuje pravila i poziva repozitorijum
@@ -80,8 +86,45 @@ func (s *TourService) GetAllPublishedTours() ([]models.Tour, error) {
 }
 
 // vraca turu po id sa svim relacijama
-func (s *TourService) GetTourByID(tourID uint) (*models.Tour, error) {
-	return s.Repo.FindByIDWithRelations(tourID)
+func (s *TourService) GetTourByID(tourID, userID uint, authHeader string) (*models.Tour, error) {
+	fmt.Println("------------------------------------------")
+	fmt.Printf(">>> PROVERA TURE: ID=%d, za KORISNIKA: ID=%d\n", tourID, userID)
+
+	// 1. Uvek prvo dohvati turu sa SVIM ključnim tačkama iz baze
+	tour, err := s.Repo.FindByIDWithRelations(tourID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(tour.KeyPoints) == 0 {
+		fmt.Println("!!! Tura nema ključne tačke, vraćam odmah.")
+		return tour, nil
+	}
+
+	// 2. Proveri da li je korisnik kupio turu (ili je on autor ture)
+	isAuthor := tour.AuthorID == userID
+	fmt.Printf(">>> DA LI JE AUTOR? %t\n", isAuthor)
+
+	fmt.Println(">>> POZIVAM SHOPPING-CART-SERVICE DA PROVERIM KUPOVINU...")
+	hasPurchased, err := s.PurchaseChecker.HasUserPurchasedTour(userID, tourID, authHeader)
+	if err != nil {
+		fmt.Printf("!!! GREŠKA pri proveri kupovine: %v\n", err)
+	}
+	
+	fmt.Printf(">>> REZULTAT PROVERE KUPOVINE: %t\n", hasPurchased) // <-- KLJUČNI ISPIS
+
+	// 3. Ako korisnik NIJE autor I NIJE kupio turu, onda filtriraj
+	if !isAuthor && !hasPurchased {
+		fmt.Println(">>> USLOV ISPUNJEN: Korisnik nije autor i nije kupio turu. FILTRIRAM ključne tačke.")
+		// Vrati samo prvu ključnu tačku kao "preview"
+		tour.KeyPoints = tour.KeyPoints[:1]
+	} else {
+		fmt.Println(">>> USLOV NIJE ISPUNJEN: Vraćam sve ključne tačke.")
+	}
+	
+	fmt.Println("------------------------------------------")
+	// 4. Vrati (potencijalno modifikovanu) turu
+	return tour, nil
 }
 
 // dodaje trajanje u turu
