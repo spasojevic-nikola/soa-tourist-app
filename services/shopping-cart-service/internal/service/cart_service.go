@@ -60,9 +60,9 @@ func (s *CartService) GetCart(ctx context.Context, userID uint) (*models.Shoppin
 	return cart, nil
 }
 
-func (s *CartService) AddItemToCart(ctx context.Context, userID uint, req dto.AddItemRequest) (*models.ShoppingCart, error) {
+func (s *CartService) AddItemToCart(ctx context.Context, userID uint, req dto.AddItemRequest, authHeader string) (*models.ShoppingCart, error) {
     // 1. KORAK: Dobavi detalje ture od tour-service (AGREGACIJA)
-    tourDetails, err := s.TourServiceClient.GetTourDetails(req.TourID)
+	tourDetails, err := s.TourServiceClient.GetTourDetails(req.TourID, authHeader)
     if err != nil {
         log.Printf("ERROR: Failed to get tour details for TourID %s. Error: %v", req.TourID, err)
         return nil, errors.New("could not retrieve tour information")

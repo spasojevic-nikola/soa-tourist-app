@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"shopping-cart-service/internal/dto"
@@ -42,8 +43,9 @@ func (h *Handler) AddItemToCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := GetUserID(r)
+	authHeader := r.Header.Get("Authorization")
 
-	cart, err := h.Service.AddItemToCart(r.Context(), userID, req)
+	cart, err := h.Service.AddItemToCart(r.Context(), userID, req, authHeader)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -94,9 +96,11 @@ func (h *Handler) RemoveItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HasPurchaseToken(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("--- SHOPPING CART: Primljen zahtev za proveru tokena! ---") 
     userID := GetUserID(r)
     vars := mux.Vars(r)
     tourID := vars["tourId"]
+	fmt.Printf("--- Proveravam za korisnika ID: %d, Tura ID: %s ---\n", userID, tourID) 
 
     if tourID == "" {
         http.Error(w, "Tour ID is required", http.StatusBadRequest)
@@ -109,6 +113,7 @@ func (h *Handler) HasPurchaseToken(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+	fmt.Printf("--- Rezultat provere je: %t. Šaljem odgovor... ---\n", hasPurchased) 
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(map[string]bool{"isPurchased": hasPurchased})
 }

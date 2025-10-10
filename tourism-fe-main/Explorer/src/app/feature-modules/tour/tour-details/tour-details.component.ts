@@ -26,9 +26,9 @@ export class TourDetailsComponent implements OnInit {
 
   isAddingToCart: boolean = false; 
 
-    // Status kupovine
-    isTourPurchased: boolean = false;
-    checkingPurchaseStatus: boolean = true;
+  isTourPurchased: boolean = false;
+  checkingPurchaseStatus: boolean = true;
+
 
     // Tour Execution polja
     hasActiveExecution: boolean = false;
@@ -54,10 +54,10 @@ export class TourDetailsComponent implements OnInit {
     this.loadTourDetails(tourId);
     this.loadReviews(tourId);
     this.loadReviewStats(tourId);
-    this.checkPurchaseStatus(tourId);
-    this.checkAllExecutions(tourId)
-  }
+    this.checkAllExecutions(tourId);
+    this.checkPurchaseStatus(tourId); 
 
+  }
   checkPurchaseStatus(tourId: number): void {
     this.checkingPurchaseStatus = true;
     this.cartService.hasPurchased(String(tourId)).subscribe({
@@ -67,11 +67,13 @@ export class TourDetailsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error checking purchase status:', err);
-        this.isTourPurchased = false;
+        // U slučaju greške, pretpostavljamo da nije kupljeno da ne bi prikazali pogrešne opcije
+        this.isTourPurchased = false; 
         this.checkingPurchaseStatus = false;
       }
     });
   }
+
 
   loadTourDetails(tourId: number): void {
   this.tourService.getTourById(tourId).subscribe({
