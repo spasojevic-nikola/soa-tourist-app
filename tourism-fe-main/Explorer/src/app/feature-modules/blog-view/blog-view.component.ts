@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { BlogService } from '../blog/blog.service';
 import { AuthService } from 'src/app/infrastructure/auth/auth.service';
 import { TokenStorage } from 'src/app/infrastructure/auth/jwt/token.service';
-import { Blog, BlogComment, AddCommentPayload } from '../blog/model/blog.model';
+import { Blog, BlogComment, AddCommentPayload, UpdateBlogPayload, UpdateCommentPayload } from '../blog/model/blog.model';
 
 @Component({
   selector: 'app-blog-view',
@@ -21,6 +21,13 @@ export class BlogViewComponent implements OnInit, OnDestroy {
   commentForm!: FormGroup;
   isCommentSending = false;
   currentUsername: string | null = null;
+
+  isEditingBlog = false;
+  blogEditForm!: FormGroup;
+
+  editingComment: BlogComment | null = null;
+  commentEditForm!: FormGroup;
+  isCommentUpdating = false;
 
 
   currentUserId: number | null = null;
@@ -39,6 +46,15 @@ export class BlogViewComponent implements OnInit, OnDestroy {
       text: ['', Validators.required]
     });
 
+    this.commentEditForm = this.fb.group({
+      editText: ['', Validators.required]
+    });
+
+    this.blogEditForm = this.fb.group({
+            title: ['', Validators.required],
+            content: ['', Validators.required],
+        });
+      
     // Subscribe na trenutno ulogovanog korisnika
     this.userSub = this.authService.user$.subscribe(user => {
       this.currentUserId = user.id || null;
@@ -125,4 +141,69 @@ export class BlogViewComponent implements OnInit, OnDestroy {
       error: () => this.isLoading = false
     });
   }
+
+   startEditBlog(): void {
+        if (!this.blogDetail) return;
+        this.isEditingBlog = true;
+        this.blogEditForm.patchValue({
+            title: this.blogDetail.title,
+            content: this.blogDetail.content, 
+        });
+    }
+
+    cancelEditBlog(): void {
+        this.isEditingBlog = false;
+        this.blogEditForm.reset();
+    }
+
+    saveBlogEdit(): void {
+        if (!this.blogDetail || this.blogEditForm.invalid) return;
+
+        const payload: UpdateBlogPayload = {
+            title: this.blogEditForm.value.title,
+            content: this.blogEditForm.value.content,
+            images: this.blogDetail.images, 
+        };
+
+        this.blogService.updateBlog(this.blogDetail.id, payload).subscribe({
+            next: (updatedBlog) => {
+                this.blogDetail = updatedBlog; 
+                this.isEditingBlog = false;
+            },
+            error: (err) => console.error('Failed to update blog:', err)
+        });
+    }
+    
+    startEditComment(comment: BlogComment): void {
+        this.editingComment = comment;
+        this.commentEditForm.patchValue({ editText: comment.text });
+    }
+
+    cancelEditComment(): void {
+        this.editingComment = null;
+        this.commentEditForm.reset();
+    }
+
+    saveCommentEdit(): void {
+        if (!this.blogDetail || !this.editingComment || this.commentEditForm.invalid) return;
+        this.isCommentUpdating = true;
+
+        const payload: UpdateCommentPayload = { text: this.commentEditForm.value.editText };
+        
+        this.blogService.updateComment(this.blogDetail.id, this.editingComment.id, payload).subscribe({
+            next: (updatedComment) => {
+                const index = this.blogDetail!.comments.findIndex(c => c.id === updatedComment.id);
+                if (index !== -1) {
+                    this.blogDetail!.comments[index] = updatedComment;
+                }
+                
+                this.cancelEditComment();
+                this.isCommentUpdating = false;
+            },
+            error: (err) => {
+                console.error('Failed to update comment:', err);
+                this.isCommentUpdating = false;
+            }
+        });
+    }
 }

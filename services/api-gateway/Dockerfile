@@ -8,7 +8,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Kopiraj sav kod i komande
-COPY main.go .
+COPY . . 
 
 # Kompajliraj aplikaciju
 RUN CGO_ENABLED=0 go build -o /api-gateway main.go

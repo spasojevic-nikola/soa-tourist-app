@@ -13,6 +13,7 @@ export interface CreateBlogPayload {
     content: string;
     htmlContent: string; 
     authorId: number;
+    authorUsername? : string;
     createdAt: string;
     updatedAt: string;
     images?: string[];
@@ -21,14 +22,24 @@ export interface CreateBlogPayload {
   }
   
   export interface BlogComment {
+  id: string;
   authorId: number;
   text: string;
   createdAt: string;
   updatedAt: string;
-  id?: string;
   authorUsername?: string;
 }
 
 export interface AddCommentPayload {
   text: string;
+}
+
+export interface UpdateBlogPayload {
+    title: string;
+    content: string; 
+    images?: string[]; 
+}
+
+export interface UpdateCommentPayload {
+    text: string;
 }

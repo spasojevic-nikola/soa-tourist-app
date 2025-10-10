@@ -3,7 +3,7 @@ import { TokenStorage } from 'src/app/infrastructure/auth/jwt/token.service';
 import { Blog, CreateBlogPayload } from './model/blog.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AddCommentPayload, BlogComment} from './model/blog.model';
+import { AddCommentPayload, BlogComment, UpdateBlogPayload, UpdateCommentPayload} from './model/blog.model';
 
 @Injectable({
   providedIn: 'root'
@@ -62,5 +62,17 @@ getBlogById(id: string): Observable<Blog> {
   return this.http.get<Blog>(`${this.apiUrl}/${id}`, { headers });
 }
 
+updateBlog(blogId: string, payload: UpdateBlogPayload): Observable<Blog> {
+        const headers = this.createAuthHeaders();
+        const url = `${this.apiUrl}/${blogId}`;
 
+        return this.http.put<Blog>(url, payload, { headers });
+    }
+
+    updateComment(blogId: string, commentId: string, payload: UpdateCommentPayload): Observable<BlogComment> {
+        const headers = this.createAuthHeaders();
+        const url = `${this.apiUrl}/${blogId}/comments/${commentId}`;
+
+        return this.http.put<BlogComment>(url, payload, { headers });
+    }
 }

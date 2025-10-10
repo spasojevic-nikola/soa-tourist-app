@@ -7,6 +7,7 @@ import (
 
 	"blog-service/internal/api"
 	"blog-service/internal/database"
+	"blog-service/internal/grpc"
 	"blog-service/internal/repository" 
 	"blog-service/internal/service" 	
 
@@ -36,6 +37,14 @@ func main() {
 
 	blogHandler := api.NewHandler(blogService) 
 
+	// pokreni gRPC server u pozadini
+	go func() {
+		log.WithFields(log.Fields{
+			"port": "50052",
+		}).Info("Starting Blog gRPC server")
+		grpc.StartGRPCServer(blogService, "50052")
+	}()
+
 	r := mux.NewRouter()
 
 	// Definisemo CORS opcije
@@ -53,6 +62,10 @@ func main() {
 	//apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
 	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.GetAllBlogs)).Methods("GET")
 	apiV1.HandleFunc("/{id}", blogHandler.GetBlogByID).Methods("GET")
+	apiV1.HandleFunc("/{id}", api.AuthMiddleware(blogHandler.UpdateBlog)).Methods("PUT")
+	apiV1.HandleFunc("/{id}/comments/{commentId}", api.AuthMiddleware(blogHandler.UpdateComment)).Methods("PUT")
+
+
 
 
 	// Health check
