@@ -36,7 +36,7 @@ func (User) TableName() string {
 }
 
 var db *gorm.DB
-var jwtKey = []byte("super-secret-key")
+var jwtKey = []byte("super-tajni-kljuc-koji-niko-ne-zna-12345")
 
 // JWT claims
 type Claims struct {

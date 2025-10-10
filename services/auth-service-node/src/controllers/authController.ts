@@ -125,6 +125,8 @@ export class AuthController {
 
       const token = generateToken(tokenClaims);
 
+      console.log('🔐 GENERISAN TOKEN:', token);
+
       res.json({ accessToken: token });
     } catch (error) {
       console.error('Login error:', error);
