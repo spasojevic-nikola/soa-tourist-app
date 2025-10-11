@@ -10,7 +10,7 @@ import (
 
 // jwtKey je tajni ključ za potpisivanje tokena.
 // Pošto se koristi samo u middleware-u, logično je da stoji ovde.
-var jwtKey = []byte("super-secret-key")
+var jwtKey = []byte("super-tajni-kljuc-koji-niko-ne-zna-12345")
 
 // AuthMiddleware je funkcija koja presreće zahtev i proverava JWT token.
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {

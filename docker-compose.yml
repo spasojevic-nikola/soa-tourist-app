@@ -134,7 +134,7 @@ services:
       - soa-network
 
   auth-service:
-    build: ./services/auth-service
+    build: ./services/auth-service-node
     container_name: soa-tourist-app-auth-service
     ports:
       - "${EXT_AUTH_SERVICE_PORT}:8084"
@@ -142,12 +142,13 @@ services:
       postgres-auth: { condition: service_healthy }
     restart: on-failure
     environment:
-      - DB_HOST=${AUTH_DB_HOST}
-      - DB_PORT=5432
-      - DB_USER=${AUTH_DB_USER}
-      - DB_PASSWORD=${AUTH_DB_PASSWORD}
-      - DB_NAME=${AUTH_DB_NAME}
-      - JWT_SECRET=${JWT_SECRET} # <-- KLJUČNO: Onaj koji pravi token
+      - AUTH_DB_HOST=${AUTH_DB_HOST}
+      - EXT_AUTH_DB_PORT=5432
+      - AUTH_DB_USER=${AUTH_DB_USER}
+      - AUTH_DB_PASSWORD=${AUTH_DB_PASSWORD}
+      - AUTH_DB_NAME=${AUTH_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - STAKEHOLDERS_SERVICE_URL=http://stakeholders-service:8080
     networks:
       - soa-network
 

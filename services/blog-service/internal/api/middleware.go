@@ -10,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte("super-secret-key")
+var jwtKey = []byte("super-tajni-kljuc-koji-niko-ne-zna-12345")
 
 // AuthMiddleware proverava validnost JWT tokena.
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
