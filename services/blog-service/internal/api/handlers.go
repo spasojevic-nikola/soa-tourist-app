@@ -3,16 +3,16 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"blog-service/internal/dto"
 	"blog-service/internal/service"
 
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
 
 // Handler sadrži referencu na BlogService
 type Handler struct {
@@ -22,6 +22,21 @@ type Handler struct {
 // NewHandler kreira novu instancu Handler-a
 func NewHandler(service *service.BlogService) *Handler {
 	return &Handler{Service: service}
+}
+
+// getUserIDFromHeader izvlači User ID iz X-User-ID headera (postavljenog od API Gateway-a)
+func getUserIDFromHeader(r *http.Request) (uint, error) {
+	userIDStr := r.Header.Get("X-User-ID")
+	if userIDStr == "" {
+		return 0, nil // Ili možeš vratiti grešku ako je obavezno
+	}
+
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(userID), nil
 }
 
 // CreateBlog endpoint za kreiranje bloga
@@ -39,7 +54,12 @@ func (h *Handler) CreateBlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authorID := r.Context().Value("userID").(uint)
+	// Čitaj userID iz headera umesto iz context-a
+	authorID, err := getUserIDFromHeader(r)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
 
 	blog, err := h.Service.CreateBlog(r.Context(), req, authorID)
 	if err != nil {
@@ -70,7 +90,11 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authorID := r.Context().Value("userID").(uint)
+	authorID, err := getUserIDFromHeader(r)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
 
 	vars := mux.Vars(r)
 	idParam := vars["id"]
@@ -92,7 +116,11 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 // ToggleLike endpoint za lajkovanje/unlajkovanje
 func (h *Handler) ToggleLike(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID").(uint)
+	userID, err := getUserIDFromHeader(r)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
 
 	vars := mux.Vars(r)
 	idParam := vars["id"]
@@ -144,33 +172,32 @@ func (h *Handler) GetAllBlogs(w http.ResponseWriter, r *http.Request) {
 		"endpoint": "/api/v1/blogs",
 		"method":   "GET",
 	}).Info("Get all blogs request received")
-    // Izvuci ID ulogovanog korisnika iz konteksta
-    userID, ok := r.Context().Value("userID").(uint)
-    if !ok {
-		log.Error("User ID not found in context")
-        http.Error(w, "User ID not found in context", http.StatusUnauthorized)
-        return
-    }
+	// Izvuci ID ulogovanog korisnika iz headera (opcionalno za GET)
+	userID, err := getUserIDFromHeader(r)
+	if err != nil {
+		log.Warn("Invalid user ID in header, proceeding without user context")
+		userID = 0 // Anonymous user
+	}
 
-    // Pozovi novu logiku servisa
-    blogs, err := h.Service.GetFeedForUser(r.Context(), userID)
-    if err != nil {
+	// Pozovi novu logiku servisa
+	blogs, err := h.Service.GetFeedForUser(r.Context(), userID)
+	if err != nil {
 		log.WithFields(log.Fields{
 			"endpoint": "/api/v1/blogs",
 			"userID":   userID,
 			"error":    err.Error(),
 		}).Error("Failed to fetch blogs")
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	log.WithFields(log.Fields{
 		"endpoint":   "/api/v1/blogs",
 		"userID":     userID,
 		"blogsCount": len(blogs),
 	}).Info("Blogs fetched successfully")
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(blogs)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(blogs)
 }
 
 // GetBlogByID endpoint za dobijanje bloga po ID-ju
@@ -221,90 +248,98 @@ func (h *Handler) GetBlogByID(w http.ResponseWriter, r *http.Request) {
 		"blogID":   blogID.Hex(),
 		"title":    blog.Title,
 	}).Info("Blog fetched successfully")
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(blog)
 }
 
 // UpdateBlog endpoint za ažuriranje bloga
 func (h *Handler) UpdateBlog(w http.ResponseWriter, r *http.Request) {
-    var req dto.UpdateBlogRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
+	var req dto.UpdateBlogRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
 
-    userID := r.Context().Value("userID").(uint)
+	userID, err := getUserIDFromHeader(r)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
 
-    vars := mux.Vars(r)
-    idParam := vars["id"]
-    blogID, err := primitive.ObjectIDFromHex(idParam)
-    if err != nil {
-        http.Error(w, "Invalid blog ID", http.StatusBadRequest)
-        return
-    }
+	vars := mux.Vars(r)
+	idParam := vars["id"]
+	blogID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+		return
+	}
 
-    blog, err := h.Service.UpdateBlog(r.Context(), blogID, req, userID)
-    if err != nil {
-        // Logika za statusne kodove
-        if strings.Contains(err.Error(), "blog not found") {
-            http.Error(w, err.Error(), http.StatusNotFound)
-            return
-        }
-        if strings.Contains(err.Error(), "unauthorized") {
-            http.Error(w, err.Error(), http.StatusForbidden) // 403 Forbidden
-            return
-        }
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	blog, err := h.Service.UpdateBlog(r.Context(), blogID, req, userID)
+	if err != nil {
+		// Logika za statusne kodove
+		if strings.Contains(err.Error(), "blog not found") {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		if strings.Contains(err.Error(), "unauthorized") {
+			http.Error(w, err.Error(), http.StatusForbidden) // 403 Forbidden
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(blog)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(blog)
 }
 
 // UpdateComment endpoint za ažuriranje komentara
 func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
-    var req dto.UpdateCommentRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
+	var req dto.UpdateCommentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
 
-    userID := r.Context().Value("userID").(uint)
-    vars := mux.Vars(r)
+	userID, err := getUserIDFromHeader(r)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(r)
 
-    // Dohvatanje Blog ID-ja
-    blogIDParam := vars["id"] // Proverite da li je ključ u ruteru 'id' ili 'blogId'
-    blogID, err := primitive.ObjectIDFromHex(blogIDParam)
-    if err != nil {
-        http.Error(w, "Invalid blog ID", http.StatusBadRequest)
-        return
-    }
+	// Dohvatanje Blog ID-ja
+	blogIDParam := vars["id"] // Proverite da li je ključ u ruteru 'id' ili 'blogId'
+	blogID, err := primitive.ObjectIDFromHex(blogIDParam)
+	if err != nil {
+		http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+		return
+	}
 
-    // Dohvatanje Comment ID-ja
-    commentIDParam := vars["commentId"]
-    commentID, err := primitive.ObjectIDFromHex(commentIDParam)
-    if err != nil {
-        http.Error(w, "Invalid comment ID", http.StatusBadRequest)
-        return
-    }
+	// Dohvatanje Comment ID-ja
+	commentIDParam := vars["commentId"]
+	commentID, err := primitive.ObjectIDFromHex(commentIDParam)
+	if err != nil {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
 
-    comment, err := h.Service.UpdateComment(r.Context(), blogID, commentID, req, userID)
-    if err != nil {
-        // Logika za statusne kodove
-        if strings.Contains(err.Error(), "not found") {
-            http.Error(w, err.Error(), http.StatusNotFound)
-            return
-        }
-        if strings.Contains(err.Error(), "unauthorized") {
-            http.Error(w, err.Error(), http.StatusForbidden) // 403 Forbidden
-            return
-        }
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	comment, err := h.Service.UpdateComment(r.Context(), blogID, commentID, req, userID)
+	if err != nil {
+		// Logika za statusne kodove
+		if strings.Contains(err.Error(), "not found") {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		if strings.Contains(err.Error(), "unauthorized") {
+			http.Error(w, err.Error(), http.StatusForbidden) // 403 Forbidden
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(comment)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(comment)
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"api-gateway/internal/grpc"
+	"api-gateway/internal/middleware"
 )
 
 var blogClient *grpc.BlogClient
@@ -30,7 +31,6 @@ func newReverseProxy(targetURL string, pathPrefix string) *httputil.ReverseProxy
 		req.URL.Scheme = url.Scheme
 		req.URL.Host = url.Host
 
-	
 		if pathPrefix != "" && pathPrefix != "/" {
 			req.URL.Path = strings.TrimPrefix(req.URL.Path, pathPrefix)
 		}
@@ -53,36 +53,35 @@ func router(w http.ResponseWriter, r *http.Request) {
 	blogProxy := newReverseProxy("http://blog-service:8081", "")
 
 	switch {
+	// ZAŠTIĆENE RUTE (zahtevaju JWT)
 	case r.Method == "POST" && path == "/api/v1/blogs":
-		log.Printf("Routing POST %s to Blog Service (Create Blog)", path)
-		blogProxy.ServeHTTP(w, r)
+		log.Printf("Routing POST %s to Blog Service (Create Blog) [AUTH REQUIRED]", path)
+		middleware.JWTAuthMiddleware(blogProxy).ServeHTTP(w, r)
 
 	case r.Method == "POST" && strings.HasSuffix(path, "/comments"):
-		log.Printf("Routing POST %s to Blog Service (Add Comment)", path)
-		blogProxy.ServeHTTP(w, r)
+		log.Printf("Routing POST %s to Blog Service (Add Comment) [AUTH REQUIRED]", path)
+		middleware.JWTAuthMiddleware(blogProxy).ServeHTTP(w, r)
 
 	case r.Method == "POST" && strings.HasSuffix(path, "/like"):
-		log.Printf("Routing POST %s to Blog Service (Toggle Like)", path)
-		blogProxy.ServeHTTP(w, r)
-
-
-	// promijenjeno iz rest zahtjeva u rpc poziv
-	case r.Method == "GET" && path == "/api/v1/blogs":
-		log.Printf("Routing GET %s to Blog Service via gRPC", path)
-		blogClient.GetAllBlogsHandler(w, r)
-
-	case r.Method == "GET" && strings.HasPrefix(path, "/api/v1/blogs/"):
-		log.Printf("Routing GET %s to Blog Service (Get Blog By ID)", path)
-		blogProxy.ServeHTTP(w, r)
+		log.Printf("Routing POST %s to Blog Service (Toggle Like) [AUTH REQUIRED]", path)
+		middleware.JWTAuthMiddleware(blogProxy).ServeHTTP(w, r)
 
 	case r.Method == "PUT" && strings.HasPrefix(path, "/api/v1/blogs/") && !strings.Contains(path, "/comments"):
-		log.Printf("Routing PUT %s to Blog Service (Update Blog)", path)	
-	    blogProxy.ServeHTTP(w, r)
-    
-	 case r.Method == "PUT" && strings.Contains(path, "/comments/"):
-		 log.Printf("Routing PUT %s to Blog Service (Update Comment)", path)
-		 blogProxy.ServeHTTP(w, r)
+		log.Printf("Routing PUT %s to Blog Service (Update Blog) [AUTH REQUIRED]", path)
+		middleware.JWTAuthMiddleware(blogProxy).ServeHTTP(w, r)
 
+	case r.Method == "PUT" && strings.Contains(path, "/comments/"):
+		log.Printf("Routing PUT %s to Blog Service (Update Comment) [AUTH REQUIRED]", path)
+		middleware.JWTAuthMiddleware(blogProxy).ServeHTTP(w, r)
+
+	// JAVNE RUTE (ne zahtevaju JWT, ali ga parsuju ako postoji)
+	case r.Method == "GET" && path == "/api/v1/blogs":
+		log.Printf("Routing GET %s to Blog Service via gRPC [PUBLIC]", path)
+		middleware.OptionalJWTMiddleware(http.HandlerFunc(blogClient.GetAllBlogsHandler)).ServeHTTP(w, r)
+
+	case r.Method == "GET" && strings.HasPrefix(path, "/api/v1/blogs/"):
+		log.Printf("Routing GET %s to Blog Service (Get Blog By ID) [PUBLIC]", path)
+		middleware.OptionalJWTMiddleware(blogProxy).ServeHTTP(w, r)
 
 	// ====================== AUTH SERVICE ======================
 	case strings.HasPrefix(path, "/api/v1/auth"):
@@ -119,7 +118,7 @@ func main() {
 			blogClient.Close()
 		}
 	}()
-	
+
 	http.HandleFunc("/", router)
 	log.Println("API Gateway running on port 8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
