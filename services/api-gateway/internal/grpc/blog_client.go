@@ -6,7 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"api-gateway/gen/pb-go"
+	blog "api-gateway/gen/pb-go"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -23,7 +24,7 @@ func NewBlogClient(serverAddr string) (*BlogClient, error) {
 	}
 
 	client := blog.NewBlogServiceClient(conn)
-	
+
 	return &BlogClient{
 		client: client,
 		conn:   conn,

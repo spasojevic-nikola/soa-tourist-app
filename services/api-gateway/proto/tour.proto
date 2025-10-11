@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package tour;
+
+option go_package = ".;tour";
+
+// TourService definicija
+service TourService {
+  rpc GetPublishedTours(GetPublishedToursRequest) returns (GetPublishedToursResponse);
+  rpc GetMyTours(GetMyToursRequest) returns (GetMyToursResponse);
+}
+
+// Zahtev za preuzimanje objavljenih tura (prazan jer nema parametara)
+message GetPublishedToursRequest {
+  // Mozes dodati paginaciju ili filtere kasnije ako bude potrebno
+}
+
+// Zahtev za preuzimanje mojih tura
+message GetMyToursRequest {
+  uint32 author_id = 1;
+}
+
+// Keypoint poruka
+message KeyPoint {
+  uint32 id = 1;
+  uint32 tour_id = 2;
+  string name = 3;
+  string description = 4;
+  double latitude = 5;
+  double longitude = 6;
+  string image = 7;
+  uint32 order = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+// Tour poruka
+message Tour {
+  uint32 id = 1;
+  uint32 author_id = 2;
+  string name = 3;
+  string description = 4;
+  string difficulty = 5;
+  repeated string tags = 6;
+  string status = 7;
+  double price = 8;
+  bool is_deleted = 9;
+  string created_at = 10;
+  string updated_at = 11;
+  repeated KeyPoint key_points = 12;
+}
+
+// Odgovor sa listom objavljenih tura
+message GetPublishedToursResponse {
+  repeated Tour tours = 1;
+  int32 total_count = 2;
+}
+
+// Odgovor sa listom mojih tura
+message GetMyToursResponse {
+  repeated Tour tours = 1;
+  int32 total_count = 2;
+}

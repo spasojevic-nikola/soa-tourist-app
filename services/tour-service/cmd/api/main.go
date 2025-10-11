@@ -4,16 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 
+	pb "tour-service/gen/pb-go/tour"
 	"tour-service/internal/api"
 	"tour-service/internal/clients"
 	"tour-service/internal/database"
+	tourgrpc "tour-service/internal/grpc"
 	"tour-service/internal/repository"
 	"tour-service/internal/service"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -84,6 +88,23 @@ func main() {
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID", "X-User-Username", "X-User-Role"}),
 	)(r)
+
+	// Pokreni gRPC server u goroutine
+	go func() {
+		grpcServer := grpc.NewServer()
+		tourGRPCServer := tourgrpc.NewTourGRPCServer(tourService)
+		pb.RegisterTourServiceServer(grpcServer, tourGRPCServer)
+
+		lis, err := net.Listen("tcp", ":50053")
+		if err != nil {
+			log.Fatalf("Failed to listen on port 50053: %v", err)
+		}
+
+		fmt.Println("Tour gRPC server running on port 50053")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC: %v", err)
+		}
+	}()
 
 	fmt.Println("Tour service running on internal port 8080")
 	log.Fatal(http.ListenAndServe(":8080", corsHandler))
