@@ -45,37 +45,37 @@ func main() {
 	r := mux.NewRouter()
 	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
 
-	// Tour routes
-	apiV1.Handle("/create-tour", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.CreateTour))).Methods("POST")
-	apiV1.Handle("", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetMyTours))).Methods("GET")
-	apiV1.Handle("/published", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetAllPublishedTours))).Methods("GET")
-	apiV1.Handle("/{tourId}", api.AuthMiddleware(http.HandlerFunc(apiHandler.GetTourByID))).Methods("GET")
-	apiV1.Handle("/{tourId}/publish", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.PublishTour))).Methods("PUT")
-	apiV1.Handle("/{tourId}/archive", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ArchiveTour))).Methods("PUT")
-	apiV1.Handle("/{tourId}/activate", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.ActivateTour))).Methods("PUT")
-	apiV1.Handle("/{tourId}/duration", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.AddDuration))).Methods("POST")
+	// Tour routes - API Gateway sada radi JWT validaciju i prosleđuje X-User-* headere
+	apiV1.HandleFunc("/create-tour", apiHandler.CreateTour).Methods("POST")
+	apiV1.HandleFunc("", apiHandler.GetMyTours).Methods("GET")
+	apiV1.HandleFunc("/published", apiHandler.GetAllPublishedTours).Methods("GET")
+	apiV1.HandleFunc("/{tourId}", apiHandler.GetTourByID).Methods("GET")
+	apiV1.HandleFunc("/{tourId}/publish", apiHandler.PublishTour).Methods("PUT")
+	apiV1.HandleFunc("/{tourId}/archive", apiHandler.ArchiveTour).Methods("PUT")
+	apiV1.HandleFunc("/{tourId}/activate", apiHandler.ActivateTour).Methods("PUT")
+	apiV1.HandleFunc("/{tourId}/duration", apiHandler.AddDuration).Methods("POST")
 
 	// KeyPoint routes
-	apiV1.Handle("/{tourId}/keypoints", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.GetKeyPointsByTour))).Methods("GET")
-	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.UpdateKeyPoint))).Methods("PUT")
-	apiV1.Handle("/keypoints/{keyPointId}", api.AuthMiddleware(api.AuthorOrAdminAuthMiddleware(apiHandler.DeleteKeyPoint))).Methods("DELETE")
+	apiV1.HandleFunc("/{tourId}/keypoints", apiHandler.GetKeyPointsByTour).Methods("GET")
+	apiV1.HandleFunc("/keypoints/{keyPointId}", apiHandler.UpdateKeyPoint).Methods("PUT")
+	apiV1.HandleFunc("/keypoints/{keyPointId}", apiHandler.DeleteKeyPoint).Methods("DELETE")
 
 	// Review routes
-	apiV1.Handle("/{tourId}/reviews", api.AuthMiddleware(http.HandlerFunc(reviewHandler.CreateReview))).Methods("POST")
-	apiV1.Handle("/{tourId}/reviews", http.HandlerFunc(reviewHandler.GetReviewsByTour)).Methods("GET")
-	apiV1.Handle("/{tourId}/reviews/stats", http.HandlerFunc(reviewHandler.GetTourRatingStats)).Methods("GET")
-	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.UpdateReview))).Methods("PUT")
-	apiV1.Handle("/reviews/{reviewId}", api.AuthMiddleware(http.HandlerFunc(reviewHandler.DeleteReview))).Methods("DELETE")
-	apiV1.Handle("/my-reviews", api.AuthMiddleware(http.HandlerFunc(reviewHandler.GetMyReviews))).Methods("GET")
+	apiV1.HandleFunc("/{tourId}/reviews", reviewHandler.CreateReview).Methods("POST")
+	apiV1.HandleFunc("/{tourId}/reviews", reviewHandler.GetReviewsByTour).Methods("GET")
+	apiV1.HandleFunc("/{tourId}/reviews/stats", reviewHandler.GetTourRatingStats).Methods("GET")
+	apiV1.HandleFunc("/reviews/{reviewId}", reviewHandler.UpdateReview).Methods("PUT")
+	apiV1.HandleFunc("/reviews/{reviewId}", reviewHandler.DeleteReview).Methods("DELETE")
+	apiV1.HandleFunc("/my-reviews", reviewHandler.GetMyReviews).Methods("GET")
 
 	// TourExecution routes
-	apiV1.Handle("/{tourId}/start", api.AuthMiddleware(tourExecutionHandler.StartTour)).Methods("POST")
-	apiV1.Handle("/executions/{executionId}/check-position", api.AuthMiddleware(tourExecutionHandler.CheckPosition)).Methods("POST")
-	apiV1.Handle("/executions/{executionId}/complete", api.AuthMiddleware(tourExecutionHandler.CompleteTour)).Methods("PUT")
-	apiV1.Handle("/executions/{executionId}/abandon", api.AuthMiddleware(tourExecutionHandler.AbandonTour)).Methods("PUT")
-	apiV1.Handle("/executions/active/{tourId}", api.AuthMiddleware(tourExecutionHandler.GetActiveExecution)).Methods("GET")
-	apiV1.Handle("/executions/{executionId}", api.AuthMiddleware(tourExecutionHandler.GetExecutionDetails)).Methods("GET")
-	apiV1.Handle("/executions/tour/{tourId}", api.AuthMiddleware(tourExecutionHandler.GetExecutionsByTour)).Methods("GET")
+	apiV1.HandleFunc("/{tourId}/start", tourExecutionHandler.StartTour).Methods("POST")
+	apiV1.HandleFunc("/executions/{executionId}/check-position", tourExecutionHandler.CheckPosition).Methods("POST")
+	apiV1.HandleFunc("/executions/{executionId}/complete", tourExecutionHandler.CompleteTour).Methods("PUT")
+	apiV1.HandleFunc("/executions/{executionId}/abandon", tourExecutionHandler.AbandonTour).Methods("PUT")
+	apiV1.HandleFunc("/executions/active/{tourId}", tourExecutionHandler.GetActiveExecution).Methods("GET")
+	apiV1.HandleFunc("/executions/{executionId}", tourExecutionHandler.GetExecutionDetails).Methods("GET")
+	apiV1.HandleFunc("/executions/tour/{tourId}", tourExecutionHandler.GetExecutionsByTour).Methods("GET")
 
 	// Health check ruta
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +86,7 @@ func main() {
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID", "X-User-Username", "X-User-Role"}),
 	)(r)
 
 	// Pokreni gRPC server u goroutine

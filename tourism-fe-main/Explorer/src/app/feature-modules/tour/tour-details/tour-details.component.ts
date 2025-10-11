@@ -10,6 +10,7 @@ import { ReviewDialogComponent } from '../review-dialog/review-dialog.component'
 import { CartService } from '../../shopping-cart/services/cart.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CartStateService } from '../../shopping-cart/services/cart-state.service';
+import { AuthService } from '../../../infrastructure/auth/auth.service';
 
 @Component({
   selector: 'xp-tour-details',
@@ -46,7 +47,8 @@ export class TourDetailsComponent implements OnInit {
     private router: Router,
     private cartService: CartService, 
     private cartStateService: CartStateService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -208,6 +210,11 @@ export class TourDetailsComponent implements OnInit {
       stars.push(i <= rating ? 'star' : 'star_border');
     }
     return stars;
+  }
+
+  isAuthor(): boolean {
+    const currentUser = this.authService.user$.getValue();
+    return this.tour?.authorId === currentUser.id;
   }
 
    checkAllExecutions(tourId: number): void {

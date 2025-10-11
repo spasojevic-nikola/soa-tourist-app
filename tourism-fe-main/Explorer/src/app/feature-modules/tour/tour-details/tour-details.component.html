@@ -89,33 +89,52 @@
       <span *ngFor="let tag of tour.tags" class="tag">{{ tag }}</span>
     </div>
 
-    <!-- First Keypoint Section -->
-<!-- All Keypoints Section -->
+    <!-- Keypoints Section -->
 <div class="keypoints-section" *ngIf="tour.keyPoints && tour.keyPoints.length > 0">
-  <h2>
-    {{ tour.keyPoints.length > 1 ? 'All Tour Locations' : 'Starting Point' }}
-  </h2>
-  
-  <div class="all-keypoints">
-    <div *ngFor="let keypoint of tour.keyPoints; let i = index" class="keypoint-card">
-      <div class="keypoint-header">
-        <span class="keypoint-number">{{ i + 1 }}</span>
-        <h3>📍 {{ keypoint.name }}</h3>
+  <!-- Ako je autor, prikaži sve ključne tačke -->
+  <ng-container *ngIf="isAuthor()">
+    <h2>{{ tour.keyPoints.length > 1 ? 'All Tour Locations' : 'Starting Point' }}</h2>
+    
+    <div class="all-keypoints">
+      <div *ngFor="let keypoint of tour.keyPoints; let i = index" class="keypoint-card">
+        <div class="keypoint-header">
+          <span class="keypoint-number">{{ i + 1 }}</span>
+          <h3>📍 {{ keypoint.name }}</h3>
+        </div>
+        <p class="keypoint-description">{{ keypoint.description }}</p>
+        <div class="keypoint-details">
+          <span class="detail-item">
+            <strong>Location:</strong> {{ keypoint.address || 'Loading address...' }}
+          </span>
+        </div>
+        <img *ngIf="keypoint.image" [src]="keypoint.image" [alt]="keypoint.name" class="keypoint-image">
       </div>
-      <p class="keypoint-description">{{ keypoint.description }}</p>
+    </div>
+  </ng-container>
+
+  <!-- Ako nije autor, prikaži samo prvu ključnu tačku -->
+  <ng-container *ngIf="!isAuthor()">
+    <h2>Starting Point</h2>
+    
+    <div class="keypoint-card">
+      <div class="keypoint-header">
+        <span class="keypoint-number">1</span>
+        <h3>📍 {{ tour.keyPoints[0].name }}</h3>
+      </div>
+      <p class="keypoint-description">{{ tour.keyPoints[0].description }}</p>
       <div class="keypoint-details">
         <span class="detail-item">
-          <strong>Location:</strong> {{ keypoint.address || 'Loading address...' }}
+          <strong>Location:</strong> {{ tour.keyPoints[0].address || 'Loading address...' }}
         </span>
       </div>
-      <img *ngIf="keypoint.image" [src]="keypoint.image" [alt]="keypoint.name" class="keypoint-image">
+      <img *ngIf="tour.keyPoints[0].image" [src]="tour.keyPoints[0].image" [alt]="tour.keyPoints[0].name" class="keypoint-image">
     </div>
-  </div>
 
-  <div *ngIf="tour.keyPoints.length === 1 && tour.price > 0" class="purchase-prompt">
-    <mat-icon>lock</mat-icon>
-    <p>Purchase this tour to unlock all locations!</p>
-  </div>
+    <div *ngIf="tour.keyPoints.length > 1 && tour.price > 0" class="purchase-prompt">
+      <mat-icon>lock</mat-icon>
+      <p>Purchase this tour to unlock all {{ tour.keyPoints.length }} locations!</p>
+    </div>
+  </ng-container>
 </div>
     <!-- Action Buttons -->
     <div class="action-buttons">

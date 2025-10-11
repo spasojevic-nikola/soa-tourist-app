@@ -1,44 +1,31 @@
 package api
 
 import (
-	"context"
 	"net/http"
-	"tour-service/internal/models"
-
-	"github.com/golang-jwt/jwt/v5"
+	"strconv"
 )
 
-var jwtKey = []byte("super-secret-key")
-
-func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if len(tokenString) < 8 || tokenString[:7] != "Bearer " {
-			http.Error(w, "Authorization header required", http.StatusUnauthorized)
-			return
-		}
-		tokenString = tokenString[7:]
-		claims := &models.Claims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		})
-		if err != nil || !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
-			return
-		}
-		ctx := context.WithValue(r.Context(), "userID", claims.UserID)
-		ctx = context.WithValue(ctx, "userRole", claims.Role)
-		next.ServeHTTP(w, r.WithContext(ctx))
+// getUserIDFromHeader izvlači User ID iz X-User-ID headera (postavljenog od API Gateway-a)
+func GetUserIDFromHeader(r *http.Request) (int, error) {
+	userIDStr := r.Header.Get("X-User-ID")
+	if userIDStr == "" {
+		return 0, nil
 	}
+
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
 }
 
-func AuthorOrAdminAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		userRole, ok := r.Context().Value("userRole").(string)
-		if !ok || (userRole != "author" && userRole != "guide" && userRole != "administrator") {
-			http.Error(w, "Forbidden: Guides or administrators only", http.StatusForbidden)
-			return
-		}
-		next.ServeHTTP(w, r)
-	}
+// GetUserRoleFromHeader izvlači User Role iz X-User-Role headera
+func GetUserRoleFromHeader(r *http.Request) string {
+	return r.Header.Get("X-User-Role")
+}
+
+// getUsernameFromHeader izvlači Username iz X-User-Username headera
+func GetUsernameFromHeader(r *http.Request) string {
+	return r.Header.Get("X-User-Username")
 }
