@@ -11,15 +11,22 @@ import (
 )
 
 var blogClient *grpc.BlogClient
+var tourClient *grpc.TourClient
 
 func init() {
 	// DODAJ: Inicijalizacija gRPC klijenta pri pokretanju
 	var err error
 	blogClient, err = grpc.NewBlogClient("blog-service:50052")
 	if err != nil {
-		log.Fatalf("Failed to create gRPC client: %v", err)
+		log.Fatalf("Failed to create gRPC Blog client: %v", err)
 	}
 	log.Println("gRPC Blog client initialized")
+
+	tourClient, err = grpc.NewTourClient("tour-service:50053")
+	if err != nil {
+		log.Fatalf("Failed to create gRPC Tour client: %v", err)
+	}
+	log.Println("gRPC Tour client initialized")
 }
 
 func newReverseProxy(targetURL string, pathPrefix string) *httputil.ReverseProxy {
@@ -30,7 +37,6 @@ func newReverseProxy(targetURL string, pathPrefix string) *httputil.ReverseProxy
 		req.URL.Scheme = url.Scheme
 		req.URL.Host = url.Host
 
-	
 		if pathPrefix != "" && pathPrefix != "/" {
 			req.URL.Path = strings.TrimPrefix(req.URL.Path, pathPrefix)
 		}
@@ -65,7 +71,6 @@ func router(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Routing POST %s to Blog Service (Toggle Like)", path)
 		blogProxy.ServeHTTP(w, r)
 
-
 	// promijenjeno iz rest zahtjeva u rpc poziv
 	case r.Method == "GET" && path == "/api/v1/blogs":
 		log.Printf("Routing GET %s to Blog Service via gRPC", path)
@@ -76,13 +81,12 @@ func router(w http.ResponseWriter, r *http.Request) {
 		blogProxy.ServeHTTP(w, r)
 
 	case r.Method == "PUT" && strings.HasPrefix(path, "/api/v1/blogs/") && !strings.Contains(path, "/comments"):
-		log.Printf("Routing PUT %s to Blog Service (Update Blog)", path)	
-	    blogProxy.ServeHTTP(w, r)
-    
-	 case r.Method == "PUT" && strings.Contains(path, "/comments/"):
-		 log.Printf("Routing PUT %s to Blog Service (Update Comment)", path)
-		 blogProxy.ServeHTTP(w, r)
+		log.Printf("Routing PUT %s to Blog Service (Update Blog)", path)
+		blogProxy.ServeHTTP(w, r)
 
+	case r.Method == "PUT" && strings.Contains(path, "/comments/"):
+		log.Printf("Routing PUT %s to Blog Service (Update Comment)", path)
+		blogProxy.ServeHTTP(w, r)
 
 	// ====================== AUTH SERVICE ======================
 	case strings.HasPrefix(path, "/api/v1/auth"):
@@ -103,6 +107,14 @@ func router(w http.ResponseWriter, r *http.Request) {
 		proxy.ServeHTTP(w, r)
 
 	// ====================== TOUR SERVICE ======================
+	case r.Method == "GET" && path == "/api/v1/tours/published":
+		log.Printf("Routing GET %s to Tour Service via gRPC", path)
+		tourClient.GetPublishedToursHandler(w, r)
+
+	case r.Method == "GET" && path == "/api/v1/tours":
+		log.Printf("Routing GET %s to Tour Service via gRPC (My Tours)", path)
+		tourClient.GetMyToursHandler(w, r)
+
 	case strings.HasPrefix(path, "/tour"):
 		log.Printf("Routing Tour: %s", path)
 		proxy := newReverseProxy("http://tour-service:8080", "/tour")
@@ -118,8 +130,11 @@ func main() {
 		if blogClient != nil {
 			blogClient.Close()
 		}
+		if tourClient != nil {
+			tourClient.Close()
+		}
 	}()
-	
+
 	http.HandleFunc("/", router)
 	log.Println("API Gateway running on port 8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
