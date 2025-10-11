@@ -8,8 +8,8 @@ import (
 	"blog-service/internal/api"
 	"blog-service/internal/database"
 	"blog-service/internal/grpc"
-	"blog-service/internal/repository" 
-	"blog-service/internal/service" 	
+	"blog-service/internal/repository"
+	"blog-service/internal/service"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -29,13 +29,13 @@ func main() {
 		"port":    "8081",
 	}).Info("Starting blog service")
 
-	mongoDB := database.InitDB() 
+	mongoDB := database.InitDB()
 
 	blogRepo := repository.NewBlogRepository(mongoDB)
 
 	blogService := service.NewBlogService(blogRepo)
 
-	blogHandler := api.NewHandler(blogService) 
+	blogHandler := api.NewHandler(blogService)
 
 	// pokreni gRPC server u pozadini
 	go func() {
@@ -51,22 +51,19 @@ func main() {
 	corsOpts := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID", "X-User-Username", "X-User-Role"}),
 	)
 
 	apiV1 := r.PathPrefix("/api/v1/blogs").Subrouter()
 
-	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.CreateBlog)).Methods("POST") //dodavanje blogova
-	apiV1.HandleFunc("/{id}/comments", api.AuthMiddleware(blogHandler.AddComment)).Methods("POST")
-	apiV1.HandleFunc("/{id}/like", api.AuthMiddleware(blogHandler.ToggleLike)).Methods("POST")
-	//apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
-	apiV1.HandleFunc("", api.AuthMiddleware(blogHandler.GetAllBlogs)).Methods("GET")
+	// API Gateway sada radi JWT validaciju, mi samo čitamo X-User-* headere
+	apiV1.HandleFunc("", blogHandler.CreateBlog).Methods("POST")
+	apiV1.HandleFunc("/{id}/comments", blogHandler.AddComment).Methods("POST")
+	apiV1.HandleFunc("/{id}/like", blogHandler.ToggleLike).Methods("POST")
+	apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
 	apiV1.HandleFunc("/{id}", blogHandler.GetBlogByID).Methods("GET")
-	apiV1.HandleFunc("/{id}", api.AuthMiddleware(blogHandler.UpdateBlog)).Methods("PUT")
-	apiV1.HandleFunc("/{id}/comments/{commentId}", api.AuthMiddleware(blogHandler.UpdateComment)).Methods("PUT")
-
-
-
+	apiV1.HandleFunc("/{id}", blogHandler.UpdateBlog).Methods("PUT")
+	apiV1.HandleFunc("/{id}/comments/{commentId}", blogHandler.UpdateComment).Methods("PUT")
 
 	// Health check
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
