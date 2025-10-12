@@ -8,6 +8,7 @@ option go_package = ".;tour";
 service TourService {
   rpc GetPublishedTours(GetPublishedToursRequest) returns (GetPublishedToursResponse);
   rpc GetMyTours(GetMyToursRequest) returns (GetMyToursResponse);
+  rpc GetReviewsByTour(GetReviewsByTourRequest) returns (GetReviewsByTourResponse);
 }
 
 // Zahtev za preuzimanje objavljenih tura (prazan jer nema parametara)
@@ -59,5 +60,30 @@ message GetPublishedToursResponse {
 // Odgovor sa listom mojih tura
 message GetMyToursResponse {
   repeated Tour tours = 1;
+  int32 total_count = 2;
+}
+
+// Zahtev za preuzimanje recenzija ture
+message GetReviewsByTourRequest {
+  uint32 tour_id = 1;
+}
+
+// Review poruka
+message Review {
+  uint32 id = 1;
+  uint32 tour_id = 2;
+  uint32 tourist_id = 3;
+  string tourist_username = 4;
+  int32 rating = 5;
+  string comment = 6;
+  string visit_date = 7;
+  string images = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+// Odgovor sa listom recenzija
+message GetReviewsByTourResponse {
+  repeated Review reviews = 1;
   int32 total_count = 2;
 }

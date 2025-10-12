@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"api-gateway/gen/pb-go/tour"
 
@@ -80,6 +81,51 @@ func (c *TourClient) GetMyToursHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("API Gateway: Primljeno %d tura od Tour servisa preko gRPC", resp.TotalCount)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// GetReviewsByTourHandler handler za REST endpoint koji poziva gRPC servis za recenzije ture
+func (c *TourClient) GetReviewsByTourHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("API Gateway: Primljen REST zahtev za recenzije ture")
+
+	// Izvlačimo tourID iz URL-a (očekujemo format /tour/{tourId}/reviews)
+	pathParts := strings.Split(r.URL.Path, "/")
+	var tourIDStr string
+	for i, part := range pathParts {
+		if part == "tour" && i+1 < len(pathParts) {
+			tourIDStr = pathParts[i+1]
+			break
+		}
+	}
+
+	if tourIDStr == "" {
+		log.Println("Tour ID nije pronađen u URL-u")
+		http.Error(w, "Tour ID is required", http.StatusBadRequest)
+		return
+	}
+
+	tourID, err := strconv.ParseUint(tourIDStr, 10, 32)
+	if err != nil {
+		log.Printf("Nevažeći Tour ID: %v", err)
+		http.Error(w, "Invalid tour ID", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("API Gateway: Pozivam Tour Service za tour_id: %d", tourID)
+
+	// Pozovi gRPC Tour servis
+	resp, err := c.client.GetReviewsByTour(context.Background(), &tour.GetReviewsByTourRequest{
+		TourId: uint32(tourID),
+	})
+	if err != nil {
+		log.Printf("gRPC greska: %v", err)
+		http.Error(w, "Tour service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	log.Printf("API Gateway: Primljeno %d recenzija od Tour servisa preko gRPC", resp.TotalCount)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)

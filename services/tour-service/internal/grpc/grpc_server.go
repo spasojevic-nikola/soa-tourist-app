@@ -15,13 +15,15 @@ import (
 // TourGRPCServer implementira gRPC servis definisan u tour.proto
 type TourGRPCServer struct {
 	pb.UnimplementedTourServiceServer
-	TourService *service.TourService
+	TourService   *service.TourService
+	ReviewService *service.ReviewService
 }
 
 // NewTourGRPCServer kreira novu instancu gRPC servera
-func NewTourGRPCServer(tourService *service.TourService) *TourGRPCServer {
+func NewTourGRPCServer(tourService *service.TourService, reviewService *service.ReviewService) *TourGRPCServer {
 	return &TourGRPCServer{
-		TourService: tourService,
+		TourService:   tourService,
+		ReviewService: reviewService,
 	}
 }
 
@@ -140,5 +142,43 @@ func (s *TourGRPCServer) GetMyTours(ctx context.Context, req *pb.GetMyToursReque
 	}
 
 	log.Printf("gRPC: Vraćam %d tura za autora %d", len(pbTours), req.AuthorId)
+	return response, nil
+}
+
+// GetReviewsByTour implementira gRPC metodu za preuzimanje recenzija ture
+func (s *TourGRPCServer) GetReviewsByTour(ctx context.Context, req *pb.GetReviewsByTourRequest) (*pb.GetReviewsByTourResponse, error) {
+	log.Printf("gRPC: GetReviewsByTour pozvan za tour_id: %d", req.TourId)
+
+	// Pozivamo servis za dobijanje recenzija
+	reviews, err := s.ReviewService.GetReviewsByTourID(uint(req.TourId))
+	if err != nil {
+		log.Printf("Greška pri preuzimanju recenzija: %v", err)
+		return nil, status.Errorf(codes.Internal, "Failed to retrieve reviews: %v", err)
+	}
+
+	// Konvertujemo Go modele u Protobuf poruke
+	var pbReviews []*pb.Review
+	for _, review := range reviews {
+		pbReview := &pb.Review{
+			Id:              uint32(review.ID),
+			TourId:          uint32(review.TourID),
+			TouristId:       uint32(review.TouristID),
+			TouristUsername: review.TouristUsername,
+			Rating:          int32(review.Rating),
+			Comment:         review.Comment,
+			VisitDate:       review.VisitDate.Format(time.RFC3339),
+			Images:          review.Images,
+			CreatedAt:       review.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:       review.UpdatedAt.Format(time.RFC3339),
+		}
+		pbReviews = append(pbReviews, pbReview)
+	}
+
+	response := &pb.GetReviewsByTourResponse{
+		Reviews:    pbReviews,
+		TotalCount: int32(len(pbReviews)),
+	}
+
+	log.Printf("gRPC: Vraćam %d recenzija za turu %d", len(pbReviews), req.TourId)
 	return response, nil
 }

@@ -92,7 +92,7 @@ func main() {
 	// Pokreni gRPC server u goroutine
 	go func() {
 		grpcServer := grpc.NewServer()
-		tourGRPCServer := tourgrpc.NewTourGRPCServer(tourService)
+		tourGRPCServer := tourgrpc.NewTourGRPCServer(tourService, reviewService)
 		pb.RegisterTourServiceServer(grpcServer, tourGRPCServer)
 
 		lis, err := net.Listen("tcp", ":50053")

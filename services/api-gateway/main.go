@@ -115,6 +115,10 @@ func router(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Routing GET %s to Tour Service via gRPC (My Tours)", path)
 		tourClient.GetMyToursHandler(w, r)
 
+	case r.Method == "GET" && strings.Contains(path, "/reviews") && !strings.Contains(path, "/reviews/"):
+		log.Printf("Routing GET %s to Tour Service via gRPC (Reviews)", path)
+		tourClient.GetReviewsByTourHandler(w, r)
+
 	case strings.HasPrefix(path, "/tour"):
 		log.Printf("Routing Tour: %s", path)
 		proxy := newReverseProxy("http://tour-service:8080", "/tour")
