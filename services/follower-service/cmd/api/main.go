@@ -9,7 +9,6 @@ import (
 	"soa-tourist-app/follower-service/internal/repository"
 	"soa-tourist-app/follower-service/internal/service"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
@@ -51,11 +50,11 @@ func main() {
 	protectedRoutes.HandleFunc("/following", handler.GetFollowingIDs).Methods("GET")
 	
 	// Podesavanje CORS-a
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Promenite ako je potrebno
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
-		)(r)
+	//corsHandler := handlers.CORS(
+	//	handlers.AllowedOrigins([]string{"http://localhost:4200"}), // Promenite ako je potrebno
+	//	handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+	//	handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
+	//	)(r)
 
 		log.WithFields(log.Fields{
 			"port": "8080",
@@ -63,7 +62,7 @@ func main() {
 
 	// Pokretanje servera
 	fmt.Println("Follower service running on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", corsHandler))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

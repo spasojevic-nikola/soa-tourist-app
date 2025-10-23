@@ -12,7 +12,7 @@ import { CartStateService } from './cart-state.service';
 })
 export class CartService {
 
-  private apiUrl = `${environment.purchaseApiHost}/cart`; 
+  private apiUrl = `${environment.purchaseApiHost}`; 
 
   constructor(private http: HttpClient,
     private cartStateService: CartStateService

@@ -1,9 +1,9 @@
 <div class="main-container">
-
+    
     <div *ngIf="isLoading" class="loading-overlay">
-        <mat-spinner></mat-spinner>
-        <p>Loading...</p>
-    </div>
+    <mat-spinner></mat-spinner>
+    <p>Loading...</p>
+  </div>
 
     <div *ngIf="!isLoading && isDetailView && blogDetail" class="blog-detail-view">
 

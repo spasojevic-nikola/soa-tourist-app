@@ -8,7 +8,7 @@ import { TokenStorage } from 'src/app/infrastructure/auth/jwt/token.service';
   providedIn: 'root',
 })
 export class ProfileService {
-  private apiURL = 'http://localhost:8083/api/v1/profile';
+  private apiURL = 'http://localhost:8080/api/v1/profile';
 
   constructor(private http: HttpClient, private tokenStorage: TokenStorage) {}
 

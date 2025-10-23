@@ -10,7 +10,7 @@ import { AddCommentPayload, BlogComment, UpdateBlogPayload, UpdateCommentPayload
 })
 export class BlogService {
 
-  private apiUrl = 'http://localhost:8081/api/v1/blogs';
+  private apiUrl = 'http://localhost:8080/api/v1/blogs';
   constructor(
     private http: HttpClient, 
     private tokenStorage: TokenStorage

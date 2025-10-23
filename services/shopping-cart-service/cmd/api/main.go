@@ -13,7 +13,6 @@ import (
 	"shopping-cart-service/internal/service"
 	"shopping-cart-service/internal/client"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -43,11 +42,11 @@ func main() {
 	r := mux.NewRouter()
 
 	// CORS opcije
-	corsOpts := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}), 
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
-	)
+	//corsOpts := handlers.CORS(
+	//	handlers.AllowedOrigins([]string{"http://localhost:4200"}), 
+	//	handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+	//	handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
+	//)
 
 	apiV1 := r.PathPrefix("/api/v1/cart").Subrouter()
 
@@ -68,5 +67,5 @@ func main() {
 
 	// 5. Pokretanje servera
 	fmt.Println("Shopping Cart service running on port 8081")
-	log.Fatal(http.ListenAndServe(":8081", corsOpts(r)))
+	log.Fatal(http.ListenAndServe(":8081", r))
 }

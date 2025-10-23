@@ -6,55 +6,55 @@ import (
 	"log"
 	"net/http"
 
-	// Uvozimo naše nove pakete
 	"stakeholders-service/internal/api"
 	"stakeholders-service/internal/database"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	// 1. Inicijalizacija baze pozivanjem funkcije iz `database` paketa
 	db := database.InitDB()
-
-	// 2. Kreiranje instance našeg API hendlera i prosleđivanje konekcije
 	apiHandler := api.NewHandler(db)
 
-	// 3. Podešavanje rutera
 	r := mux.NewRouter()
-	apiV1 := r.PathPrefix("/api/v1").Subrouter()
 
-	// 4. Definisanje ruta i povezivanje sa metodama iz apiHandler-a
-	apiV1.HandleFunc("/user", apiHandler.CreateUser).Methods("POST")
+    // 1. Javna ruta za CreateUser ostaje puna, jer se verovatno ne rutira kroz JWT middleware
+    // Ako se ova ruta rutira kroz Gateway: /api/v1/user
+	r.HandleFunc("/api/v1/user", apiHandler.CreateUser).Methods("POST")
 	
-	// Zaštićene rute koriste AuthMiddleware iz `api` paketa
-	apiV1.Handle("/profile", api.AuthMiddleware(apiHandler.GetProfile)).Methods("GET")
-	apiV1.Handle("/profile", api.AuthMiddleware(apiHandler.UpdateProfile)).Methods("PUT")
+	// Interna komunikacija (bez /api/v1 prefiksa)
+	r.HandleFunc("/users/batch", apiHandler.GetUsersBatch).Methods("GET") 
+
+	// KREIRANJE ZAŠTIĆENOG RUTERA
+	// Ostavljamo SVE ostale rute bez prefixa /api/v1
+	// Koristimo .NewRoute().Subrouter() da ne bismo imali PathPrefix("/api/v1")
+	protectedRoutes := r.NewRoute().Subrouter()
 	
-	// Admin ruta za pregled svih korisnika
-	apiV1.Handle("/admin/users", api.AuthMiddleware(api.AdminAuthMiddleware(apiHandler.GetAllUsers))).Methods("GET")
+	// FIX GRESKE KOMPAJLIRANJA (MUX.Use problem)
+    // Koristimo klasični AuthMiddleware za sve rute u ovom subrouteru
+	protectedRoutes.Use(func(next http.Handler) http.Handler {
+		return api.AuthMiddleware(next.ServeHTTP)
+	})
 
-	apiV1.Handle("/users/search", api.AuthMiddleware(apiHandler.SearchUsers)).Methods("GET")
-	apiV1.Handle("/users/{id:[0-9]+}", api.AuthMiddleware(apiHandler.GetUserById)).Methods("GET")
+	// 4. Definisanje ruta - OVE RUTE SADA OČEKUJU PUTANJE KOJE GATEWAY PROSLEĐUJE (npr. SAMO /profile)
+	
+	// Rute za profil
+	protectedRoutes.HandleFunc("/profile", apiHandler.GetProfile).Methods("GET")
+	protectedRoutes.HandleFunc("/profile", apiHandler.UpdateProfile).Methods("PUT")
+	
+	// Admin ruta (AdminAuthMiddleware je primenjen unutar rutiranja, ne na nivou subrutera)
+	protectedRoutes.Handle("/admin/users", api.AdminAuthMiddleware(apiHandler.GetAllUsers)).Methods("GET")
 
-	// NOVA RUTA ZA INTERNU KOMUNIKACIJU ZA FOLLOWERS
-	apiV1.HandleFunc("/users/batch", apiHandler.GetUsersBatch).Methods("GET")
-
-	// Health check ruta može ostati ovde
+	// Pretraga i GetById
+	protectedRoutes.HandleFunc("/users/search", apiHandler.SearchUsers).Methods("GET")
+	protectedRoutes.HandleFunc("/users/{id:[0-9]+}", apiHandler.GetUserById).Methods("GET")
+    
+	// Health check ruta ostaje na glavnom ruteru
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 	}).Methods("GET")
 
-	// 5. Podešavanje CORS-a
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
-	)(r)
-
-	// 6. Pokretanje servera
 	fmt.Println("Stakeholders service running on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", corsHandler))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
