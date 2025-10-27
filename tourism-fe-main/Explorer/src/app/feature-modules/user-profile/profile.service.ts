@@ -3,12 +3,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UpdateUserProfilePayload, User } from './profile/model/profile.model';
 import { TokenStorage } from 'src/app/infrastructure/auth/jwt/token.service';
+import { environment } from 'src/env/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProfileService {
-  private apiURL = 'http://localhost:8083/api/v1/profile';
+  private apiURL = `${environment.stakeholdersApiHost}/profile`;
 
   constructor(private http: HttpClient, private tokenStorage: TokenStorage) {}
 

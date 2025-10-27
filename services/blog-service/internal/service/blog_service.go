@@ -180,9 +180,13 @@ func (s *BlogService) GetBlogByID(ctx context.Context, id primitive.ObjectID) (*
 }
 
 func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models.Blog, error) {
-    // 1. KREIRANJE HTTP ZAHTEVA KA FOLLOWER SERVICE-u
-    // U realnoj aplikaciji, URL bi bio u konfiguraciji (npr. env varijabla)
-    //followerServiceURL := "http://follower-service:8080/api/followers/following"
+    // 1. Ako je korisnik anoniman (ID = 0), vrati sve blogove
+    if userID == 0 {
+        log.Println("Anonymous user: returning all blogs")
+        return s.Repo.GetAll(ctx)
+    }
+
+    // 2. KREIRANJE HTTP ZAHTEVA KA FOLLOWER SERVICE-u
 	followerServiceBaseURL := os.Getenv("FOLLOWER_SERVICE_URL")
 
 	if followerServiceBaseURL == "" {
@@ -197,39 +201,45 @@ func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models
         return nil, fmt.Errorf("failed to create request to follower service: %w", err)
     }
 
-    // 2. PROSLEĐIVANJE IDENTITETA KORISNIKA
+    // 3. PROSLEĐIVANJE IDENTITETA KORISNIKA
     // Follower service ocekuje X-User-ID header koji postavlja API Gateway
     // Blog Service mora da prosledi ovaj identitet.
     req.Header.Set("X-User-ID", fmt.Sprintf("%d", userID))
 
-    // 3. SLANJE ZAHTEVA I OBRADA ODGOVORA
+    // 4. SLANJE ZAHTEVA I OBRADA ODGOVORA
     client := &http.Client{}
     resp, err := client.Do(req)
     if err != nil {
-        // Ovo se desava ako je Follower Service pao ili mreža ne radi
-        return nil, fmt.Errorf("follower service is unavailable: %w", err)
+        // Ako follower service nije dostupan, vrati samo blogove korisnika
+        log.Printf("Follower service unavailable for user %d, returning only user's blogs: %v", userID, err)
+        return s.Repo.GetBlogsByAuthorIDs(ctx, []uint{userID})
     }
     defer resp.Body.Close()
 
     if resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("follower service returned status: %s", resp.Status)
+        // Ako follower service vrati error, vrati samo blogove korisnika
+        log.Printf("Follower service returned status %s for user %d, returning only user's blogs", resp.Status, userID)
+        return s.Repo.GetBlogsByAuthorIDs(ctx, []uint{userID})
     }
 
     var followedIDs []uint
     if err := json.NewDecoder(resp.Body).Decode(&followedIDs); err != nil {
-        return nil, fmt.Errorf("failed to decode response from follower service: %w", err)
+        // Ako ne možemo da dekodiramo odgovor, vrati samo blogove korisnika
+        log.Printf("Failed to decode follower service response for user %d: %v, returning only user's blogs", userID, err)
+        return s.Repo.GetBlogsByAuthorIDs(ctx, []uint{userID})
     }
 
-    // 4. UKLJUCjEM I BLOGOVE SAMOG KORISNIKA
+    // 5. UKLJUČIMO I BLOGOVE SAMOG KORISNIKA
     // Korisnik uvek treba da vidi i svoje blogove na feed-u.
     followedIDs = append(followedIDs, userID)
 
-    // Ako korisnik ne prati nikoga, vrati samo njegove blogove
-    if len(followedIDs) == 0 {
-        followedIDs = []uint{userID}
+    // 6. Ako korisnik ne prati nikoga, vrati samo njegove blogove
+    // (ovo je redundantno sa linijom iznad ali ostavljamo za bezbednost)
+    if len(followedIDs) == 1 && followedIDs[0] == userID {
+        log.Printf("User %d doesn't follow anyone, returning only their blogs", userID)
     }
 
-    // 5. POZIV REPOSITORY-JA SA LISTOM ID-JEVA
+    // 7. POZIV REPOSITORY-JA SA LISTOM ID-JEVA
     return s.Repo.GetBlogsByAuthorIDs(ctx, followedIDs)
 }
 

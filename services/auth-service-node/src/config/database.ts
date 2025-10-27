@@ -10,12 +10,12 @@ const dbPort = parseInt(process.env.EXT_AUTH_DB_PORT || '5432');
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.AUTH_DB_HOST || 'localhost',
-  port: parseInt(process.env.EXT_AUTH_DB_PORT || '5436'),
+  port: parseInt(process.env.EXT_AUTH_DB_PORT || '5432'),
   username: process.env.AUTH_DB_USER || 'postgres',
   password: process.env.AUTH_DB_PASSWORD || 'password',
   database: process.env.AUTH_DB_NAME || 'authdb',
   entities: [User],
-  synchronize: false,
+  synchronize: true,
   logging: false,
 });
 

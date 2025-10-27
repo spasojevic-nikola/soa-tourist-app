@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package blog;
 
-option go_package = ".;blog";
+option go_package = "api-gateway/gen/pb-go";
 
 service BlogService {
   rpc GetAllBlogs(GetBlogsRequest) returns (GetBlogsResponse);
 }
 
 message GetBlogsRequest {
-  // Možeš dodati paginaciju, filtere itd.
+  uint32 user_id = 1; // User ID for feed filtering (0 for anonymous/all blogs)
 }
 
 message Blog {

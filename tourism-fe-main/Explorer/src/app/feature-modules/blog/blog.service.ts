@@ -4,13 +4,14 @@ import { Blog, CreateBlogPayload } from './model/blog.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AddCommentPayload, BlogComment, UpdateBlogPayload, UpdateCommentPayload} from './model/blog.model';
+import { environment } from 'src/env/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BlogService {
 
-  private apiUrl = 'http://localhost:8081/api/v1/blogs';
+  private apiUrl = environment.blogApiHost;
   constructor(
     private http: HttpClient, 
     private tokenStorage: TokenStorage
@@ -18,7 +19,7 @@ export class BlogService {
   createBlog(payload: CreateBlogPayload): Observable<Blog> {
     const headers = this.createAuthHeaders();
     
-    return this.http.post<Blog>(this.apiUrl, payload, { headers: headers });
+    return this.http.post<Blog>(`${this.apiUrl}/`, payload, { headers: headers });
   }
 
   private createAuthHeaders(): HttpHeaders {
@@ -54,7 +55,7 @@ export class BlogService {
   
 getAllBlogs(): Observable<Blog[]> {
   const headers = this.createAuthHeaders();
-  return this.http.get<Blog[]>(this.apiUrl, { headers });
+  return this.http.get<Blog[]>(`${this.apiUrl}/`, { headers });
 }
 
 getBlogById(id: string): Observable<Blog> {

@@ -2,16 +2,18 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 
-	"blog-service/gen/pb-go"
+	blogpb "blog-service/proto"
+	"blog-service/internal/models"
 	"blog-service/internal/service"
 	"google.golang.org/grpc"
 )
 
 type gRPCServer struct {
-	blog.UnimplementedBlogServiceServer
+	blogpb.UnimplementedBlogServiceServer
 	blogService *service.BlogService
 }
 
@@ -21,28 +23,49 @@ func NewgRPCServer(blogService *service.BlogService) *gRPCServer {
 	}
 }
 
-func (s *gRPCServer) GetAllBlogs(ctx context.Context, req *blog.GetBlogsRequest) (*blog.GetBlogsResponse, error) {
-	// Pozovi postojeću metodu sa context-om
-	blogs, err := s.blogService.GetAllBlogs(ctx)
-	if err != nil {
-		return nil, err
+func (s *gRPCServer) GetAllBlogs(ctx context.Context, req *blogpb.GetBlogsRequest) (*blogpb.GetBlogsResponse, error) {
+	// Konvertuj uint32 user_id u uint i pozovi GetFeedForUser za feed logiku
+	userID := uint(req.UserId)
+	
+	var blogs []*models.Blog
+	
+	if userID == 0 {
+		// Anonymous user - get all blogs
+		allBlogs, err := s.blogService.GetAllBlogs(ctx)
+		if err != nil {
+			return nil, err
+		}
+		blogs = make([]*models.Blog, len(allBlogs))
+		for i := range allBlogs {
+			blogs[i] = &allBlogs[i]
+		}
+	} else {
+		// Authenticated user - get feed for user
+		feedBlogs, err := s.blogService.GetFeedForUser(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		blogs = make([]*models.Blog, len(feedBlogs))
+		for i := range feedBlogs {
+			blogs[i] = &feedBlogs[i]
+		}
 	}
 
 	// Konvertuj domain blogove u gRPC blogove
-	var grpcBlogs []*blog.Blog
+	var grpcBlogs []*blogpb.Blog
 	for _, b := range blogs {
-		grpcBlogs = append(grpcBlogs, &blog.Blog{
+		grpcBlogs = append(grpcBlogs, &blogpb.Blog{
 			Id:          b.ID.Hex(), // Konvertuj ObjectID u string
 			Title:       b.Title,
 			Description: b.Content, 
-			Author:      string(b.AuthorID), // Konvertuj uint u string
+			Author:      fmt.Sprintf("%d", b.AuthorID), // Konvertuj uint u string
 			CreatedAt:   b.CreatedAt.Format("2006-01-02 15:04:05"),
 			LikesCount:    int32(len(b.Likes)),
 			CommentsCount: int32(len(b.Comments)),
 		})
 	}
 
-	return &blog.GetBlogsResponse{
+	return &blogpb.GetBlogsResponse{
 		Blogs:      grpcBlogs,
 		TotalCount: int32(len(grpcBlogs)),
 	}, nil
@@ -56,7 +79,7 @@ func StartGRPCServer(blogService *service.BlogService, port string) {
 
 	grpcServer := grpc.NewServer()
 	server := NewgRPCServer(blogService)
-	blog.RegisterBlogServiceServer(grpcServer, server)
+	blogpb.RegisterBlogServiceServer(grpcServer, server)
 
 	log.Printf("Blog gRPC server listening on port %s", port)
 	if err := grpcServer.Serve(lis); err != nil {

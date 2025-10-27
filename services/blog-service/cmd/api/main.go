@@ -11,7 +11,6 @@ import (
 	"blog-service/internal/repository"
 	"blog-service/internal/service"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
@@ -47,12 +46,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	// Definisemo CORS opcije
-	corsOpts := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID", "X-User-Username", "X-User-Role"}),
-	)
+	// CORS removed - requests now go through API gateway which handles CORS
 
 	apiV1 := r.PathPrefix("/api/v1/blogs").Subrouter()
 
@@ -76,5 +70,5 @@ func main() {
 	}).Info("Blog service is ready to accept connections")
 
 	fmt.Println("Blog service running on port 8081")
-	log.Fatal(http.ListenAndServe(":8081", corsOpts(r)))
+	log.Fatal(http.ListenAndServe(":8081", r))
 }

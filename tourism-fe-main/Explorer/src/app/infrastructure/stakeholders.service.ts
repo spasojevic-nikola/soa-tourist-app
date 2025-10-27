@@ -14,7 +14,7 @@ export class StakeholdersService {
 
   searchUsers(username: string): Observable<User[]> {
     const params = new HttpParams().set('username', username);
-    return this.http.get<User[]>(`${environment.stakeholdersApiHost}users/search`, { params });
+    return this.http.get<User[]>(`${environment.stakeholdersApiHost}/users/search`, { params });
   }
 
  /*
@@ -29,7 +29,7 @@ export class StakeholdersService {
 
 
   getUserById(id: number): Observable<User> {
-    return this.http.get<User>(`${environment.stakeholdersApiHost}users/${id}`);
+    return this.http.get<User>(`${environment.stakeholdersApiHost}/users/${id}`);
   }
   
 }

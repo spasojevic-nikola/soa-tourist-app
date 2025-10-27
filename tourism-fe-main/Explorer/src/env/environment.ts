@@ -1,11 +1,14 @@
 export const environment = {
     production: false,
-    apiHost: 'http://localhost:8084/',
-    authApiHost: 'http://localhost:8084/api/v1/auth/',
-    blogApiHost: 'http://localhost:8081/api/',
-    stakeholdersApiHost: 'http://localhost:8083/api/v1/',
-    tourApiHost : 'http://localhost:8082/api/v1/tours',
-    followerApiHost : 'http://localhost:8085/api/followers',
-    purchaseApiHost: 'http://localhost:8087/api/v1'
+    // All requests now go through API Gateway
+    apiGateway: 'http://localhost:8080',
+    // Individual service hosts for reference (no longer used directly)
+    apiHost: 'http://localhost:8080',
+    authApiHost: 'http://localhost:8080/api/v1/auth',
+    blogApiHost: 'http://localhost:8080/api/v1/blogs',
+    stakeholdersApiHost: 'http://localhost:8080/api/v1',
+    tourApiHost: 'http://localhost:8080/api/v1/tours',
+    followerApiHost: 'http://localhost:8080/api/followers',
+    purchaseApiHost: 'http://localhost:8080/api/v1/cart'
   };
   

@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import { initializeDatabase } from './config/database';
 import { AuthController } from './controllers/authController';
 import { AdminController } from './controllers/adminController';
@@ -12,12 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 8084;
 
 // Middleware
-app.use(cors({
-  origin: 'http://localhost:4200',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['X-Requested-With', 'Content-Type', 'Authorization']
-}));
+// CORS removed - requests now go through API gateway which handles CORS
 app.use(express.json());
 
 // Health check route

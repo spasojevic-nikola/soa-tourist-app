@@ -10,7 +10,6 @@ import (
 	"stakeholders-service/internal/api"
 	"stakeholders-service/internal/database"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -47,14 +46,9 @@ func main() {
 		json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
 	}).Methods("GET")
 
-	// 5. Podešavanje CORS-a
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:4200"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
-	)(r)
+	// CORS removed - requests now go through API gateway which handles CORS
 
-	// 6. Pokretanje servera
+	// 5. Pokretanje servera
 	fmt.Println("Stakeholders service running on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", corsHandler))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }

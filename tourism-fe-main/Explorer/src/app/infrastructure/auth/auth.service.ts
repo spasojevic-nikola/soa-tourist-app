@@ -22,7 +22,7 @@ export class AuthService {
 
   login(login: Login): Observable<AuthenticationResponse> {
     return this.http
-      .post<AuthenticationResponse>(environment.authApiHost + 'login', login)
+      .post<AuthenticationResponse>(`${environment.authApiHost}/login`, login)
       .pipe(
         tap((authenticationResponse) => {
           this.tokenStorage.saveAccessToken(authenticationResponse.accessToken);
@@ -33,7 +33,7 @@ export class AuthService {
 
   register(registration: Registration): Observable<AuthenticationResponse> {
     return this.http
-    .post<AuthenticationResponse>(environment.authApiHost + 'register', registration)
+    .post<AuthenticationResponse>(`${environment.authApiHost}/register`, registration)
     .pipe(
       tap((authenticationResponse) => {
         this.tokenStorage.saveAccessToken(authenticationResponse.accessToken);
