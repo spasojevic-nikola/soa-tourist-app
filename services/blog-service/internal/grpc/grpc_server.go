@@ -10,6 +10,7 @@ import (
 	"blog-service/internal/models"
 	"blog-service/internal/service"
 	"google.golang.org/grpc"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 
 type gRPCServer struct {
@@ -77,7 +78,12 @@ func StartGRPCServer(blogService *service.BlogService, port string) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	// Create gRPC server with OpenTelemetry interceptors for tracing
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
+	)
+
 	server := NewgRPCServer(blogService)
 	blogpb.RegisterBlogServiceServer(grpcServer, server)
 

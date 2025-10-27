@@ -4,15 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"blog-service/internal/api"
 	"blog-service/internal/database"
 	"blog-service/internal/grpc"
 	"blog-service/internal/repository"
 	"blog-service/internal/service"
+	"blog-service/internal/tracing"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 )
 
 func init() {
@@ -21,12 +26,29 @@ func init() {
 	log.SetLevel(log.InfoLevel)
 	log.SetReportCaller(false)
 }
+
 func main() {
+	// Initialize tracing
+	cleanup, err := tracing.InitTracing("blog-service", "1.0.0")
+	if err != nil {
+		log.WithError(err).Warn("Failed to initialize tracing, continuing without tracing")
+	} else {
+		// Setup graceful shutdown for tracing
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-c
+			if err := cleanup(); err != nil {
+				log.WithError(err).Error("Failed to shutdown tracer")
+			}
+			os.Exit(0)
+		}()
+	}
 
 	log.WithFields(log.Fields{
 		"service": "blog-service",
 		"port":    "8081",
-	}).Info("Starting blog service")
+	}).Info("Starting blog service with tracing enabled")
 
 	mongoDB := database.InitDB()
 
@@ -45,6 +67,9 @@ func main() {
 	}()
 
 	r := mux.NewRouter()
+
+	// Add OpenTelemetry middleware for HTTP tracing
+	r.Use(otelmux.Middleware("blog-service"))
 
 	// CORS removed - requests now go through API gateway which handles CORS
 

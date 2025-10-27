@@ -119,8 +119,9 @@ services:
       #- "8081:8081" #REST
       - "50052:50052" #gRPC
     depends_on:
-      - mongo
-      - auth-service
+      mongo: { condition: service_started }
+      auth-service: { condition: service_started }
+      jaeger: { condition: service_started }
     restart: on-failure
     environment:
       - MONGO_HOST=${MONGO_DB_HOST}
@@ -128,6 +129,7 @@ services:
       - MONGO_DB=${MONGO_DB_BLOG_NAME}
       - FOLLOWER_SERVICE_URL=http://follower-service:8080
       - JWT_SECRET=${JWT_SECRET} # <-- Dodato za svaki slučaj
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
     networks:
       - soa-network
 
@@ -222,6 +224,24 @@ services:
       - tour-service
       - shopping-cart-service
     restart: always
+
+  # --- TRACING ---
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: soa-tourist-app-jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "14268:14268"   # Jaeger collector HTTP
+      - "4318:4318"     # OTLP HTTP receiver
+      - "4317:4317"     # OTLP gRPC receiver
+      - "6831:6831/udp" # Jaeger agent
+      - "6832:6832/udp" # Jaeger agent
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - soa-network
+    restart: unless-stopped
 
   # --- MONITORING & LOGGING ---
 #   loki:

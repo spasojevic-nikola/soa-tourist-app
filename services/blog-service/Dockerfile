@@ -6,19 +6,18 @@ RUN apk add --no-cache git
 
 WORKDIR /app
 
-# Copy go mod and go sum files first.
-# This improves caching and rebuild speed.
+# Copy go.mod and go.sum first for caching
 COPY go.mod go.sum ./
 
-# Download and tidy up dependencies.
-# The go mod tidy command will automatically add or remove
-# any modules required by the source code.
+# Download dependencies (update go.sum if needed)
 RUN go mod download
 RUN go mod tidy
 
-# Copy the rest of the source code.
-# This will happen only if go.mod or go.sum changes.
+# Copy all source code
 COPY . .
+
+# Ensure go.sum is complete after copying
+RUN go mod tidy
 
 # Build the application with CGO disabled for a static binary.
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
