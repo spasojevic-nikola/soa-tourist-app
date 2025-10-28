@@ -11,6 +11,10 @@
           <mat-icon>expand_more</mat-icon>
         </button>
 
+        <button *ngIf="user && user.username !== '' && user.role === 'administrator'" mat-button [routerLink]="['/admin/users']">
+          <span>Users</span>
+        </button>
+
         <button *ngIf="user && (user.role === 'author')" mat-button [matMenuTriggerFor]="tourMenu">
           <span>Tours</span>
           <mat-icon>expand_more</mat-icon>
