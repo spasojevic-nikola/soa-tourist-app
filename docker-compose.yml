@@ -243,7 +243,78 @@ services:
       - soa-network
     restart: unless-stopped
 
-  # --- MONITORING & LOGGING ---
+  # --- METRICS (PROMETHEUS STACK) ---
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: soa-tourist-app-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - soa-network
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: soa-tourist-app-node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - soa-network
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: soa-tourist-app-cadvisor
+    ports:
+      - "9091:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - soa-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: soa-tourist-app-grafana
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - soa-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # --- LOGGING (COMMENTED OUT) ---
 #   loki:
 #     image: grafana/loki:2.9.0
 #     container_name: soa-tourist-app-loki
@@ -268,21 +339,6 @@ services:
 #     depends_on:
 #       - loki
 
-#   grafana:
-#     image: grafana/grafana:10.1.0
-#     container_name: soa-tourist-app-grafana
-#     ports:
-#       - "${GRAFANA_PORT}:3000"
-#      # - "3001:3000"
-#     environment:
-#       - GF_SECURITY_ADMIN_PASSWORD=admin
-#       - GF_SECURITY_ADMIN_USER=admin
-#     volumes:
-#       - grafana_data:/var/lib/grafana
-#     networks:
-#       - soa-network
-#     depends_on:
-#       - loki
 
 # --- VOLUMES & NETWORKS ---
 volumes:
@@ -291,8 +347,9 @@ volumes:
   postgres_tour_data:
   mongo_data:
   neo4j_data:
+  prometheus_data:
+  grafana_data:
  # loki_data:
-  #grafana_data:
 
 networks:
   soa-network:
