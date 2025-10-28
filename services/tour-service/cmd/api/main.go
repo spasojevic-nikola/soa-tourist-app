@@ -28,10 +28,13 @@ func main() {
 	tourService := service.NewTourService(tourRepo, shoppingCartClient)
 	keyPointService := service.NewKeyPointService(keyPointRepo, tourRepo)
 	reviewService := service.NewReviewService(reviewRepo, tourRepo)
+	// kreiran grpc klijent
 	purchaseChecker, err := clients.NewGRPCPurchaseChecker("shopping-cart-service:50051")
 	if err != nil {
 		log.Fatalf("Failed to create gRPC client: %v", err)
 	}
+
+	// proslijedjen grpc klijent tour execution servisu
 	tourExecutionService := service.NewTourExecutionService(tourExecutionRepo, purchaseChecker)
 
 	apiHandler := api.NewHandler(tourService, keyPointService)

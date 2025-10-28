@@ -33,6 +33,7 @@ func (g *GRPCPurchaseChecker) HasPurchasedTour(touristID uint, tourID uint) (boo
 	// Konvertuj uint tourID u string za gRPC (MongoDB koristi string ID-eve)
 	tourIDStr := strconv.FormatUint(uint64(tourID), 10)
 	
+	// gRPC POZIV KA SHOPPING-CART-SERVICE
 	resp, err := g.client.VerifyPurchase(context.Background(), &shopping_cart.VerifyPurchaseRequest{
 		TouristId: uint32(touristID),
 		TourId:    tourIDStr,
