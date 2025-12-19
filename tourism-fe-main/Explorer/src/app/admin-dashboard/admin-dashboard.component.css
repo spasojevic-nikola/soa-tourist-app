@@ -1,0 +1,159 @@
+/* src/app/admin-dashboard/admin-dashboard.component.css */
+.admin-dashboard-container {
+    padding: 2rem;
+    background-color: #f4f7f9;
+    min-height: 100vh;
+}
+
+h2 {
+    color: #2c3e50;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.user-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.user-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    text-align: center;
+    width: 300px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.user-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.profile-image-container {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #3498db;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-details {
+    margin-top: 1rem;
+}
+
+.user-name {
+    font-size: 1.5rem;
+    color: #34495e;
+    margin: 0;
+}
+
+.user-role {
+    font-size: 1rem;
+    color: #7f8c8d;
+    font-weight: 500;
+    margin: 0.5rem 0;
+    text-transform: capitalize;
+}
+
+.user-username {
+    font-size: 0.9rem;
+    color: #95a5a6;
+    margin: 0;
+}
+
+.user-status {
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.blocked-status {
+    color: #e74c3c;
+}
+
+.user-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ecf0f1;
+}
+
+.block-btn, .unblock-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%;
+}
+
+.block-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.block-btn:hover:not(:disabled) {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+}
+
+.block-btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.unblock-btn {
+    background-color: #27ae60;
+    color: white;
+}
+
+.unblock-btn:hover {
+    background-color: #229954;
+    transform: translateY(-1px);
+}
+
+/* Success message style */
+.success-message {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    background-color: #27ae60;
+    color: white;
+}
+
+/* Stil za poruke */
+.error-message, .info-message {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.error-message {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.info-message {
+    background-color: #3498db;
+    color: white;
+}

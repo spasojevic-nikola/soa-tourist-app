@@ -1,0 +1,70 @@
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { HomeComponent } from 'src/app/feature-modules/layout/home/home.component';
+import { LoginComponent } from '../auth/login/login.component';
+import { AuthGuard } from '../auth/auth.guard';
+import { RegistrationComponent } from '../auth/registration/registration.component';
+import { ProfileComponent } from 'src/app/feature-modules/user-profile/profile/profile.component';
+import { AdminDashboardComponent } from 'src/app/admin-dashboard/admin-dashboard.component';
+import { BlogViewComponent } from 'src/app/feature-modules/blog-view/blog-view.component';
+import { NavbarComponent } from 'src/app/feature-modules/layout/navbar/navbar.component';
+import { SearchResultsComponent } from 'src/app/feature-modules/search-results/search-results.component';
+import { RecommendationListComponent } from '../follower/recommendation-list/recommendation-list.component';
+import { TourExecutionComponent } from 'src/app/feature-modules/tour-execution/tour-execution/tour-execution.component';
+
+const routes: Routes = [
+  {path: 'home', component: HomeComponent},
+  {path: 'login', component: LoginComponent},
+  {path: 'register', component: RegistrationComponent},
+  { path: 'blog/view', component: BlogViewComponent },
+  { path: 'blogs/:id', component: BlogViewComponent },
+  { path: 'search', component: SearchResultsComponent, canActivate: [AuthGuard] },
+
+  {
+    path: 'profile', 
+    loadChildren: () => import('../../feature-modules/user-profile/user-profile.module').then(m => m.UserProfileModule),
+    canActivate: [AuthGuard] // DODAJTE OVO
+  },
+  { path: 'admin/users', component: AdminDashboardComponent },  
+  {
+    path: 'blog',
+    loadChildren: () => import('../../feature-modules/blog/blog.module').then(m => m.BlogModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'position-simulator',
+    loadChildren: () => import('../../feature-modules/position-simulator/position-simulator.module').then(m => m.PositionSimulatorModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'tours',
+    loadChildren: () => import('../../feature-modules/tour/tour.module').then(m => m.TourModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'keypoints',
+    loadChildren: () => import('../../feature-modules/tour-keypoints/tour-keypoints.module').then(m => m.TourKeypointsModule),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'recommendations', 
+    component: RecommendationListComponent,
+    canActivate: [AuthGuard] 
+  },
+  {
+    path: 'shopping-cart', // Ovo je putanja na koju se rutirate iz komponente (npr. router.navigate(['/shopping-cart']))
+    loadChildren: () => import('../../feature-modules/shopping-cart/shopping-cart.module').then(m => m.ShoppingCartModule),
+    canActivate: [AuthGuard] // Korpa zahteva da korisnik bude prijavljen
+  },
+  {
+     path: 'tour-execution/:id', 
+     component: TourExecutionComponent
+  }
+
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }

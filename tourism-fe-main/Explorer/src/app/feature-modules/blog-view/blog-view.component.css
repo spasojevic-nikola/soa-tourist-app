@@ -1,0 +1,188 @@
+.main-container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 40px auto;
+  font-family: Arial, sans-serif;
+}
+
+/* Grid za listu blogova */
+.blog-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Stil kartica */
+.blog-card, .detail-card {
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.blog-card:hover, .detail-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Thumbnail slike u listi */
+.blog-card mat-card-content img.blog-thumbnail {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* Slike u detaljnom prikazu */
+.blog-detail-view .blog-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.blog-detail-view .blog-images img {
+  width: calc(33% - 10px);
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Sekcija komentara */
+.comment-section {
+  margin-top: 30px;
+}
+
+.comment-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.comment-date {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.comment-form mat-form-field {
+  width: 100%;
+}
+
+/* Loader overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  z-index: 1000;
+  font-size: 1.2em;
+}
+
+/* Stilovi za citate, dodajte ovo u CSS fajl za prikaz bloga */
+.markdown-output blockquote {
+  background-color: #f8f8f8; /* Lagana siva pozadina */
+  border-left: 5px solid #007bff; /* Istaknuta linija sa leve strane */
+  margin: 1.5em 0; /* Vertikalna margina */
+  padding: 10px 20px;
+  font-style: italic; /* Kurzivni tekst */
+  color: #555;
+  border-radius: 4px;
+}
+
+.markdown-output p {
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+/* Stilovi za naslove */
+.markdown-output h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.8rem;
+  color: #333;
+}
+
+.markdown-output h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+/* ======================== KOMENTARI I EDITOVANJE ======================== */
+
+.comment-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.comments-list {
+    margin-top: 20px;
+}
+
+/* STILIZOVANJE POJEDINAČNOG KOMENTARA */
+.comment-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    /* Daje laganu pozadinu i senku za izdvajanje komentara */
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #f0f0f0;
+    position: relative; /* Bitno za pozicioniranje Edit dugmeta */
+}
+
+.comment-item strong {
+    color: #3f51b5; /* Primary color */
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+.comment-date {
+    color: #888;
+    font-size: 0.85em;
+}
+
+.comment-edited {
+    font-style: italic;
+    color: #f44336; /* Accent color */
+}
+
+/* DUGME ZA EDITOVANJE */
+.edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+}
+
+/* FORMA ZA EDITOVANJE KOMENTARA */
+.comment-edit-form {
+    /* Vizuelno izdvajanje forme */
+    border: 2px solid #ff9800; /* Lagani naglasak narandžastom bojom */
+    padding: 15px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: #fff3e0; /* Svetla pozadina da se forma izdvoji */
+}
+
+.comment-header-edit {
+    margin-bottom: 10px;
+}
+
+.comment-edit-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: flex-end; /* Pomeri dugmad desno */
+}
+
+/* Osigurava da Mat Form Field zauzima punu širinu */
+.full-width {
+    width: 100%;
+}

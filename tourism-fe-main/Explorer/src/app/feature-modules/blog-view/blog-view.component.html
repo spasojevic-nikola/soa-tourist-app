@@ -1,0 +1,154 @@
+<div class="main-container">
+
+    <div *ngIf="isLoading" class="loading-overlay">
+        <mat-spinner></mat-spinner>
+        <p>Loading...</p>
+    </div>
+
+    <div *ngIf="!isLoading && isDetailView && blogDetail" class="blog-detail-view">
+
+        <mat-card class="detail-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <span *ngIf="!isEditingBlog">{{ blogDetail.title }}</span>
+                </mat-card-title>
+
+                <mat-card-subtitle>
+                    Autor: {{ blogDetail.authorUsername || ('User ' + blogDetail.authorId) }} 
+                    | Published: {{ blogDetail.createdAt | date:'medium' }}
+                    <span *ngIf="blogDetail.createdAt !== blogDetail.updatedAt">
+                        (Edited: {{ blogDetail.updatedAt | date:'medium' }})
+                    </span>
+                </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <form *ngIf="isEditingBlog" [formGroup]="blogEditForm" (ngSubmit)="saveBlogEdit()" class="blog-edit-form">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Title</mat-label>
+                        <input matInput formControlName="title">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Content (Markdown)</mat-label>
+                        <textarea matInput formControlName="content" rows="10"></textarea>
+                    </mat-form-field>
+
+                    <div class="edit-actions">
+                        <button mat-raised-button color="primary" type="submit" [disabled]="blogEditForm.invalid">Save Changes</button>
+                        <button mat-button type="button" (click)="cancelEditBlog()">Cancel</button>
+                    </div>
+                </form>
+
+
+                <ng-container *ngIf="!isEditingBlog">
+                    <div class="markdown-output" [innerHTML]="blogDetail.htmlContent"></div>
+                    <div *ngIf="blogDetail.images?.length" class="blog-images">
+                        <img *ngFor="let img of blogDetail.images" [src]="img" alt="Blog image">
+                    </div>
+                </ng-container>
+
+            </mat-card-content>
+
+            <mat-card-actions>
+                <button mat-icon-button (click)="toggleLike()">
+                    <mat-icon 
+                        [color]="currentUserId !== null && blogDetail.likes.includes(currentUserId) ? 'warn' : ''">
+                        favorite
+                    </mat-icon>
+                </button>
+                <span>{{ blogDetail.likes.length }} Likes</span>
+
+                <button mat-button color="accent" 
+                        *ngIf="currentUserId === blogDetail.authorId && !isEditingBlog"
+                        (click)="startEditBlog()">
+                    Edit Blog
+                </button>
+
+                <button mat-button (click)="isDetailView = false">Back</button>
+            </mat-card-actions>
+        </mat-card>
+
+        <div class="comment-section">
+            <h3>Comments ({{ blogDetail.comments.length }})</h3>
+
+            <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="comment-form">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Add comment</mat-label>
+                    <textarea matInput formControlName="text" rows="3" placeholder="Vaš komentar..."></textarea>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" type="submit" [disabled]="commentForm.invalid || isCommentSending">
+                    <span *ngIf="!isCommentSending">Send comment</span>
+                    <mat-spinner *ngIf="isCommentSending" diameter="20"></mat-spinner>
+                </button>
+            </form>
+
+            <div *ngIf="blogDetail.comments.length > 0" class="comments-list">
+                <div *ngFor="let comment of blogDetail.comments" class="comment-item">
+                    
+                    <ng-container *ngIf="editingComment?.id === comment.id">
+                        <form [formGroup]="commentEditForm" (ngSubmit)="saveCommentEdit()" class="comment-edit-form">
+                             <div class="comment-header-edit">
+                                <strong>{{ comment.authorUsername || ('User ' + comment.authorId) }}</strong> 
+                                <span class="comment-date"> ({{ comment.createdAt | date:'short' }})</span>
+                            </div>
+                            <mat-form-field appearance="outline" class="full-width"> 
+                                <textarea matInput formControlName="editText" rows="2"></textarea>
+                            </mat-form-field>
+                            <div class="comment-edit-actions">
+                                <button mat-raised-button color="accent" type="submit" [disabled]="commentEditForm.invalid || isCommentUpdating">
+                                    <span *ngIf="!isCommentUpdating">Save</span>
+                                    <mat-spinner *ngIf="isCommentUpdating" diameter="15"></mat-spinner>
+                                </button>
+                                <button mat-button type="button" (click)="cancelEditComment()">Cancel</button>
+                            </div>
+                        </form>
+                    </ng-container>
+
+                    <ng-container *ngIf="editingComment?.id !== comment.id">
+                        <strong>{{ comment.authorUsername || ('User ' + comment.authorId) }}</strong> 
+                        <span class="comment-date"> ({{ comment.createdAt | date:'short' }})</span>
+                        <span *ngIf="comment.createdAt !== comment.updatedAt" class="comment-date comment-edited"> (edited)</span>
+                        <p>{{ comment.text }}</p>
+
+                        <button mat-icon-button class="edit-btn" 
+                                *ngIf="currentUserId === comment.authorId"
+                                (click)="startEditComment(comment)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="!isLoading && !isDetailView" class="blog-list-view">
+        <h2>Blog Posts</h2>
+
+        <div *ngIf="blogs.length === 0" class="no-blogs">
+            Trenutno nema objavljenih blog postova.
+        </div>
+
+        <div *ngIf="blogs.length > 0" class="blog-cards-grid">
+            <mat-card *ngFor="let blog of blogs" class="blog-card">
+                <mat-card-header>
+                    <mat-card-title>{{ blog.title }}</mat-card-title>
+                    Autor: {{ blog.authorUsername || ('User ' + blog.authorId) }} | {{ blog.createdAt | date: 'mediumDate' }}
+                </mat-card-header>
+
+                <mat-card-content>
+                    <img *ngIf="blog.images?.length" [src]="blog.images?.[0]" alt="Blog image" class="blog-thumbnail">
+                    <p>{{ blog.content.substring(0, 150) }}...</p>
+                    <p>Likes: {{ blog.likes.length }} | Comments: {{ blog.comments.length }}</p>
+                </mat-card-content>
+
+                <mat-card-actions>
+                    <button mat-button color="primary" (click)="goToDetail(blog.id)">
+                        Read more
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        </div>
+    </div>
+</div>

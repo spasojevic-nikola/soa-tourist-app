@@ -1,0 +1,44 @@
+<div class="form-container">
+    <h2>Add a new blog</h2>
+    
+    <form [formGroup]="blogForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input id="title" class="form-control" formControlName="title" placeholder="Enter a catchy title">
+        <div *ngIf="blogForm.get('title')?.touched && blogForm.get('title')?.invalid" class="validation-error">
+          Title is required (minimum 5 characters).
+        </div>
+      </div>
+  
+      <div class="form-group">
+        <label for="content">Table of contents (Markdown supported)</label>
+        <textarea id="content" class="form-control" formControlName="content" rows="12" placeholder="Tell your story... Use # for titles and ** for bold text."></textarea>
+        <div *ngIf="blogForm.get('content')?.touched && blogForm.get('content')?.invalid" class="validation-error">
+          Content is required (minimum 20 characters).
+        </div>
+      </div>
+
+      <div class="form-group upload-section">
+        <label for="images-upload" class="file-upload-icon-label">
+          <img src="assets/images/add-photo.png" alt="Add Photos Icon">
+        </label>
+        <input id="images-upload" type="file" multiple accept="image/*" (change)="onFileSelected($event)">
+        
+        <div *ngIf="imagePreviews.length > 0" class="image-previews">
+          <div *ngFor="let preview of imagePreviews; let i = index" class="preview-item">
+            <img [src]="preview">
+            <button type="button" class="remove-image-btn" (click)="removeImage(i)">&times;</button>
+          </div>
+        </div>
+      </div>
+  
+      <button type="submit" class="submit-btn" [disabled]="blogForm.invalid || isLoading">
+        {{ isLoading ? 'Loading' : 'Add' }}
+      </button>
+    </form>
+  
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+  </div>  

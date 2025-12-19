@@ -1,0 +1,278 @@
+services:
+  # --- BAZE PODATAKA ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: soa-tourist-app-postgres-stakeholders
+    hostname: ${STAKEHOLDERS_DB_HOST}
+    environment:
+      POSTGRES_DB: ${STAKEHOLDERS_DB_NAME}
+      POSTGRES_USER: ${STAKEHOLDERS_DB_USER}
+      POSTGRES_PASSWORD: ${STAKEHOLDERS_DB_PASSWORD}
+    ports:
+      - "${EXT_STAKEHOLDERS_DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAKEHOLDERS_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: soa-tourist-app-postgres-auth
+    hostname: ${AUTH_DB_HOST}
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    ports:
+      - "${EXT_AUTH_DB_PORT}:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  tour-db:
+    image: postgres:15-alpine
+    container_name: soa-tourist-app-postgres-tour
+    hostname: ${TOUR_DB_HOST}
+    environment:
+      POSTGRES_DB: ${TOUR_DB_NAME}
+      POSTGRES_USER: ${TOUR_DB_USER}
+      POSTGRES_PASSWORD: ${TOUR_DB_PASSWORD}
+    ports:
+      - "${EXT_TOUR_DB_PORT}:5432"
+    volumes:
+      - postgres_tour_data:/var/lib/postgresql/data
+    networks:
+      - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TOUR_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:7.0
+    container_name: soa-tourist-app-mongo
+    hostname: ${MONGO_DB_HOST}
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_BLOG_NAME}
+    ports:
+      - "${EXT_MONGO_DB_PORT}:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - soa-network
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: soa-tourist-app-neo4j
+    hostname: ${NEO4J_DB_HOST}
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - soa-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O /dev/null http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- SERVISI APLIKACIJE ---
+  stakeholders-service:
+    build: ./services/stakeholders-service
+    container_name: soa-tourist-app-stakeholders-service
+    ports:
+      - "${EXT_STAKEHOLDER_SERVICE_PORT}:8080"
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: on-failure
+    environment:
+      - DB_HOST=${STAKEHOLDERS_DB_HOST}
+      - DB_PORT=5432
+      - DB_USER=${STAKEHOLDERS_DB_USER}
+      - DB_PASSWORD=${STAKEHOLDERS_DB_PASSWORD}
+      - DB_NAME=${STAKEHOLDERS_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET} # <-- Dodato za svaki slučaj
+    networks:
+      - soa-network
+
+  blog-service:
+    build: ./services/blog-service
+    container_name: soa-tourist-app-blog-service
+    ports:
+      - "${EXT_BLOG_SERVICE_PORT}:8081"
+      #- "8081:8081" #REST
+      - "50052:50052" #gRPC
+    depends_on:
+      - mongo
+      - auth-service
+    restart: on-failure
+    environment:
+      - MONGO_HOST=${MONGO_DB_HOST}
+      - MONGO_PORT=27017
+      - MONGO_DB=${MONGO_DB_BLOG_NAME}
+      - FOLLOWER_SERVICE_URL=http://follower-service:8080
+      - JWT_SECRET=${JWT_SECRET} # <-- Dodato za svaki slučaj
+    networks:
+      - soa-network
+
+  auth-service:
+    build: ./services/auth-service-node
+    container_name: soa-tourist-app-auth-service
+    ports:
+      - "${EXT_AUTH_SERVICE_PORT}:8084"
+    depends_on:
+      postgres-auth: { condition: service_healthy }
+    restart: on-failure
+    environment:
+      - AUTH_DB_HOST=${AUTH_DB_HOST}
+      - EXT_AUTH_DB_PORT=5432
+      - AUTH_DB_USER=${AUTH_DB_USER}
+      - AUTH_DB_PASSWORD=${AUTH_DB_PASSWORD}
+      - AUTH_DB_NAME=${AUTH_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - STAKEHOLDERS_SERVICE_URL=http://stakeholders-service:8080
+    networks:
+      - soa-network
+
+  tour-service:
+    build: ./services/tour-service
+    container_name: soa-tourist-app-tour-service
+    ports:
+      - "${EXT_TOUR_SERVICE_PORT}:8080"
+    depends_on:
+      tour-db: { condition: service_healthy }
+    restart: on-failure
+    environment:
+      - DB_HOST=${TOUR_DB_HOST}
+      - DB_PORT=5432
+      - DB_USER=${TOUR_DB_USER}
+      - DB_PASSWORD=${TOUR_DB_PASSWORD}
+      - DB_NAME=${TOUR_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET} # <-- KLJUČNO: Onaj koji proverava token
+    networks:
+      - soa-network
+
+  follower-service:
+    build: ./services/follower-service 
+    container_name: soa-tourist-app-follower-service
+    ports:
+      - "${EXT_FOLLOWER_SERVICE_PORT}:8080"
+    depends_on:
+      neo4j: { condition: service_healthy }
+    restart: on-failure
+    environment:
+      - NEO4J_URI=neo4j://${NEO4J_DB_HOST}:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET} # <-- Dodato za svaki slučaj
+    networks:
+      - soa-network
+
+  shopping-cart-service:
+    build: ./services/shopping-cart-service
+    container_name: soa-tourist-app-shopping-cart-service
+    ports:
+      - "${EXT_SHOPPING_CART_SERVICE_PORT}:8081"
+     # - "8087:8081" # lokalni port 8087 na interni 8081
+      - "50051:50051" # gRPC port
+    depends_on:
+      - mongo 
+    restart: on-failure
+    environment:
+      - MONGO_HOST=${MONGO_DB_HOST}
+      - MONGO_PORT=27017
+      - MONGO_DB=${MONGO_DB_PURCHASE_NAME}
+      - JWT_SECRET=${JWT_SECRET} # <-- KLJUČNO: Onaj koji proverava token
+    networks:
+      - soa-network
+
+  # --- API GATEWAY ---
+  api-gateway: 
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "${EXT_API_GATEWAY_PORT}:8080" 
+    networks:
+      - soa-network
+    depends_on:
+      - auth-service
+      - blog-service
+      - follower-service
+      - stakeholders-service
+      - tour-service
+    restart: always
+
+  # --- MONITORING & LOGGING ---
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: soa-tourist-app-loki
+    ports:
+      - "${LOKI_PORT}:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - soa-network
+    volumes:
+      - loki_data:/loki
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: soa-tourist-app-promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - soa-network
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: soa-tourist-app-grafana
+    ports:
+      - "${GRAFANA_PORT}:3000"
+     # - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - soa-network
+    depends_on:
+      - loki
+
+# --- VOLUMES & NETWORKS ---
+volumes:
+  postgres_data:
+  postgres_auth_data:
+  postgres_tour_data:
+  mongo_data:
+  neo4j_data:
+  loki_data:
+  grafana_data:
+
+networks:
+  soa-network:
+    driver: bridge

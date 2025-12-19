@@ -1,0 +1,57 @@
+<div class="form-container">
+  <div class="form-header">
+    <h2>{{ isEditMode ? 'Update Key Point' : 'Add Key Point' }}</h2>
+    <button type="button" class="close-btn" (click)="onCancel()">×</button>
+  </div>
+
+  <form [formGroup]="keyPointsForm" (ngSubmit)="onSubmit()" novalidate>
+    
+    <div class="form-group">
+      <label for="name">Key Point Name</label>
+      <input id="name" class="form-control" formControlName="name" placeholder="Enter key point name">
+      <div *ngIf="keyPointsForm.get('name')?.touched && keyPointsForm.get('name')?.invalid" class="validation-error">
+        Name is required (minimum 3 characters).
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea id="description" class="form-control" formControlName="description" rows="4" placeholder="Describe this key point..."></textarea>
+      <div *ngIf="keyPointsForm.get('description')?.touched && keyPointsForm.get('description')?.invalid" class="validation-error">
+        Description is required (minimum 10 characters).
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="image">Image</label>
+      <input 
+        id="image" 
+        type="file" 
+        class="form-control file-input" 
+        (change)="onFileSelected($event)" 
+        accept="image/*">
+      <div class="file-note">Select an image for this key point</div>
+
+      <div *ngIf="imagePreview" class="image-preview-container">
+        <div class="image-preview-header">
+          <span>Selected Image:</span>
+          <button type="button" class="remove-preview-btn" (click)="removeImage()">Remove</button>
+        </div>
+        <img [src]="imagePreview" [alt]="'Selected image'" class="image-preview">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="submit-btn" [disabled]="keyPointsForm.invalid || isSubmitting">
+        {{ isSubmitting ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Key Point' : 'Add Key Point') }}
+      </button>
+    </div>
+  </form>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+</div>

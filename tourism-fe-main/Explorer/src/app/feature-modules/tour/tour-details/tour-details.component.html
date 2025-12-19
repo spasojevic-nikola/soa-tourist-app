@@ -1,0 +1,222 @@
+<div class="tour-details-container">
+  <div *ngIf="isLoading" class="loading">
+    <p>Loading tour details...</p>
+  </div>
+
+  <div *ngIf="!isLoading && !tour" class="error">
+    <p>Tour not found.</p>
+  </div>
+
+  <div *ngIf="!isLoading && tour" class="tour-details">
+    <!-- Header Section -->
+    <div class="tour-header">
+      <h1>{{ tour.name }}</h1>
+      <span class="badge badge-published">Published</span>
+    </div>
+
+    <div class="tour-execution-actions" *ngIf="isTourPurchased">
+  <div class="execution-buttons">
+    <!-- Start Tour Button -->
+    <button *ngIf="!hasActiveExecution && !checkingExecutionStatus && !hasCompletedExecution" 
+            class="btn btn-start-tour"
+            (click)="startTourExecution()">
+      <mat-icon class="btn-icon">play_arrow</mat-icon>
+      <span>Start Tour Adventure</span>
+    </button>
+
+    <!-- Continue Tour Button -->
+    <button *ngIf="hasActiveExecution && !checkingExecutionStatus" 
+            class="btn btn-continue-tour"
+            [routerLink]="['/tour-execution', activeExecutionId]">
+      <mat-icon class="btn-icon">play_circle</mat-icon>
+      <span>Continue Tour ({{ executionProgress }}%)</span>
+    </button>
+
+    <button *ngIf="hasCompletedExecution && !checkingExecutionStatus" 
+            class="btn btn-completed-tour"
+            disabled>
+      <mat-icon class="btn-icon">check_circle</mat-icon>
+      <span>Tour Completed 🎉</span>
+    </button>
+
+
+    <!-- Loading State -->
+    <div *ngIf="checkingExecutionStatus" class="execution-loading">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>Checking tour status...</span>
+    </div>
+  </div>
+
+  <div class="execution-info" *ngIf="hasActiveExecution">
+    <p>🎯 You have an active tour session. Continue where you left off!</p>
+  </div>
+</div>
+
+    <!-- Description -->
+    <div class="tour-description">
+      <p>{{ tour.description }}</p>
+    </div>
+
+    <!-- Tour Stats -->
+    <div class="tour-stats">
+      <div class="stat-card">
+        <span class="stat-icon">📏</span>
+        <div class="stat-content">
+          <span class="stat-label">Distance</span>
+          <span class="stat-value">{{ tour.distance | number:'1.2-2' }} km</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-icon">⭐</span>
+        <div class="stat-content">
+          <span class="stat-label">Difficulty</span>
+          <span class="stat-value">{{ tour.difficulty }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card" *ngIf="tour.price">
+        <span class="stat-icon">💰</span>
+        <div class="stat-content">
+          <span class="stat-label">Price</span>
+          <span class="stat-value">{{ tour.price }} RSD</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="tour-tags" *ngIf="tour.tags && tour.tags.length > 0">
+      <span *ngFor="let tag of tour.tags" class="tag">{{ tag }}</span>
+    </div>
+
+    <!-- Keypoints Section -->
+<div class="keypoints-section" *ngIf="tour.keyPoints && tour.keyPoints.length > 0">
+  <!-- Ako je autor, prikaži sve ključne tačke -->
+  <ng-container *ngIf="isAuthor()">
+    <h2>{{ tour.keyPoints.length > 1 ? 'All Tour Locations' : 'Starting Point' }}</h2>
+    
+    <div class="all-keypoints">
+      <div *ngFor="let keypoint of tour.keyPoints; let i = index" class="keypoint-card">
+        <div class="keypoint-header">
+          <span class="keypoint-number">{{ i + 1 }}</span>
+          <h3>📍 {{ keypoint.name }}</h3>
+        </div>
+        <p class="keypoint-description">{{ keypoint.description }}</p>
+        <div class="keypoint-details">
+          <span class="detail-item">
+            <strong>Location:</strong> {{ keypoint.address || 'Loading address...' }}
+          </span>
+        </div>
+        <img *ngIf="keypoint.image" [src]="keypoint.image" [alt]="keypoint.name" class="keypoint-image">
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Ako nije autor, prikaži samo prvu ključnu tačku -->
+  <ng-container *ngIf="!isAuthor()">
+    <h2>Starting Point</h2>
+    
+    <div class="keypoint-card">
+      <div class="keypoint-header">
+        <span class="keypoint-number">1</span>
+        <h3>📍 {{ tour.keyPoints[0].name }}</h3>
+      </div>
+      <p class="keypoint-description">{{ tour.keyPoints[0].description }}</p>
+      <div class="keypoint-details">
+        <span class="detail-item">
+          <strong>Location:</strong> {{ tour.keyPoints[0].address || 'Loading address...' }}
+        </span>
+      </div>
+      <img *ngIf="tour.keyPoints[0].image" [src]="tour.keyPoints[0].image" [alt]="tour.keyPoints[0].name" class="keypoint-image">
+    </div>
+
+    <div *ngIf="tour.keyPoints.length > 1 && tour.price > 0" class="purchase-prompt">
+      <mat-icon>lock</mat-icon>
+      <p>Purchase this tour to unlock all {{ tour.keyPoints.length }} locations!</p>
+    </div>
+  </ng-container>
+</div>
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button 
+          class="btn btn-purchase" 
+          [ngClass]="{'btn-disabled-purchased': isTourPurchased}"
+          (click)="onPurchase()"
+          [disabled]="isAddingToCart || tour.status !== 'Published' || tour.price <= 0 || isTourPurchased">
+          
+          <!-- Prikaz spinnera i teksta kada je zahtev u toku -->
+          <ng-container *ngIf="isAddingToCart">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Adding to Cart...</span>
+          </ng-container>
+    
+          <!-- Prikaz standardne ikonice kada zahtev NIJE u toku i NIJE kupljeno -->
+          <ng-container *ngIf="!isAddingToCart && !isTourPurchased">
+              <mat-icon class="btn-icon">shopping_cart</mat-icon>
+              <span>Purchase Tour</span>
+          </ng-container>
+          
+          <!-- Prikaz kada je već kupljeno -->
+          <ng-container *ngIf="!isAddingToCart && isTourPurchased">
+              <mat-icon class="btn-icon">check_circle</mat-icon>
+              <span>Already Purchased</span>
+          </ng-container>
+      </button>
+      
+      <button class="btn btn-review" (click)="onLeaveReview()">
+        <mat-icon class="btn-icon">rate_review</mat-icon>
+        <span>Leave a Review</span>
+      </button>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section">
+      <div class="reviews-header">
+        <h2>Reviews</h2>
+        <div class="rating-summary" *ngIf="reviewStats">
+          <div class="avg-rating">
+            <span class="rating-number">{{ reviewStats.averageRating | number:'1.1-1' }}</span>
+            <div class="stars">
+              <mat-icon *ngFor="let star of getRatingStars(reviewStats.averageRating)">{{ star }}</mat-icon>
+            </div>
+          </div>
+          <span class="review-count">{{ reviewStats.reviewCount }} {{ reviewStats.reviewCount === 1 ? 'review' : 'reviews' }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="loadingReviews" class="loading-reviews">
+        <p>Loading reviews...</p>
+      </div>
+
+      <div *ngIf="!loadingReviews && reviews.length === 0" class="no-reviews">
+        <p>No reviews yet. Be the first to review this tour!</p>
+      </div>
+
+      <div class="reviews-list" *ngIf="!loadingReviews && reviews.length > 0">
+        <div *ngFor="let review of reviews" class="review-card">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <mat-icon class="user-icon">account_circle</mat-icon>
+              <div class="reviewer-details">
+                <span class="reviewer-name">{{ review.touristUsername || 'Tourist #' + review.touristId }}</span>
+                <span class="review-date">{{ review.createdAt | date:'medium' }}</span>
+              </div>
+            </div>
+            <div class="review-rating">
+              <mat-icon *ngFor="let star of getRatingStars(review.rating)" class="star-icon">{{ star }}</mat-icon>
+            </div>
+          </div>
+          
+          <div class="review-content">
+            <p class="visit-date"><strong>Visited on:</strong> {{ review.visitDate | date:'mediumDate' }}</p>
+            <p class="review-comment">{{ review.comment }}</p>
+            
+            <div class="review-images" *ngIf="review.images && review.images.length > 0">
+              <img *ngFor="let image of review.images" [src]="image" alt="Review image" class="review-image" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

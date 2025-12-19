@@ -1,0 +1,92 @@
+<mat-toolbar color="primary">
+  <div class="toolbar-container">
+    
+    <div class="nav-section">
+      <p class="app-title">Explorer</p>
+      <div class="nav-buttons">
+        <button mat-button [routerLink]="['/home']">Home</button>
+
+        <button *ngIf="user && user.username !== ''" mat-button [matMenuTriggerFor]="blogMenu">
+          <span>Blog</span>
+          <mat-icon>expand_more</mat-icon>
+        </button>
+
+        <button *ngIf="user && (user.role === 'author')" mat-button [matMenuTriggerFor]="tourMenu">
+          <span>Tours</span>
+          <mat-icon>expand_more</mat-icon>
+        </button>
+
+        <button *ngIf="user && user.username !== '' && user.role === 'tourist'" mat-button [routerLink]="['/position-simulator']">
+          <mat-icon>location_on</mat-icon>
+          <span>Simulator pozicije</span>
+        </button>
+
+        <mat-form-field *ngIf="user && user.username !== ''" class="search-form-field" appearance="outline">
+          <mat-icon matPrefix>search</mat-icon>
+          <input type="text"
+                 matInput
+                 [formControl]="searchControl"
+                 [matAutocomplete]="auto"
+                 placeholder="Search users...">
+          
+          <button *ngIf="searchControl.value" mat-icon-button matSuffix (click)="clearSearch()" aria-label="Clear">
+            <mat-icon>close</mat-icon>
+          </button>
+    
+        </mat-form-field>
+
+      </div>
+    </div>
+
+    <div class="user-buttons">
+      <button *ngIf="user && user.username === ''" color="accent" mat-raised-button [routerLink]="['login']">Login</button>
+      
+      <ng-container *ngIf="user && user.username !== ''">
+        <button mat-icon-button 
+            [routerLink]="['/shopping-cart']" 
+            aria-label="Shopping Cart"
+            [matBadge]="cartItemCount$ | async" [matBadgeHidden]="(cartItemCount$ | async) === 0" matBadgeColor="warn">
+        <mat-icon>shopping_cart</mat-icon>
+    </button>
+          <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
+            <mat-icon>account_circle</mat-icon>
+          </button>
+
+        <button color="accent" mat-raised-button (click)="onLogout()">Log out</button>
+      </ng-container>
+    </div>
+
+  </div>
+</mat-toolbar>
+
+
+<mat-menu #blogMenu="matMenu">
+  <button mat-menu-item [routerLink]="['/blog/create']">
+    <mat-icon>add_circle_outline</mat-icon>
+    <span>Add Blog</span>
+  </button>
+  <button mat-menu-item [routerLink]="['/blog/view']"> 
+    <mat-icon>visibility</mat-icon>
+    <span>View Blogs</span>
+  </button>
+</mat-menu>
+
+<mat-menu #tourMenu="matMenu">
+  <button mat-menu-item [routerLink]="['/tours/create']">
+    <mat-icon>add_circle_outline</mat-icon>
+    <span>Create tour</span>
+  </button>
+  <button mat-menu-item [routerLink]="['/tours']"> 
+    <mat-icon>visibility</mat-icon>
+    <span>View tour</span>
+  </button>
+</mat-menu>
+
+<mat-autocomplete #auto="matAutocomplete">
+  <mat-option *ngFor="let foundUser of filteredUsers$ | async" [routerLink]="['/profile', foundUser.id]">
+    <div class="search-result-item">
+      <img [src]="foundUser.profile_image || 'assets/images/default-avatar.png'" class="avatar">
+      <span>{{ foundUser.first_name }} {{ foundUser.last_name }} (@{{ foundUser.username }})</span>
+    </div>
+  </mat-option>
+</mat-autocomplete>

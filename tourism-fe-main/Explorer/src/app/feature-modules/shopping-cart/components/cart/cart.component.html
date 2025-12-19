@@ -1,0 +1,81 @@
+<div class="cart-page-container">
+    <h2>Your Shopping Cart</h2>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner> Loading cart details...
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && (!cart || cart.items.length === 0)" class="empty-cart">
+        <mat-icon class="icon-large">sentiment_very_dissatisfied</mat-icon>
+        <p>Your cart is currently empty. Ready to find some adventure?</p>
+        <button mat-raised-button color="primary" [routerLink]="['/home']">Browse Tours</button>
+    </div>
+
+    <!-- Full Cart View -->
+    <div *ngIf="!isLoading && cart && cart.items.length > 0" class="main-cart-layout">
+
+        <!-- LEVA STRANA: LISTA STAVKI -->
+        <div class="cart-items-list">
+            <mat-card *ngFor="let item of cart.items" class="cart-item-card">
+                
+                <!-- Glavne informacije o turi i ID -->
+                <div class="item-main-details" 
+                [routerLink]="['/tours', item.tourId]"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="navigateToTour(item.tourId)"
+                (keydown.space)="navigateToTour(item.tourId)">
+               <mat-icon class="tour-icon">explore</mat-icon>
+               <div class="details-text">
+                   <h4>{{ item.name }}</h4>
+               </div>
+           </div>
+                
+                <!-- Cena i Dugme za uklanjanje -->
+                <div class="item-actions">
+                    <span class="price-value">{{ item.price | number:'1.2-2' }} RSD</span>
+                    
+                    <button 
+                        mat-icon-button 
+                        color="warn" 
+                        (click)="onRemoveItem(item.tourId, item.name)"
+                        aria-label="Remove item"
+                        class="remove-button"
+                    >
+                        <mat-icon>delete_forever</mat-icon>
+                    </button>
+                </div>
+            </mat-card>
+        </div>
+
+        <!-- DESNA STRANA: REZIME I CHECKOUT -->
+        <mat-card class="cart-summary-card">
+            <h3>Order Summary</h3>
+            <mat-divider></mat-divider>
+
+            <div class="summary-details">
+                <p>Total items in cart ({{ cart.items.length }})</p>
+            </div>
+
+            <div class="summary-details total-line">
+                <h4>Total Price:</h4>
+                <span class="total-price-value">{{ cart.total | number:'1.2-2' }} RSD</span>
+            </div>
+
+            <!-- Dugme za Checkout -->
+            <button 
+                mat-raised-button 
+                color="accent" 
+                (click)="onCheckout()"
+                [disabled]="checkoutInProgress || cart.total === 0"
+                class="checkout-button"
+            >
+                <mat-icon *ngIf="!checkoutInProgress">credit_card</mat-icon>
+                <mat-spinner diameter="20" *ngIf="checkoutInProgress"></mat-spinner>
+                {{ checkoutInProgress ? 'Processing Payment...' : 'Proceed to Checkout' }}
+            </button>
+        </mat-card>
+    </div>
+</div>

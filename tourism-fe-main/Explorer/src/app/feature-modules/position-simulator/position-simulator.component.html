@@ -1,0 +1,103 @@
+<div class="position-simulator-container">
+  <div class="header">
+    <h2>Simulator pozicije</h2>
+    <p class="description">Kliknite na mapu da postavite vašu trenutnu lokaciju ili koristite dugme za automatsko pronalaženje.</p>
+  </div>
+
+  <div class="controls">
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="getCurrentLocation()"
+      class="location-btn">
+      <mat-icon>my_location</mat-icon>
+      Pronađi moju lokaciju
+    </button>
+    
+    <button 
+      mat-raised-button 
+      color="warn" 
+      (click)="clearPosition()"
+      *ngIf="currentPosition"
+      class="clear-btn">
+      <mat-icon>clear_all</mat-icon>
+      Obriši poziciju
+    </button>
+  </div>
+
+   <!-- PRECIZAN UNOS KOORDINATA -->
+  <div class="manual-input-section" *ngIf="isMapLoaded">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>pin_drop</mat-icon>
+          Precizan unos koordinata
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="input-fields">
+          <mat-form-field appearance="outline" class="coord-input">
+            <mat-label>Latitude</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              [(ngModel)]="manualLatitude"
+              placeholder="npr. 45.2671"
+              step="0.000001"
+              min="-90"
+              max="90">
+            <span matPrefix>📍 &nbsp;</span>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="coord-input">
+            <mat-label>Longitude</mat-label>
+            <input 
+              matInput 
+              type="number" 
+              [(ngModel)]="manualLongitude"
+              placeholder="npr. 19.8335"
+              step="0.000001"
+              min="-180"
+              max="180">
+            <span matPrefix>🌎 &nbsp;</span>
+          </mat-form-field>
+        </div>
+        
+        <button 
+          mat-raised-button 
+          color="accent" 
+          (click)="goToManualCoordinates()"
+          [disabled]="!manualLatitude || !manualLongitude"
+          class="manual-btn">
+          <mat-icon>navigation</mat-icon>
+          Postavi tačnu lokaciju
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="position-info" *ngIf="currentPosition">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Trenutna pozicija</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="coordinates">
+          <div class="coordinate">
+            <span class="label">Latitude:</span>
+            <span class="value">{{ currentPosition.lat | number:'1.6-6' }}</span>
+          </div>
+          <div class="coordinate">
+            <span class="label">Longitude:</span>
+            <span class="value">{{ currentPosition.lng | number:'1.6-6' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="map-container">
+    <div id="map" class="map"></div>
+  </div>
+
+</div>

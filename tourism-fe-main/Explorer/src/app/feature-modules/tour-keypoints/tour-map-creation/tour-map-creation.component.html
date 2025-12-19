@@ -1,0 +1,80 @@
+<div class="map-creation-container">
+  <div class="header">
+    <h2>Add Key Points to Your Tour</h2>
+    <p>Click on the map to add key points. They will be connected with a blue route.</p>
+  </div>
+
+<div class="map-container">
+  <div *ngIf="isEditMode" class="edit-mode-indicator">
+    <div class="edit-mode-message">
+      ✏️ Editing key point {{editingIndex !== null ? editingIndex + 1 : ''}} - Click on map to select new location
+      <button class="cancel-edit-btn" (click)="cancelEdit()">Cancel</button>
+    </div>
+  </div>
+  
+  <div id="map" class="map"></div>
+</div>
+
+  <div *ngIf="keyPoints.length > 0" class="keypoints-list-section">
+    <h3>Added Key Points ({{ keyPoints.length }})</h3>
+    
+    <div class="keypoints-list">
+      <div *ngFor="let keyPoint of keyPoints; let i = index" class="keypoint-item">
+        <div class="keypoint-header">
+          <h4>{{ keyPoint.order }}. {{ keyPoint.name }}</h4>
+          <div class="keypoint-actions">
+    <button 
+      type="button" 
+      class="edit-btn"
+      (click)="startEditKeyPoint(i)"
+          title="Edit key point">
+          ✏️
+        </button>
+        <button 
+          type="button" 
+          class="delete-btn"
+          (click)="removeKeyPoint(i)"
+          title="Delete key point">
+          ×
+        </button>
+      </div>
+        </div>
+        
+        <div class="keypoint-content">
+          <p class="keypoint-description">{{ keyPoint.description }}</p>
+          <div class="keypoint-details">
+            <span class="address">
+              📍 {{ keyPoint.address }}
+            </span>
+            
+            <div *ngIf="getImagePreview(i)" class="image-preview-container">
+              <img [src]="getImagePreview(i)" [alt]="'Selected image'" class="image-preview">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Distance Display - Minimalist -->
+    <div class="distance-info-section" *ngIf="totalDistance > 0">
+      <div class="distance-summary">
+        <p class="distance-text">📏 Distance: <strong>{{ totalDistance | number:'1.2-2' }} km</strong></p>
+        
+        <div class="time-estimates">
+          <p class="time-item">🚗 Car: <span>{{ getCarTime() | number:'1.0-0' }} min</span></p>
+          <p class="time-item">🚴 Bicycle: <span>{{ getBicycleTime() | number:'1.0-0' }} min</span></p>
+          <p class="time-item">🚶 Walking: <span>{{ getWalkingTime() | number:'1.0-0' }} min</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wizard-actions">
+    <button type="button" class="btn-back" (click)="backToStep1()">
+      ← Back to Basic Info
+    </button>
+    <button type="button" class="btn-create-tour" (click)="finishTour()" [disabled]="keyPoints.length < 2">
+      {{ keyPoints.length < 2 ? 'Add at least two key points' : 'Create Tour' }}
+    </button>
+  </div>
+</div>
