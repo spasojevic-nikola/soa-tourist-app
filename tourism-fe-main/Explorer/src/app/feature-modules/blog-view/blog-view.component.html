@@ -8,18 +8,19 @@
     <div *ngIf="!isLoading && isDetailView && blogDetail" class="blog-detail-view">
 
         <mat-card class="detail-card">
-            <mat-card-header>
+            <mat-card-header class="blog-header">
+                <div class="meta-inline">
+                    <img class="meta-avatar" [src]="blogDetail.authorProfileImage || defaultAvatar" alt="Author avatar">
+                    <span class="meta-author">{{ blogDetail.authorUsername || ('User ' + blogDetail.authorId) }}</span>
+                    <span>&middot;</span>
+                    <span class="meta-date">{{ blogDetail.createdAt | date:'MMM d, y' }}</span>
+                    <span *ngIf="blogDetail.createdAt !== blogDetail.updatedAt" class="meta-edited">
+                        &middot; Edited {{ blogDetail.updatedAt | date:'MMM d, y' }}
+                    </span>
+                </div>
                 <mat-card-title>
                     <span *ngIf="!isEditingBlog">{{ blogDetail.title }}</span>
                 </mat-card-title>
-
-                <mat-card-subtitle>
-                    Autor: {{ blogDetail.authorUsername || ('User ' + blogDetail.authorId) }} 
-                    | Published: {{ blogDetail.createdAt | date:'medium' }}
-                    <span *ngIf="blogDetail.createdAt !== blogDetail.updatedAt">
-                        (Edited: {{ blogDetail.updatedAt | date:'medium' }})
-                    </span>
-                </mat-card-subtitle>
             </mat-card-header>
 
             <mat-card-content>
@@ -65,6 +66,18 @@
                     Edit Blog
                 </button>
 
+                <button mat-button color="warn"
+                        *ngIf="currentUserId === blogDetail.authorId && !isEditingBlog"
+                        (click)="deleteBlog()"
+                        [disabled]="isDeletingBlog">
+                    <ng-container *ngIf="!isDeletingBlog; else deletingState">
+                        Delete Blog
+                    </ng-container>
+                    <ng-template #deletingState>
+                        <mat-spinner diameter="18"></mat-spinner>
+                    </ng-template>
+                </button>
+
                 <button mat-button (click)="isDetailView = false">Back</button>
             </mat-card-actions>
         </mat-card>
@@ -75,7 +88,7 @@
             <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="comment-form">
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Add comment</mat-label>
-                    <textarea matInput formControlName="text" rows="3" placeholder="Vaš komentar..."></textarea>
+                    <textarea matInput formControlName="text" rows="3" placeholder="Your comment..."></textarea>
                 </mat-form-field>
 
                 <button mat-raised-button color="primary" type="submit" [disabled]="commentForm.invalid || isCommentSending">
@@ -90,8 +103,14 @@
                     <ng-container *ngIf="editingComment?.id === comment.id">
                         <form [formGroup]="commentEditForm" (ngSubmit)="saveCommentEdit()" class="comment-edit-form">
                              <div class="comment-header-edit">
-                                <strong>{{ comment.authorUsername || ('User ' + comment.authorId) }}</strong> 
-                                <span class="comment-date"> ({{ comment.createdAt | date:'short' }})</span>
+                                <img class="comment-avatar" [src]="comment.authorProfileImage || defaultAvatar" alt="Comment author avatar">
+                                <div class="comment-meta-info">
+                                    <span class="comment-author">{{ comment.authorUsername || ('User ' + comment.authorId) }}</span>
+                                    <div class="comment-meta-dates">
+                                        <span class="comment-date">{{ comment.createdAt | date:'MMM d, y' }}</span>
+                                        <span *ngIf="comment.createdAt !== comment.updatedAt" class="comment-date comment-edited">· Edited {{ comment.updatedAt | date:'MMM d, y' }}</span>
+                                    </div>
+                                </div>
                             </div>
                             <mat-form-field appearance="outline" class="full-width"> 
                                 <textarea matInput formControlName="editText" rows="2"></textarea>
@@ -107,9 +126,16 @@
                     </ng-container>
 
                     <ng-container *ngIf="editingComment?.id !== comment.id">
-                        <strong>{{ comment.authorUsername || ('User ' + comment.authorId) }}</strong> 
-                        <span class="comment-date"> ({{ comment.createdAt | date:'short' }})</span>
-                        <span *ngIf="comment.createdAt !== comment.updatedAt" class="comment-date comment-edited"> (edited)</span>
+                        <div class="comment-meta">
+                            <img class="comment-avatar" [src]="comment.authorProfileImage || defaultAvatar" alt="Comment author avatar">
+                            <div class="comment-meta-info">
+                                <span class="comment-author">{{ comment.authorUsername || ('User ' + comment.authorId) }}</span>
+                                <div class="comment-meta-dates">
+                                    <span class="comment-date">{{ comment.createdAt | date:'MMM d, y' }}</span>
+                                    <span *ngIf="comment.createdAt !== comment.updatedAt" class="comment-date comment-edited">· Edited {{ comment.updatedAt | date:'MMM d, y' }}</span>
+                                </div>
+                            </div>
+                        </div>
                         <p>{{ comment.text }}</p>
 
                         <button mat-icon-button class="edit-btn" 
@@ -124,31 +150,67 @@
     </div>
 
     <div *ngIf="!isLoading && !isDetailView" class="blog-list-view">
-        <h2>Blog Posts</h2>
+        <section *ngIf="currentUserId !== null" class="blog-section">
+            <div class="section-header">
+                <h2>My blogs</h2>
+            </div>
 
-        <div *ngIf="blogs.length === 0" class="no-blogs">
-            Trenutno nema objavljenih blog postova.
-        </div>
+            <ng-container *ngIf="myBlogs.length > 0; else noMyBlogs">
+                <ng-container *ngTemplateOutlet="blogGrid; context: {$implicit: myBlogs}"></ng-container>
+            </ng-container>
+        </section>
 
-        <div *ngIf="blogs.length > 0" class="blog-cards-grid">
-            <mat-card *ngFor="let blog of blogs" class="blog-card">
-                <mat-card-header>
-                    <mat-card-title>{{ blog.title }}</mat-card-title>
-                    Autor: {{ blog.authorUsername || ('User ' + blog.authorId) }} | {{ blog.createdAt | date: 'mediumDate' }}
-                </mat-card-header>
+        <section class="blog-section">
+            <div class="section-header">
+                <h2>All published blogs</h2>
+            </div>
 
-                <mat-card-content>
-                    <img *ngIf="blog.images?.length" [src]="blog.images?.[0]" alt="Blog image" class="blog-thumbnail">
-                    <p>{{ blog.content.substring(0, 150) }}...</p>
-                    <p>Likes: {{ blog.likes.length }} | Comments: {{ blog.comments.length }}</p>
-                </mat-card-content>
+            <ng-container *ngIf="otherBlogs.length > 0; else noCommunityBlogs">
+                <ng-container *ngTemplateOutlet="blogGrid; context: {$implicit: otherBlogs}"></ng-container>
+            </ng-container>
+        </section>
 
-                <mat-card-actions>
-                    <button mat-button color="primary" (click)="goToDetail(blog.id)">
-                        Read more
-                    </button>
-                </mat-card-actions>
-            </mat-card>
-        </div>
+        <ng-template #blogGrid let-source>
+            <div class="blog-cards-grid">
+                <mat-card *ngFor="let blog of source" class="blog-card">
+                    <mat-card-header class="list-card-header">
+                        <div class="meta-inline meta-inline--list">
+                            <img class="meta-avatar" [src]="blog.authorProfileImage || defaultAvatar" alt="Author avatar">
+                            <span class="meta-author">{{ blog.authorUsername || ('User ' + blog.authorId) }}</span>
+                            <span>&middot;</span>
+                            <span class="meta-date">{{ blog.createdAt | date: 'mediumDate' }}</span>
+                        </div>
+                        <mat-card-title>{{ blog.title }}</mat-card-title>
+                    </mat-card-header>
+
+                    <mat-card-content>
+                        <img *ngIf="blog.images?.length" [src]="blog.images?.[0]" alt="Blog image" class="blog-thumbnail">
+                        <p>{{ blog.content.substring(0, 150) }}...</p>
+                        <p>Likes: {{ blog.likes.length }} | Comments: {{ blog.comments.length }}</p>
+                    </mat-card-content>
+
+                    <mat-card-actions>
+                        <button mat-button color="primary" (click)="goToDetail(blog.id)">
+                            Read more
+                        </button>
+                    </mat-card-actions>
+                </mat-card>
+            </div>
+        </ng-template>
+
+        <ng-template #noMyBlogs>
+            <div class="no-blogs muted">
+                <p>You haven't published any blogs yet.</p>
+                <button mat-stroked-button color="primary" class="add-blog-btn" [routerLink]="['/blog/create']">
+                    + Add blog
+                </button>
+            </div>
+        </ng-template>
+
+        <ng-template #noCommunityBlogs>
+            <div class="no-blogs">
+                No blog posts have been published yet.
+            </div>
+        </ng-template>
     </div>
 </div>

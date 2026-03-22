@@ -14,6 +14,7 @@ export interface CreateBlogPayload {
     htmlContent: string; 
     authorId: number;
     authorUsername? : string;
+    authorProfileImage?: string;
     createdAt: string;
     updatedAt: string;
     images?: string[];
@@ -28,6 +29,7 @@ export interface CreateBlogPayload {
   createdAt: string;
   updatedAt: string;
   authorUsername?: string;
+    authorProfileImage?: string;
 }
 
 export interface AddCommentPayload {

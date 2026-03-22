@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { TourService } from '../tour.service';
@@ -7,17 +7,25 @@ import { Tour } from '../model/tour.model';
 import { Review, ReviewStats } from '../model/review.model';
 import { MapService } from '../services/map-service.service';
 import { ReviewDialogComponent } from '../review-dialog/review-dialog.component';
+import { EditTourDialogComponent } from '../edit-tour-dialog/edit-tour-dialog.component';
+import { UpdateTourPayload } from '../dto/tour-creation.dto';
+import { KeypointDialogService } from '../services/keypoint-dialog.service';
+import { KeypointService } from '../../tour-keypoints/keypoint.service';
+import { CreateKeyPointPayload, KeyPoint } from '../../tour-keypoints/model/keypoint.model';
 import { CartService } from '../../shopping-cart/services/cart.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CartStateService } from '../../shopping-cart/services/cart-state.service';
 import { AuthService } from '../../../infrastructure/auth/auth.service';
+import { StakeholdersService } from 'src/app/infrastructure/stakeholders.service';
+import { User as StakeholderUser } from '../../user-profile/profile/model/profile.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'xp-tour-details',
   templateUrl: './tour-details.component.html',
   styleUrls: ['./tour-details.component.css']
 })
-export class TourDetailsComponent implements OnInit {
+export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
   tour: Tour | null = null;
   isLoading = true;
   keypointAddress: string = '';
@@ -29,6 +37,19 @@ export class TourDetailsComponent implements OnInit {
 
   isTourPurchased: boolean = false;
   checkingPurchaseStatus: boolean = true;
+
+  @ViewChild('keypointCarousel') keypointCarousel?: ElementRef<HTMLDivElement>;
+  canScrollPrev = false;
+  canScrollNext = false;
+
+  authorInfo: StakeholderUser | null = null;
+  authorInfoLoading = true;
+  authorInfoError = false;
+
+  private authSubscription?: Subscription;
+  private authorSubscription?: Subscription;
+  private currentUserRole = '';
+  private currentUserId = 0;
 
 
     // Tour Execution polja
@@ -45,14 +66,29 @@ export class TourDetailsComponent implements OnInit {
     private mapService: MapService,
     private dialog: MatDialog,
     private router: Router,
-    private cartService: CartService, 
+    private cartService: CartService,
     private cartStateService: CartStateService,
     private snackBar: MatSnackBar,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private stakeholdersService: StakeholdersService,
+    private keypointDialogService: KeypointDialogService,
+    private keypointService: KeypointService
+  ) {
+    this.authSubscription = this.authService.user$.subscribe(user => {
+      this.currentUserRole = (user.role || '').toLowerCase();
+      this.currentUserId = user.id;
+    });
+  }
 
   ngOnInit(): void {
-    const tourId = this.route.snapshot.params['id'];
+    const tourIdParam = this.route.snapshot.paramMap.get('id');
+    const tourId = tourIdParam ? Number(tourIdParam) : NaN;
+
+    if (Number.isNaN(tourId)) {
+      this.router.navigate(['/tours']);
+      return;
+    }
+
     this.loadTourDetails(tourId);
     this.loadReviews(tourId);
     this.loadReviewStats(tourId);
@@ -60,6 +96,16 @@ export class TourDetailsComponent implements OnInit {
     this.checkPurchaseStatus(tourId); 
 
   }
+
+  ngAfterViewInit(): void {
+    this.updateCarouselNav();
+  }
+
+  ngOnDestroy(): void {
+    this.authSubscription?.unsubscribe();
+    this.authorSubscription?.unsubscribe();
+  }
+
   checkPurchaseStatus(tourId: number): void {
     this.checkingPurchaseStatus = true;
     this.cartService.hasPurchased(String(tourId)).subscribe({
@@ -78,33 +124,55 @@ export class TourDetailsComponent implements OnInit {
 
 
   loadTourDetails(tourId: number): void {
-  this.tourService.getTourById(tourId).subscribe({
-    next: async (tour) => {
-      this.tour = tour;
-      
-      // Učitaj adrese za sve keypoints
-      if (tour.keyPoints && tour.keyPoints.length > 0) {
-        for (let keypoint of tour.keyPoints) {
-          if (!keypoint.address) {
-            keypoint.address = await this.mapService.reverseGeocode(
-              keypoint.latitude,
-              keypoint.longitude
-            );
+    this.tourService.getTourById(tourId).subscribe({
+      next: async (tour) => {
+        this.tour = tour;
+        this.loadAuthorInfo(tour.authorId);
+        
+        if (tour.keyPoints && tour.keyPoints.length > 0) {
+          for (let keypoint of tour.keyPoints) {
+            if (!keypoint.address) {
+              keypoint.address = await this.mapService.reverseGeocode(
+                keypoint.latitude,
+                keypoint.longitude
+              );
+            }
           }
+          this.keypointAddress = tour.keyPoints[0].address || 'Loading address...';
         }
         
-        // Postavi adresu prvog keypointa za prikaz kada nije kupljeno
-        this.keypointAddress = tour.keyPoints[0].address || 'Loading address...';
+        this.isLoading = false;
+        setTimeout(() => this.updateCarouselNav(), 0);
+      },
+      error: (err) => {
+        console.error('Error loading tour details:', err);
+        this.isLoading = false;
       }
-      
-      this.isLoading = false;
-    },
-    error: (err) => {
-      console.error('Error loading tour details:', err);
-      this.isLoading = false;
+    });
+  }
+
+  private loadAuthorInfo(authorId: number): void {
+    if (!authorId) {
+      this.authorInfoLoading = false;
+      return;
     }
-  });
-}
+
+    this.authorInfoLoading = true;
+    this.authorInfoError = false;
+    this.authorSubscription?.unsubscribe();
+    this.authorSubscription = this.stakeholdersService.getUserById(authorId).subscribe({
+      next: (user) => {
+        this.authorInfo = user;
+        this.authorInfoLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading author info:', err);
+        this.authorInfo = null;
+        this.authorInfoError = true;
+        this.authorInfoLoading = false;
+      }
+    });
+  }
 
   loadReviews(tourId: number): void {
     this.loadingReviews = true;
@@ -175,6 +243,77 @@ export class TourDetailsComponent implements OnInit {
     });
   }
 
+  onEditKeyPoint(keypoint: any): void {
+    const mapToPayload = (kp: any): CreateKeyPointPayload => ({
+      name: kp.name,
+      description: kp.description,
+      latitude: kp.latitude,
+      longitude: kp.longitude,
+      image: (kp.image as unknown as File | null) || null,
+      order: kp.order,
+      address: kp.address
+    });
+
+    this.keypointDialogService.openKeypointDialog(
+      keypoint.latitude,
+      keypoint.longitude,
+      keypoint.order,
+      mapToPayload(keypoint)
+    ).subscribe((result) => {
+      if (result) {
+        this.keypointService.updateKeyPoint(keypoint.id, result).subscribe({
+          next: () => {
+             this.snackBar.open('Key point updated successfully', 'Close', { duration: 3000 });
+             this.loadTourDetails(this.tour!.id);
+          },
+          error: (err) => {
+             console.error('Error updating key point:', err);
+             this.snackBar.open('Failed to update key point', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
+  }
+
+  onDeleteKeyPoint(keypointId: number): void {
+    if (confirm('Are you sure you want to delete this key point?')) {
+      this.keypointService.deleteKeyPoint(keypointId).subscribe({
+        next: () => {
+          this.snackBar.open('Key point deleted successfully', 'Close', { duration: 3000 });
+          this.loadTourDetails(this.tour!.id);
+        },
+        error: (err) => {
+          console.error('Error deleting key point:', err);
+          this.snackBar.open('Failed to delete key point', 'Close', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  onEditTour(): void {
+    if (!this.tour) return;
+
+    const dialogRef = this.dialog.open(EditTourDialogComponent, {
+      width: '600px',
+      data: { tour: this.tour }
+    });
+
+    dialogRef.afterClosed().subscribe((result: UpdateTourPayload) => {
+      if (result) {
+        this.tourService.updateTour(this.tour!.id, result).subscribe({
+          next: () => {
+             this.snackBar.open('Tour updated successfully', 'Close', { duration: 3000 });
+             this.loadTourDetails(this.tour!.id);
+          },
+          error: (err) => {
+             console.error('Error updating tour:', err);
+             this.snackBar.open('Failed to update tour', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
+  }
+
   onLeaveReview(): void {
     if (!this.tour) return;
 
@@ -204,6 +343,35 @@ export class TourDetailsComponent implements OnInit {
     });
   }
 
+  onEditReview(review: Review): void {
+    if (!this.tour) return;
+
+    const dialogRef = this.dialog.open(ReviewDialogComponent, {
+      width: '600px',
+      data: {
+        tourId: this.tour.id,
+        tourName: this.tour.name,
+        review: review
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reviewService.updateReview(review.id, result).subscribe({
+          next: () => {
+            this.loadReviews(this.tour!.id);
+            this.loadReviewStats(this.tour!.id);
+            this.snackBar.open('Review updated successfully.', 'Close', { duration: 3000 });
+          },
+          error: (err) => {
+            console.error('Error updating review:', err);
+            this.snackBar.open('Failed to update review.', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
+  }
+
   getRatingStars(rating: number): string[] {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -213,8 +381,24 @@ export class TourDetailsComponent implements OnInit {
   }
 
   isAuthor(): boolean {
-    const currentUser = this.authService.user$.getValue();
-    return this.tour?.authorId === currentUser.id;
+    return this.tour?.authorId === this.currentUserId;
+  }
+
+  isReviewAuthor(review: Review): boolean {
+    return review.touristId === this.currentUserId;
+  }
+
+  canViewFullTour(): boolean {
+    if (!this.tour) {
+      return false;
+    }
+
+    if (this.isAuthor()) {
+      return true;
+    }
+
+    const allowedRoles = ['guide', 'tourist'];
+    return this.tour.status === 'Published' && allowedRoles.includes(this.currentUserRole);
   }
 
    checkAllExecutions(tourId: number): void {
@@ -268,5 +452,38 @@ export class TourDetailsComponent implements OnInit {
       }
     });
   }
+
+  scrollKeypoints(direction: 'prev' | 'next'): void {
+    const container = this.keypointCarousel?.nativeElement;
+    if (!container) return;
+
+    const scrollAmount = container.clientWidth * 0.85;
+    container.scrollBy({
+      left: direction === 'next' ? scrollAmount : -scrollAmount,
+      behavior: 'smooth'
+    });
+
+    setTimeout(() => this.updateCarouselNav(), 350);
+  }
+
+  onCarouselScroll(): void {
+    this.updateCarouselNav();
+  }
+
+  private updateCarouselNav(): void {
+    const container = this.keypointCarousel?.nativeElement;
+
+    if (!container) {
+      this.canScrollPrev = false;
+      this.canScrollNext = false;
+      return;
+    }
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    this.canScrollPrev = scrollLeft > 8;
+    this.canScrollNext = scrollLeft + clientWidth < scrollWidth - 8;
+  }
 }
+
+
 

@@ -1,45 +1,33 @@
-<div class="home-container">
-  <div class="hero-section">
-    <h1>Explore Published Tours</h1>
-    <p class="subtitle"><span>Discover </span> <span class="highlight">amazing tours</span> from our community</p>
-  </div>
-
-  <div class="tours-section">
-    <div *ngIf="isLoading" class="loading">
-      <p>Loading tours...</p>
+<div class="home-page">
+  <section class="home-hero">
+    <div class="home-content">
+      <p class="eyebrow">Your Perfect Journey</p>
+      <h1>Plan unforgettable adventures with carefully curated tours</h1>
+      <span class="accent-bar"></span>
+      <p class="hero-copy">Explore thoughtfully crafted guided tours that deliver authentic experiences for travelers chasing new cities, hidden cafés, and dramatic landscapes.</p>
+      <a class="btn primary" routerLink="/tours">Browse tours</a>
     </div>
+    <div class="hero-visual" aria-hidden="true"></div>
+  </section>
 
-    <div *ngIf="!isLoading && publishedTours.length === 0" class="no-tours">
-      <p>No published tours available yet.</p>
+  <footer class="home-footer">
+    <div>
+      <p class="footer-title">Explorer</p>
+      <p class="footer-copy">Plan weekend getaways and immersive tours led by guides from your own community.</p>
     </div>
-
-    <div *ngIf="!isLoading && publishedTours.length > 0" class="tours-grid">
-      <div *ngFor="let tour of publishedTours" class="tour-card" [routerLink]="['/tours', tour.id]">
-        <div class="tour-header">
-          <h3>{{ tour.name }}</h3>
-        </div>
-        
-        <p class="tour-description">{{ tour.description }}</p>
-        
-        <div class="tour-stats">
-          <div class="stat-item">
-            <span class="icon">📏</span>
-            <span>{{ tour.distance | number:'1.2-2' }} km</span>
-          </div>
-          <div class="stat-item">
-            <span class="icon">🏔️</span>
-            <span>{{ tour.difficulty }}</span>
-          </div>
-          <div class="stat-item" *ngIf="tour.keyPoints && tour.keyPoints.length > 0">
-            <span class="icon">📍</span>
-            <span>Starting at: {{ tour.keyPoints[0].name }}</span>
-          </div>
-        </div>
-
-        <div class="tour-tags" *ngIf="tour.tags && tour.tags.length > 0">
-          <span *ngFor="let tag of tour.tags" class="tag">{{ tag }}</span>
-        </div>
+    <div class="footer-links">
+      <a routerLink="/tours">See all tours &rarr;</a>
+      <div class="social-links">
+        <a href="https://www.youtube.com" target="_blank" rel="noopener" aria-label="YouTube" class="social-link">
+          <img src="https://cdn.simpleicons.org/youtube/3f51b5" alt="YouTube icon" />
+        </a>
+        <a href="https://www.instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="social-link">
+          <img src="https://cdn.simpleicons.org/instagram/3f51b5" alt="Instagram icon" />
+        </a>
+        <a href="https://www.facebook.com" target="_blank" rel="noopener" aria-label="Facebook" class="social-link">
+          <img src="https://cdn.simpleicons.org/facebook/3f51b5" alt="Facebook icon" />
+        </a>
       </div>
     </div>
-  </div>
+  </footer>
 </div>

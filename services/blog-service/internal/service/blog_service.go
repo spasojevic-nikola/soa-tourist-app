@@ -2,26 +2,24 @@ package service
 
 import (
 	"context"
-	"errors"
-	"time"
 	"encoding/json"
-	"fmt"     
-	"net/http" 
+	"errors"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
-
-
+	"time"
 
 	"blog-service/internal/dto"
 	"blog-service/internal/models"
 	"blog-service/internal/repository"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	md "github.com/gomarkdown/markdown"
 	mdhtml "github.com/gomarkdown/markdown/html"
-	"go.mongodb.org/mongo-driver/mongo"
 	mdparser "github.com/gomarkdown/markdown/parser"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // BlogService sadrži reference na repository.
@@ -41,54 +39,54 @@ func (s *BlogService) CreateBlog(ctx context.Context, req dto.CreateBlogRequest,
 
 	authURL := fmt.Sprintf("http://auth-service:8084/api/v1/auth/user/%d", authorID)
 	resp, err := http.Get(authURL)
-    
+
 	if err != nil {
 		log.Printf("Warning: Auth service unreachable while creating blog for ID %d: %v", authorID, err)
 		authorUsername = "Unknown Author" // Postavi default
 	} else {
-        defer resp.Body.Close()
-        if resp.StatusCode == http.StatusOK {
-            var userData struct {
-                Username string `json:"username"`
-            }
-            if err := json.NewDecoder(resp.Body).Decode(&userData); err == nil {
-                authorUsername = userData.Username
-            } else {
-                log.Printf("Warning: Failed to parse username from auth response (%s) for ID %d: %v", resp.Status, authorID, err)
-                authorUsername = "Unknown Author"
-            }
-        } else {
-            log.Printf("Warning: Auth service returned status %s for ID %d", resp.Status, authorID)
-            authorUsername = "Unknown Author"
-        }
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			var userData struct {
+				Username string `json:"username"`
+			}
+			if err := json.NewDecoder(resp.Body).Decode(&userData); err == nil {
+				authorUsername = userData.Username
+			} else {
+				log.Printf("Warning: Failed to parse username from auth response (%s) for ID %d: %v", resp.Status, authorID, err)
+				authorUsername = "Unknown Author"
+			}
+		} else {
+			log.Printf("Warning: Auth service returned status %s for ID %d", resp.Status, authorID)
+			authorUsername = "Unknown Author"
+		}
 	}
-	 // 1. Definišemo ekstenzije koje želimo da naš parser podržava
-	 extensions := mdparser.CommonExtensions | mdparser.AutoHeadingIDs | mdparser.Strikethrough
-    
-	 // 2. Kreiramo novi parser sa tim ekstenzijama
-	 p := mdparser.NewWithExtensions(extensions)
+	// 1. Definišemo ekstenzije koje želimo da naš parser podržava
+	extensions := mdparser.CommonExtensions | mdparser.AutoHeadingIDs | mdparser.Strikethrough
+
+	// 2. Kreiramo novi parser sa tim ekstenzijama
+	p := mdparser.NewWithExtensions(extensions)
 	// 1. KONVERZIJA MARKDOWN-a U HTML
-    rawMarkdown := []byte(req.Content)
-    
-    // Konfiguracija HTML renderera (Standardne opcije + otvaranje linkova u novom tabu)
-    opts := mdhtml.RendererOptions{Flags: mdhtml.CommonFlags | mdhtml.HrefTargetBlank}
-    renderer := mdhtml.NewRenderer(opts)
-    
-    // Generisanje HTML-a
-    htmlOutput := md.ToHTML(rawMarkdown, p, renderer)
+	rawMarkdown := []byte(req.Content)
+
+	// Konfiguracija HTML renderera (Standardne opcije + otvaranje linkova u novom tabu)
+	opts := mdhtml.RendererOptions{Flags: mdhtml.CommonFlags | mdhtml.HrefTargetBlank}
+	renderer := mdhtml.NewRenderer(opts)
+
+	// Generisanje HTML-a
+	htmlOutput := md.ToHTML(rawMarkdown, p, renderer)
 
 	blog := &models.Blog{
-		ID:        primitive.NewObjectID(),
-		Title:     req.Title,
-		Content:   req.Content,
-		HTMLContent: string(htmlOutput), // Čuvamo generisani HTML
-		AuthorID:  authorID,
+		ID:             primitive.NewObjectID(),
+		Title:          req.Title,
+		Content:        req.Content,
+		HTMLContent:    string(htmlOutput), // Čuvamo generisani HTML
+		AuthorID:       authorID,
 		AuthorUsername: authorUsername,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),	
-		Images:    req.Images,
-		Comments:  []models.Comment{},
-		Likes:     []uint{},
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		Images:         req.Images,
+		Comments:       []models.Comment{},
+		Likes:          []uint{},
 	}
 
 	if err := s.Repo.CreateBlog(ctx, blog); err != nil {
@@ -101,31 +99,31 @@ func (s *BlogService) CreateBlog(ctx context.Context, req dto.CreateBlogRequest,
 func (s *BlogService) AddComment(ctx context.Context, blogID primitive.ObjectID, req dto.AddCommentRequest, authorID uint) (*models.Comment, error) {
 
 	authURL := fmt.Sprintf("http://auth-service:8084/api/v1/auth/user/%d", authorID)
-    resp, err := http.Get(authURL)
-    if err != nil || resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("failed to fetch username from auth service")
-    }
-	
+	resp, err := http.Get(authURL)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch username from auth service")
+	}
+
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK{
+	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("auth service returned status: %s", resp.Status)
 	}
 
-    var userData struct {
-        Username string `json:"username"`
-    }
-    if err := json.NewDecoder(resp.Body).Decode(&userData); err != nil {
-        return nil, fmt.Errorf("failed to parse username from auth response: %w", err)
-    }
+	var userData struct {
+		Username string `json:"username"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&userData); err != nil {
+		return nil, fmt.Errorf("failed to parse username from auth response: %w", err)
+	}
 
 	newComment := models.Comment{
-		ID:        primitive.NewObjectID(),
-		AuthorID:  authorID,
+		ID:             primitive.NewObjectID(),
+		AuthorID:       authorID,
 		AuthorUsername: userData.Username,
-		Text:      req.Text,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Text:           req.Text,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 
 	update := bson.M{"$push": bson.M{"comments": newComment}}
@@ -180,57 +178,57 @@ func (s *BlogService) GetBlogByID(ctx context.Context, id primitive.ObjectID) (*
 }
 
 func (s *BlogService) GetFeedForUser(ctx context.Context, userID uint) ([]models.Blog, error) {
-    // 1. KREIRANJE HTTP ZAHTEVA KA FOLLOWER SERVICE-u
-    // U realnoj aplikaciji, URL bi bio u konfiguraciji (npr. env varijabla)
-    //followerServiceURL := "http://follower-service:8080/api/followers/following"
+	// 1. KREIRANJE HTTP ZAHTEVA KA FOLLOWER SERVICE-u
+	// U realnoj aplikaciji, URL bi bio u konfiguraciji (npr. env varijabla)
+	//followerServiceURL := "http://follower-service:8080/api/followers/following"
 	followerServiceBaseURL := os.Getenv("FOLLOWER_SERVICE_URL")
 
 	if followerServiceBaseURL == "" {
-        log.Fatal("FATAL: FOLLOWER_SERVICE_URL environment variable is not set.")
-    }
+		log.Fatal("FATAL: FOLLOWER_SERVICE_URL environment variable is not set.")
+	}
 
-    // Sastavljamo pun URL
-    followerServiceURL := fmt.Sprintf("%s/api/followers/following", followerServiceBaseURL)
+	// Sastavljamo pun URL
+	followerServiceURL := fmt.Sprintf("%s/api/followers/following", followerServiceBaseURL)
 
-    req, err := http.NewRequestWithContext(ctx, "GET", followerServiceURL, nil)
-    if err != nil {
-        return nil, fmt.Errorf("failed to create request to follower service: %w", err)
-    }
+	req, err := http.NewRequestWithContext(ctx, "GET", followerServiceURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request to follower service: %w", err)
+	}
 
-    // 2. PROSLEĐIVANJE IDENTITETA KORISNIKA
-    // Follower service ocekuje X-User-ID header koji postavlja API Gateway
-    // Blog Service mora da prosledi ovaj identitet.
-    req.Header.Set("X-User-ID", fmt.Sprintf("%d", userID))
+	// 2. PROSLEĐIVANJE IDENTITETA KORISNIKA
+	// Follower service ocekuje X-User-ID header koji postavlja API Gateway
+	// Blog Service mora da prosledi ovaj identitet.
+	req.Header.Set("X-User-ID", fmt.Sprintf("%d", userID))
 
-    // 3. SLANJE ZAHTEVA I OBRADA ODGOVORA
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-        // Ovo se desava ako je Follower Service pao ili mreža ne radi
-        return nil, fmt.Errorf("follower service is unavailable: %w", err)
-    }
-    defer resp.Body.Close()
+	// 3. SLANJE ZAHTEVA I OBRADA ODGOVORA
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		// Ovo se desava ako je Follower Service pao ili mreža ne radi
+		return nil, fmt.Errorf("follower service is unavailable: %w", err)
+	}
+	defer resp.Body.Close()
 
-    if resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("follower service returned status: %s", resp.Status)
-    }
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("follower service returned status: %s", resp.Status)
+	}
 
-    var followedIDs []uint
-    if err := json.NewDecoder(resp.Body).Decode(&followedIDs); err != nil {
-        return nil, fmt.Errorf("failed to decode response from follower service: %w", err)
-    }
+	var followedIDs []uint
+	if err := json.NewDecoder(resp.Body).Decode(&followedIDs); err != nil {
+		return nil, fmt.Errorf("failed to decode response from follower service: %w", err)
+	}
 
-    // 4. UKLJUCjEM I BLOGOVE SAMOG KORISNIKA
-    // Korisnik uvek treba da vidi i svoje blogove na feed-u.
-    followedIDs = append(followedIDs, userID)
+	// 4. UKLJUCjEM I BLOGOVE SAMOG KORISNIKA
+	// Korisnik uvek treba da vidi i svoje blogove na feed-u.
+	followedIDs = append(followedIDs, userID)
 
-    // Ako korisnik ne prati nikoga, vrati samo njegove blogove
-    if len(followedIDs) == 0 {
-        followedIDs = []uint{userID}
-    }
+	// Ako korisnik ne prati nikoga, vrati samo njegove blogove
+	if len(followedIDs) == 0 {
+		followedIDs = []uint{userID}
+	}
 
-    // 5. POZIV REPOSITORY-JA SA LISTOM ID-JEVA
-    return s.Repo.GetBlogsByAuthorIDs(ctx, followedIDs)
+	// 5. POZIV REPOSITORY-JA SA LISTOM ID-JEVA
+	return s.Repo.GetBlogsByAuthorIDs(ctx, followedIDs)
 }
 
 // UpdateComment ažurira tekst komentara (samo autor komentara) koristeći ID-je.
@@ -310,14 +308,14 @@ func (s *BlogService) UpdateBlog(ctx context.Context, blogID primitive.ObjectID,
 
 	// 2. KONVERZIJA MARKDOWN-a U HTML (kao kod kreiranja)
 	rawMarkdown := []byte(req.Content)
-	
+
 	// Konfiguracija HTML renderera (Standardne opcije + otvaranje linkova u novom tabu)
 	opts := mdhtml.RendererOptions{Flags: mdhtml.CommonFlags | mdhtml.HrefTargetBlank}
 	renderer := mdhtml.NewRenderer(opts)
-	
+
 	// Generisanje HTML-a
 	htmlOutput := md.ToHTML(rawMarkdown, nil, renderer)
-	
+
 	currentTime := time.Now()
 
 	// 3. KREIRANJE UPDATE DOKUMENTA
@@ -327,7 +325,7 @@ func (s *BlogService) UpdateBlog(ctx context.Context, blogID primitive.ObjectID,
 			"content":     req.Content,
 			"htmlContent": string(htmlOutput), // Čuvamo generisani HTML
 			"images":      req.Images,
-			"updatedAt":   currentTime,      // Ažuriranje vremena izmene
+			"updatedAt":   currentTime, // Ažuriranje vremena izmene
 		},
 	}
 
@@ -335,10 +333,35 @@ func (s *BlogService) UpdateBlog(ctx context.Context, blogID primitive.ObjectID,
 	if err := s.Repo.UpdateBlog(ctx, blogID, update); err != nil {
 		return nil, errors.New("failed to update blog in database")
 	}
-	
+
 	// 5. VRAĆANJE AŽURIRANOG OBJEKTA
-	
+
 	// U idealnom slučaju, ažurirali bismo lokalni objekt, ali da bismo bili 100% sigurni
 	// da je sve u bazi ispravno, najbolje je ponovo ga učitati.
 	return s.Repo.GetBlogByID(ctx, blogID)
+}
+
+// DeleteBlog removes a blog post authored by the given user.
+func (s *BlogService) DeleteBlog(ctx context.Context, blogID primitive.ObjectID, userID uint) error {
+	blog, err := s.Repo.GetBlogByID(ctx, blogID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.New("blog not found")
+		}
+		return errors.New("failed to retrieve blog")
+	}
+
+	if blog == nil {
+		return errors.New("blog not found")
+	}
+
+	if blog.AuthorID != userID {
+		return errors.New("unauthorized: only the author can delete the blog")
+	}
+
+	if err := s.Repo.DeleteBlog(ctx, blogID); err != nil {
+		return errors.New("failed to delete blog")
+	}
+
+	return nil
 }

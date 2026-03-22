@@ -40,13 +40,15 @@ func main() {
 
 	r := mux.NewRouter()
 	apiV1 := r.PathPrefix("/api/v1/tours").Subrouter()
+	apiV1.Use(api.UserContextMiddleware)
 
 	// Tour routes - API Gateway sada radi JWT validaciju i prosleđuje X-User-* headere
 	apiV1.HandleFunc("/create-tour", apiHandler.CreateTour).Methods("POST")
 	apiV1.HandleFunc("", apiHandler.GetMyTours).Methods("GET")
 	apiV1.HandleFunc("/published", apiHandler.GetAllPublishedTours).Methods("GET")
 	apiV1.HandleFunc("/{tourId}", apiHandler.GetTourByID).Methods("GET")
-	apiV1.HandleFunc("/{tourId}/publish", apiHandler.PublishTour).Methods("PUT")
+	apiV1.HandleFunc("/{tourId}", apiHandler.UpdateTour).Methods("PUT")
+        apiV1.HandleFunc("/{tourId}/publish", apiHandler.PublishTour).Methods("PUT")
 	apiV1.HandleFunc("/{tourId}/archive", apiHandler.ArchiveTour).Methods("PUT")
 	apiV1.HandleFunc("/{tourId}/activate", apiHandler.ActivateTour).Methods("PUT")
 	apiV1.HandleFunc("/{tourId}/duration", apiHandler.AddDuration).Methods("POST")

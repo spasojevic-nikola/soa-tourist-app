@@ -265,3 +265,30 @@ func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
 
 	return earthRadius * c
 }
+
+func (s *TourService) UpdateTour(tourID uint, authorID uint, req dto.UpdateTourRequest) (*models.Tour, error) {
+    tour, err := s.Repo.FindByID(tourID)
+    if err != nil {
+        return nil, err
+    }
+    if tour.AuthorID != authorID {
+        return nil, errors.New("unauthorized")
+    }
+    if req.Name != "" {
+        tour.Name = req.Name
+    }
+    if req.Description != "" {
+        tour.Description = req.Description
+    }
+    if req.Difficulty != "" {
+        tour.Difficulty = models.TourDifficulty(req.Difficulty)
+    }
+    if req.Tags != nil {
+        tour.Tags = req.Tags
+    }
+    err = s.Repo.UpdateTourBase(tour)
+    if err != nil {
+        return nil, err
+    }
+    return tour, nil
+}

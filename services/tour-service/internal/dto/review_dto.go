@@ -26,10 +26,8 @@ type ReviewResponse struct {
 	TouristID       uint      `json:"touristId"`
 	TouristName     string    `json:"touristName"`     // From stakeholder service
 	TouristUsername string    `json:"touristUsername"` // From stakeholder service
-	Rating          int       `json:"rating"`
-	Comment         string    `json:"comment"`
-	VisitDate       time.Time `json:"visitDate"`
-	Images          []string  `json:"images"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
+        TouristProfileImage string `json:"touristProfileImage"` // From stakeholder service
+
+
+
 }

@@ -20,6 +20,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Health check endpoint
+app.get('/api/v1/auth/health-check', HealthController.healthCheck);
+
 // Health check route
 app.get('/health', HealthController.healthCheck);
 

@@ -35,10 +35,11 @@ func (s *ReviewService) CreateReview(touristID uint, req dto.CreateReviewRequest
 	}
 
 	// Get tourist username from stakeholders service
-	username, err := s.getUserUsername(touristID)
+	username, profileImage, err := s.getTouristData(touristID)
 	if err != nil {
 		// If we can't get username, use a default
 		username = fmt.Sprintf("User_%d", touristID)
+		profileImage = ""
 	}
 
 	// Convert images array to JSON string
@@ -48,13 +49,14 @@ func (s *ReviewService) CreateReview(touristID uint, req dto.CreateReviewRequest
 	}
 
 	review := &models.Review{
-		TourID:          req.TourID,
-		TouristID:       touristID,
-		TouristUsername: username,
-		Rating:          req.Rating,
-		Comment:         req.Comment,
-		VisitDate:       req.VisitDate,
-		Images:          string(imagesJSON),
+		TourID:              req.TourID,
+		TouristID:           touristID,
+		TouristUsername:     username,
+		TouristProfileImage: profileImage,
+		Rating:              req.Rating,
+		Comment:             req.Comment,
+		VisitDate:           req.VisitDate,
+		Images:              string(imagesJSON),
 	}
 
 	err = s.reviewRepo.Create(review)
@@ -72,7 +74,22 @@ func (s *ReviewService) GetReviewByID(id uint) (*models.Review, error) {
 
 // GetReviewsByTourID retrieves all reviews for a tour
 func (s *ReviewService) GetReviewsByTourID(tourID uint) ([]models.Review, error) {
-	return s.reviewRepo.FindByTourID(tourID)
+	reviews, err := s.reviewRepo.FindByTourID(tourID)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range reviews {
+		if reviews[i].TouristProfileImage == "" {
+			_, profileImage, err := s.getTouristData(reviews[i].TouristID)
+			if err == nil && profileImage != "" {
+				reviews[i].TouristProfileImage = profileImage
+				s.reviewRepo.Update(&reviews[i])
+			}
+		}
+	}
+
+	return reviews, nil
 }
 
 // GetReviewsByTouristID retrieves all reviews by a tourist
@@ -151,37 +168,38 @@ func (s *ReviewService) GetTourRatingStats(tourID uint) (map[string]interface{},
 	}, nil
 }
 
-// getUserUsername fetches username from stakeholders service
-func (s *ReviewService) getUserUsername(userID uint) (string, error) {
+// getTouristData fetches username from stakeholders service
+func (s *ReviewService) getTouristData(userID uint) (string, string, error) {
 	url := fmt.Sprintf("http://stakeholders-service:8080/api/v1/users/batch?ids=%d", userID)
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch user: %w", err)
+		return "", "", fmt.Errorf("failed to fetch user: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("user not found: status %d", resp.StatusCode)
+		return "", "", fmt.Errorf("user not found: status %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response: %w", err)
+		return "", "", fmt.Errorf("failed to read response: %w", err)
 	}
 
 	var users []struct {
-		ID       uint   `json:"id"`
-		Username string `json:"username"`
+		ID           uint   `json:"id"`
+		Username     string `json:"username"`
+		ProfileImage string `json:"profile_image"`
 	}
 
 	if err := json.Unmarshal(body, &users); err != nil {
-		return "", fmt.Errorf("failed to parse users: %w", err)
+		return "", "", fmt.Errorf("failed to parse users: %w", err)
 	}
 
 	if len(users) == 0 {
-		return "", fmt.Errorf("user not found")
+		return "", "", fmt.Errorf("user not found")
 	}
 
-	return users[0].Username, nil
+	return users[0].Username, users[0].ProfileImage, nil
 }

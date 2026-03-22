@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"blog-service/internal/dto"
@@ -24,21 +23,6 @@ func NewHandler(service *service.BlogService) *Handler {
 	return &Handler{Service: service}
 }
 
-// getUserIDFromHeader izvlači User ID iz X-User-ID headera (postavljenog od API Gateway-a)
-func getUserIDFromHeader(r *http.Request) (uint, error) {
-	userIDStr := r.Header.Get("X-User-ID")
-	if userIDStr == "" {
-		return 0, nil // Ili možeš vratiti grešku ako je obavezno
-	}
-
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
-	if err != nil {
-		return 0, err
-	}
-
-	return uint(userID), nil
-}
-
 // CreateBlog endpoint za kreiranje bloga
 func (h *Handler) CreateBlog(w http.ResponseWriter, r *http.Request) {
 
@@ -54,12 +38,7 @@ func (h *Handler) CreateBlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Čitaj userID iz headera umesto iz context-a
-	authorID, err := getUserIDFromHeader(r)
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	authorID := r.Context().Value("userID").(uint)
 
 	blog, err := h.Service.CreateBlog(r.Context(), req, authorID)
 	if err != nil {
@@ -90,11 +69,7 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authorID, err := getUserIDFromHeader(r)
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	authorID := r.Context().Value("userID").(uint)
 
 	vars := mux.Vars(r)
 	idParam := vars["id"]
@@ -116,11 +91,7 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 // ToggleLike endpoint za lajkovanje/unlajkovanje
 func (h *Handler) ToggleLike(w http.ResponseWriter, r *http.Request) {
-	userID, err := getUserIDFromHeader(r)
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	userID := r.Context().Value("userID").(uint)
 
 	vars := mux.Vars(r)
 	idParam := vars["id"]
@@ -172,11 +143,12 @@ func (h *Handler) GetAllBlogs(w http.ResponseWriter, r *http.Request) {
 		"endpoint": "/api/v1/blogs",
 		"method":   "GET",
 	}).Info("Get all blogs request received")
-	// Izvuci ID ulogovanog korisnika iz headera (opcionalno za GET)
-	userID, err := getUserIDFromHeader(r)
-	if err != nil {
-		log.Warn("Invalid user ID in header, proceeding without user context")
-		userID = 0 // Anonymous user
+	// Izvuci ID ulogovanog korisnika iz konteksta
+	userID, ok := r.Context().Value("userID").(uint)
+	if !ok {
+		log.Error("User ID not found in context")
+		http.Error(w, "User ID not found in context", http.StatusUnauthorized)
+		return
 	}
 
 	// Pozovi novu logiku servisa
@@ -261,11 +233,7 @@ func (h *Handler) UpdateBlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := getUserIDFromHeader(r)
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	userID := r.Context().Value("userID").(uint)
 
 	vars := mux.Vars(r)
 	idParam := vars["id"]
@@ -294,6 +262,33 @@ func (h *Handler) UpdateBlog(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(blog)
 }
 
+// DeleteBlog endpoint for removing a blog authored by the current user.
+func (h *Handler) DeleteBlog(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(uint)
+	vars := mux.Vars(r)
+	idParam := vars["id"]
+
+	blogID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "Invalid blog ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Service.DeleteBlog(r.Context(), blogID, userID); err != nil {
+		switch {
+		case strings.Contains(err.Error(), "not found"):
+			http.Error(w, err.Error(), http.StatusNotFound)
+		case strings.Contains(err.Error(), "unauthorized"):
+			http.Error(w, err.Error(), http.StatusForbidden)
+		default:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // UpdateComment endpoint za ažuriranje komentara
 func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
 	var req dto.UpdateCommentRequest
@@ -302,11 +297,7 @@ func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := getUserIDFromHeader(r)
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	userID := r.Context().Value("userID").(uint)
 	vars := mux.Vars(r)
 
 	// Dohvatanje Blog ID-ja
@@ -342,4 +333,30 @@ func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(comment)
+}
+
+// GetAllPublishedBlogs returns every blog regardless of follow graph (used for public listings)
+func (h *Handler) GetAllPublishedBlogs(w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{
+		"endpoint": "/api/v1/blogs/published",
+		"method":   "GET",
+	}).Info("Get all published blogs request received")
+
+	blogs, err := h.Service.GetAllBlogs(r.Context())
+	if err != nil {
+		log.WithFields(log.Fields{
+			"endpoint": "/api/v1/blogs/published",
+			"error":    err.Error(),
+		}).Error("Failed to fetch published blogs")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.WithFields(log.Fields{
+		"endpoint":   "/api/v1/blogs/published",
+		"blogsCount": len(blogs),
+	}).Info("Published blogs fetched successfully")
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(blogs)
 }
