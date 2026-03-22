@@ -4,6 +4,7 @@ export interface Review {
   touristId: number;
   touristName?: string;
   touristUsername?: string;
+  touristProfileImage?: string;
   rating: number; // 1-5
   comment: string;
   visitDate: string;

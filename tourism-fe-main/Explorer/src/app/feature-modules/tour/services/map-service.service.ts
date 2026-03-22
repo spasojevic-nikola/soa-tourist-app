@@ -1,37 +1,67 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';   
-import { firstValueFrom } from 'rxjs';   
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { environment } from 'src/env/environment';
+
+interface ReverseGeocodeResponse {
+  city?: string;
+  locality?: string;
+  principalSubdivision?: string;
+  countryName?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class MapService {
+  private readonly locationCache = new Map<string, string>();
   
-  constructor(private http: HttpClient) {}  // ← Inject HttpClient
+  constructor(private http: HttpClient) {}
 
   async reverseGeocode(lat: number, lng: number): Promise<string> {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-    
+    const cacheKey = this.buildCacheKey(lat, lng);
+    const cached = this.locationCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const params = {
+      latitude: lat.toString(),
+      longitude: lng.toString(),
+      localityLanguage: 'en'
+    };
+
     try {
-      // Koristi firstValueFrom umjesto toPromise()
-      const response: any = await firstValueFrom(this.http.get(url));
-      
-      if (response && response.address) {
-        const addr = response.address;
-        const addressParts = [];
-        
-        if (addr.road) addressParts.push(addr.road);
-        if (addr.house_number) addressParts.push(addr.house_number);
-        if (addr.city || addr.town || addr.village) addressParts.push(addr.city || addr.town || addr.village);
-        if (addr.country) addressParts.push(addr.country);
-        
-        return addressParts.join(', ');
-      }
-      
-      return 'Address not found';
+      const response = await firstValueFrom(
+        this.http.get<ReverseGeocodeResponse>(environment.reverseGeocodeApiHost, { params })
+      );
+      const formatted = this.formatAddress(response);
+      this.locationCache.set(cacheKey, formatted);
+      return formatted;
     } catch (error) {
       console.error('Reverse geocoding failed:', error);
       return 'Address not available';
     }
+  }
+
+  private buildCacheKey(lat: number, lng: number): string {
+    return `${lat.toFixed(5)},${lng.toFixed(5)}`;
+  }
+
+  private formatAddress(data: ReverseGeocodeResponse): string {
+    const addressParts: string[] = [];
+
+    const locality = data.locality || data.city;
+    if (locality) {
+      addressParts.push(locality);
+    } else if (data.principalSubdivision) {
+      addressParts.push(data.principalSubdivision);
+    }
+
+    if (data.countryName) {
+      addressParts.push(data.countryName);
+    }
+
+    return addressParts.length ? addressParts.join(', ') : 'Address not found';
   }
 }

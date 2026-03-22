@@ -57,6 +57,11 @@ getAllBlogs(): Observable<Blog[]> {
   return this.http.get<Blog[]>(this.apiUrl, { headers });
 }
 
+getAllPublishedBlogs(): Observable<Blog[]> {
+  const headers = this.createAuthHeaders();
+  return this.http.get<Blog[]>(`${this.apiUrl}/published`, { headers });
+}
+
 getBlogById(id: string): Observable<Blog> {
   const headers = this.createAuthHeaders();
   return this.http.get<Blog>(`${this.apiUrl}/${id}`, { headers });
@@ -74,5 +79,12 @@ updateBlog(blogId: string, payload: UpdateBlogPayload): Observable<Blog> {
         const url = `${this.apiUrl}/${blogId}/comments/${commentId}`;
 
         return this.http.put<BlogComment>(url, payload, { headers });
+    }
+
+    deleteBlog(blogId: string): Observable<void> {
+      const headers = this.createAuthHeaders();
+      const url = `${this.apiUrl}/${blogId}`;
+
+      return this.http.delete<void>(url, { headers });
     }
 }

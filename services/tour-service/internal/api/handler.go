@@ -257,3 +257,25 @@ func (h *Handler) GetTourByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tour)
 }
+
+func (h *Handler) UpdateTour(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	tourIDStr := vars["tourId"]
+	tourID, err := strconv.Atoi(tourIDStr)
+	if err != nil {
+		http.Error(w, "invalid tour ID", http.StatusBadRequest)
+		return
+	}
+	userID, _ := r.Context().Value("userID").(uint)
+	var req dto.UpdateTourRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	tour, err := h.TourService.UpdateTour(uint(tourID), userID, req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(tour)
+}

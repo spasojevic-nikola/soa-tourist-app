@@ -54,6 +54,7 @@ patchFormWithExistingData(): void {
     // Ako postoji slika, postavi preview
     if (existing.image && typeof existing.image === 'string') {
       this.imagePreview = existing.image;
+      this.keyPointsForm.patchValue({ image: existing.image });
     }
 
     this.isEditMode = true;

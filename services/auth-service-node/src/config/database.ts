@@ -15,7 +15,7 @@ export const AppDataSource = new DataSource({
   password: process.env.AUTH_DB_PASSWORD || 'password',
   database: process.env.AUTH_DB_NAME || 'authdb',
   entities: [User],
-  synchronize: false,
+  synchronize: true,
   logging: false,
 });
 

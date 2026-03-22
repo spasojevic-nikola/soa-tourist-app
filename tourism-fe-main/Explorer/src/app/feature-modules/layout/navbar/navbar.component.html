@@ -11,31 +11,32 @@
           <mat-icon>expand_more</mat-icon>
         </button>
 
-        <button *ngIf="user && (user.role === 'author')" mat-button [matMenuTriggerFor]="tourMenu">
+        <button *ngIf="user && (user.role === 'author' || user.role === 'guide')" mat-button [matMenuTriggerFor]="tourMenu">
           <span>Tours</span>
           <mat-icon>expand_more</mat-icon>
         </button>
 
         <button *ngIf="user && user.username !== '' && user.role === 'tourist'" mat-button [routerLink]="['/position-simulator']">
           <mat-icon>location_on</mat-icon>
-          <span>Simulator pozicije</span>
+          <span>Position Simulator</span>
         </button>
-
-        <mat-form-field *ngIf="user && user.username !== ''" class="search-form-field" appearance="outline">
-          <mat-icon matPrefix>search</mat-icon>
-          <input type="text"
-                 matInput
-                 [formControl]="searchControl"
-                 [matAutocomplete]="auto"
-                 placeholder="Search users...">
-          
-          <button *ngIf="searchControl.value" mat-icon-button matSuffix (click)="clearSearch()" aria-label="Clear">
-            <mat-icon>close</mat-icon>
-          </button>
-    
-        </mat-form-field>
-
       </div>
+    </div>
+
+    <div class="search-section">
+      <mat-form-field *ngIf="user && user.username !== ''" class="search-form-field" appearance="outline" floatLabel="always">
+        <mat-icon matPrefix>search</mat-icon>
+        <input type="text"
+               matInput
+               [formControl]="searchControl"
+               [matAutocomplete]="auto"
+               placeholder="Search users...">
+        
+        <button *ngIf="searchControl.value" mat-icon-button matSuffix (click)="clearSearch()" aria-label="Clear">
+          <mat-icon>close</mat-icon>
+        </button>
+  
+      </mat-form-field>
     </div>
 
     <div class="user-buttons">
@@ -48,8 +49,8 @@
             [matBadge]="cartItemCount$ | async" [matBadgeHidden]="(cartItemCount$ | async) === 0" matBadgeColor="warn">
         <mat-icon>shopping_cart</mat-icon>
     </button>
-          <button mat-icon-button [routerLink]="['/profile']" aria-label="User Profile">
-            <mat-icon>account_circle</mat-icon>
+          <button mat-icon-button class="profile-avatar-btn" [routerLink]="['/profile']" aria-label="User Profile">
+            <img [src]="profileAvatarUrl" alt="User avatar">
           </button>
 
         <button color="accent" mat-raised-button (click)="onLogout()">Log out</button>
@@ -85,7 +86,7 @@
 <mat-autocomplete #auto="matAutocomplete">
   <mat-option *ngFor="let foundUser of filteredUsers$ | async" [routerLink]="['/profile', foundUser.id]">
     <div class="search-result-item">
-      <img [src]="foundUser.profile_image || 'assets/images/default-avatar.png'" class="avatar">
+      <img [src]="foundUser.profile_image || 'assets/images/default_profile.png'" class="avatar">
       <span>{{ foundUser.first_name }} {{ foundUser.last_name }} (@{{ foundUser.username }})</span>
     </div>
   </mat-option>

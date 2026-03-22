@@ -58,12 +58,14 @@ func main() {
 
 	// API Gateway sada radi JWT validaciju, mi samo čitamo X-User-* headere
 	apiV1.HandleFunc("", blogHandler.CreateBlog).Methods("POST")
-	apiV1.HandleFunc("/{id}/comments", blogHandler.AddComment).Methods("POST")
-	apiV1.HandleFunc("/{id}/like", blogHandler.ToggleLike).Methods("POST")
+	apiV1.HandleFunc("/{id:[0-9a-fA-F]{24}}/comments", blogHandler.AddComment).Methods("POST")
+	apiV1.HandleFunc("/{id:[0-9a-fA-F]{24}}/like", blogHandler.ToggleLike).Methods("POST")
 	apiV1.HandleFunc("", blogHandler.GetAllBlogs).Methods("GET")
-	apiV1.HandleFunc("/{id}", blogHandler.GetBlogByID).Methods("GET")
-	apiV1.HandleFunc("/{id}", blogHandler.UpdateBlog).Methods("PUT")
-	apiV1.HandleFunc("/{id}/comments/{commentId}", blogHandler.UpdateComment).Methods("PUT")
+	apiV1.HandleFunc("/published", blogHandler.GetAllPublishedBlogs).Methods("GET")
+	apiV1.HandleFunc("/{id:[0-9a-fA-F]{24}}", blogHandler.GetBlogByID).Methods("GET")
+	apiV1.HandleFunc("/{id:[0-9a-fA-F]{24}}", blogHandler.UpdateBlog).Methods("PUT")
+	apiV1.HandleFunc("/{id:[0-9a-fA-F]{24}}", blogHandler.DeleteBlog).Methods("DELETE")
+	apiV1.HandleFunc("/{id:[0-9a-fA-F]{24}}/comments/{commentId:[0-9a-fA-F]{24}}", blogHandler.UpdateComment).Methods("PUT")
 
 	// Health check
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

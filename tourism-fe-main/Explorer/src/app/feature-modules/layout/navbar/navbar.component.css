@@ -13,6 +13,14 @@
   display: flex;
   align-items: center;
   gap: 1rem; /* Razmak između "Explorer" i dugmadi */
+  flex: 1; /* Zauzima prostor na levoj strani */
+}
+
+/* Srednja sekcija za pretragu */
+.search-section {
+  flex: 2; /* Zauzima više prostora i centrira se */
+  display: flex;
+  justify-content: center;
 }
 
 /* Desna sekcija (dugmad za korisnika) */
@@ -20,6 +28,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1; /* Zauzima prostor na desnoj strani */
+  justify-content: flex-end; /* Poravnava dugmad na desno */
 }
 
 /* --- Elementi navigacije --- */
@@ -49,52 +59,90 @@
 }
 
 button[mat-icon-button] {
-  width: 48px;
-  height: 48px;
+  width: 39px;
+  height: 40px;
 }
 
 button[mat-icon-button] mat-icon {
   transform: scale(1.2);
 }
 
+.profile-avatar-btn {
+  padding: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: transparent;
+  width: 36px;
+  height: 36px;
+}
+
+.profile-avatar-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
 /* --- Polje za pretragu (Search Bar) --- */
 .search-form-field {
   width: 250px;
   margin-left: 20px;
-  vertical-align: middle; /* Bolje poravnanje sa dugmadima */
 }
 
 /* Stilovi za Angular Material komponente (koristi se ::ng-deep) */
-::ng-deep .search-form-field .mdc-notched-outline > * {
-  border-color: rgba(255, 255, 255, 0.4) !important;
-}
-::ng-deep .search-form-field .mat-mdc-form-field-icon-prefix,
-::ng-deep .search-form-field .mat-mdc-input-element,
-::ng-deep .search-form-field .mat-mdc-floating-label {
-  color: #fff !important;
-  text-align: center; 
-}
 ::ng-deep .search-form-field .mat-mdc-form-field-subscript-wrapper {
   display: none;
 }
-::ng-deep .search-form-field .mat-mdc-form-field-flex {
+
+::ng-deep .search-form-field .mat-mdc-text-field-wrapper {
   height: 48px;
-  padding-top: 12px !important;
-  padding-bottom: 12px !important;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: background-color 0.2s;
 }
 
-/* Stil za 'x' (clear) dugme */
-::ng-deep .search-form-field .mat-mdc-form-field-icon-suffix {
-  color: rgba(255, 255, 255, 0.7) !important;
+::ng-deep .search-form-field .mat-mdc-text-field-wrapper:hover {
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
-/* Efekat kada se klikne na polje (fokus) */
 ::ng-deep .search-form-field.mat-focused .mat-mdc-text-field-wrapper {
-  background-color: rgba(0, 0, 0, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.25);
 }
+
+::ng-deep .search-form-field .mdc-notched-outline > * {
+  border-color: transparent !important;
+}
+
 ::ng-deep .search-form-field.mat-focused .mdc-notched-outline > * {
-  border-color: #fff !important;
-  border-width: 2px !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+::ng-deep .search-form-field .mat-mdc-form-field-icon-prefix,
+::ng-deep .search-form-field .mat-mdc-form-field-icon-suffix {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+::ng-deep .search-form-field .mat-mdc-input-element {
+  color: #fff !important;
+  caret-color: #fff !important;
+  text-align: center; /* Centriranje teksta */
+}
+
+::ng-deep .search-form-field.mat-focused .mat-mdc-input-element {
+  text-align: left; /* Vraćanje poravnanja pri fokusu */
+}
+
+::ng-deep .search-form-field .mat-mdc-floating-label {
+  color: rgba(255, 255, 255, 0.8) !important;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: 0 !important;
+}
+
+::ng-deep .search-form-field.mat-form-field-should-float .mat-mdc-floating-label {
+  transform: translateY(-120%);
+  font-size: 0.75em;
 }
 
 /* --- Padajući meni za rezultate pretrage (Autocomplete) --- */

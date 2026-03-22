@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"context"
 	"blog-service/internal/models"
+	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,7 +17,8 @@ type BlogRepository interface {
 	GetAll(ctx context.Context) ([]models.Blog, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*models.Blog, error)
 	GetBlogsByAuthorIDs(ctx context.Context, authorIDs []uint) ([]models.Blog, error)
-	UpdateOne(ctx context.Context, filter bson.M, update bson.M) error 
+	UpdateOne(ctx context.Context, filter bson.M, update bson.M) error
+	DeleteBlog(ctx context.Context, id primitive.ObjectID) error
 }
 
 // mongoBlogRepository je konkretna implementacija BlogRepository koristeći MongoDB.
@@ -68,23 +69,24 @@ func (r *mongoBlogRepository) GetAll(ctx context.Context) ([]models.Blog, error)
 	}
 	return blogs, nil
 }
-//samo blogove korisnika koje pratim
+
+// samo blogove korisnika koje pratim
 func (r *mongoBlogRepository) GetBlogsByAuthorIDs(ctx context.Context, authorIDs []uint) ([]models.Blog, error) {
-    // Kreiramo filter koji traži blogove gde je 'authorId' u nizu 'authorIDs'
-    // Ovo je ekvivalent SQL-ovog "WHERE authorId IN (id1, id2, ...)"
-    filter := bson.M{"authorId": bson.M{"$in": authorIDs}}
+	// Kreiramo filter koji traži blogove gde je 'authorId' u nizu 'authorIDs'
+	// Ovo je ekvivalent SQL-ovog "WHERE authorId IN (id1, id2, ...)"
+	filter := bson.M{"authorId": bson.M{"$in": authorIDs}}
 
-    cursor, err := r.collection.Find(ctx, filter)
-    if err != nil {
-        return nil, err
-    }
-    defer cursor.Close(ctx)
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
-    var blogs []models.Blog
-    if err = cursor.All(ctx, &blogs); err != nil {
-        return nil, err
-    }
-    return blogs, nil
+	var blogs []models.Blog
+	if err = cursor.All(ctx, &blogs); err != nil {
+		return nil, err
+	}
+	return blogs, nil
 }
 
 // GetByID vraća blog po ID-ju (slično GetBlogByID).
@@ -98,7 +100,12 @@ func (r *mongoBlogRepository) GetByID(ctx context.Context, id primitive.ObjectID
 }
 
 func (r *mongoBlogRepository) UpdateOne(ctx context.Context, filter bson.M, update bson.M) error {
-    // MongoDB UpdateOne metoda je idealna za ovo
+	// MongoDB UpdateOne metoda je idealna za ovo
 	_, err := r.collection.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (r *mongoBlogRepository) DeleteBlog(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
 	return err
 }

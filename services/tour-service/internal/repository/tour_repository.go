@@ -94,3 +94,7 @@ func (r *TourRepository) FindAllPublished() ([]models.Tour, error) {
 	}
 	return tours, nil
 }
+
+func (r *TourRepository) UpdateTourBase(tour *models.Tour) error {
+    return r.DB.Save(tour).Error
+}

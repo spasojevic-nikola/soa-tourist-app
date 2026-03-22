@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"tour-service/internal/dto"
@@ -29,13 +30,13 @@ func (h *ReviewHandler) CreateReview(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.CreateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		fmt.Println("ERR::", err.Error()); http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	review, err := h.reviewService.CreateReview(touristID, req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Println("ERR::", err.Error()); http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -99,13 +100,13 @@ func (h *ReviewHandler) UpdateReview(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		fmt.Println("ERR::", err.Error()); http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	review, err := h.reviewService.UpdateReview(uint(reviewID), touristID, req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Println("ERR::", err.Error()); http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -130,7 +131,7 @@ func (h *ReviewHandler) DeleteReview(w http.ResponseWriter, r *http.Request) {
 
 	err = h.reviewService.DeleteReview(uint(reviewID), touristID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Println("ERR::", err.Error()); http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
