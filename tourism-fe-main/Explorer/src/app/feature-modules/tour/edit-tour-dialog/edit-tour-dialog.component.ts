@@ -20,6 +20,7 @@ export class EditTourDialogComponent implements OnInit {
       name: [data.tour.name, [Validators.required, Validators.minLength(5)]],
       description: [data.tour.description, [Validators.required, Validators.minLength(20)]],
       difficulty: [data.tour.difficulty, Validators.required],
+      price: [data.tour.price || 0, [Validators.required, Validators.min(0)]],
       tags: [data.tour.tags ? data.tour.tags.join(', ') : '', Validators.required]
     });
   }
@@ -41,6 +42,7 @@ export class EditTourDialogComponent implements OnInit {
         name: formValue.name,
         description: formValue.description,
         difficulty: formValue.difficulty,
+        price: formValue.price,
         tags: tagsArray
       });
     }

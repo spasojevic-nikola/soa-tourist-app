@@ -42,15 +42,13 @@ func (s *TourService) CreateTour(authorID uint, req dto.CreateTourRequest) (*mod
 		Difficulty:  models.TourDifficulty(req.Difficulty),
 		Tags:        req.Tags,
 		Status:      models.Draft,
-		Price:       0,
-	}
+		Price:       req.Price,
+        }
 
-	err := s.Repo.Create(tour)
-	if err != nil {
-		return nil, err
-	}
-
-	// Kreiraj key points
+        err := s.Repo.Create(tour)
+        if err != nil {
+                return nil, err
+        }
 	keyPointRepo := repository.NewKeyPointRepository(s.Repo.DB)
 	for i, kpReq := range req.KeyPoints {
 		keyPoint := &models.KeyPoint{
@@ -285,6 +283,9 @@ func (s *TourService) UpdateTour(tourID uint, authorID uint, req dto.UpdateTourR
     }
     if req.Tags != nil {
         tour.Tags = req.Tags
+    }
+    if req.Price >= 0 {
+        tour.Price = req.Price
     }
     err = s.Repo.UpdateTourBase(tour)
     if err != nil {

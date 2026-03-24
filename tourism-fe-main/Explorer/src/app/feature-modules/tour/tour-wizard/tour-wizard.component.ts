@@ -44,6 +44,7 @@ export class TourWizardComponent {
       description: this.tourData.description,
       difficulty: this.tourData.difficulty,
       tags: this.tourData.tags,
+      price: this.tourData.price,
       keyPoints: this.keyPoints
     };
 

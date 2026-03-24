@@ -1,4 +1,4 @@
-package api
+﻿package api
 
 import (
 	"encoding/json"
@@ -116,10 +116,11 @@ func (h *TourExecutionHandler) GetExecutionDetails(w http.ResponseWriter, r *htt
 }
 
 func (h *TourExecutionHandler) GetExecutionsByTour(w http.ResponseWriter, r *http.Request) {
+	touristID, _ := r.Context().Value("userID").(uint)
     vars := mux.Vars(r)
     tourID, _ := strconv.ParseUint(vars["tourId"], 10, 32)
 
-    executions, err := h.service.GetExecutionsByTour(uint(tourID))
+    executions, err := h.service.GetExecutionsByTour(uint(tourID), touristID)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return

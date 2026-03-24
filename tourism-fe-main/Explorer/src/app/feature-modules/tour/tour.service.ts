@@ -30,6 +30,10 @@ updateTour(id: number, payload: UpdateTourPayload): Observable<Tour> {
     return this.http.get<Tour[]>(`${this.apiUrl}/published`);
   }
 
+  publishTour(tourId: number): Observable<Tour> {
+    return this.http.put<Tour>(`${this.apiUrl}/${tourId}/publish`, {});
+  }
+
   getTourById(tourId: number): Observable<Tour> {
     return this.http.get<Tour>(`${this.apiUrl}/${tourId}`);
   }

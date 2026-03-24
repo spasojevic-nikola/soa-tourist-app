@@ -32,7 +32,8 @@ export class TourCreateComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(5)]],
       description: ['', [Validators.required, Validators.minLength(20)]],
       difficulty: ['Easy', Validators.required], 
-      tags: ['', Validators.required]         
+      price: [0, [Validators.required, Validators.min(0)]],
+      tags: ['', Validators.required]
     });
   }
 
@@ -47,38 +48,22 @@ export class TourCreateComponent implements OnInit {
     this.errorMessage = null;
 
     const formValue = this.tourForm.value;
-    
+
     const tagsArray = formValue.tags.split(',')
       .map((tag: string) => tag.trim())
-      .filter((tag: string) => tag !== ''); 
+      .filter((tag: string) => tag !== '');
 
     const payload: CreateTourPayload = {
       name: formValue.name,
       description: formValue.description,
       difficulty: formValue.difficulty,
+      price: formValue.price,
       tags: tagsArray
     };
+    
+    this.tourCreated.emit(payload); // EMITUJ PAYLOAD WIZARDU
+    this.isSubmitting = false;
 
-    // OBRISI OVO - NE TREBA DA ŠALJEŠ NA BACKEND OVDE
-    // this.tourService.createTour(payload).subscribe({
-    //   next: (createdTour) => {
-        this.tourCreated.emit(payload); // EMITUJ PAYLOAD WIZARDU
-        this.isSubmitting = false;
-        
-        // OBRISI OVO - WIZARD ĆE HANDLE-OVATI SVE
-        // this.createdTourId = createdTour.id;  
-        // this.showKeyPointDialog = true;
-        // this.tourForm.reset({ difficulty: 'Easy', name: '', description: '', tags: '' });
-    //   },
-    //   error: (err) => {
-    //     this.errorMessage = `Došlo je do greške: ${err.error.error || err.error || 'Proverite podatke i pokušajte ponovo.'}`;
-    //     console.error(err);
-    //     this.isSubmitting = false;
-    //   }
-    // });
   }
 
-  // OBRISI OVE METODE - WIZARD ĆE HANDLE-OVATI NAVIGACIJU
-  // onAddKeyPoints(): void { ... }
-  // onSkipKeyPoints(): void { ... }
 }

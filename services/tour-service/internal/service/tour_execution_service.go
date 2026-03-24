@@ -1,4 +1,4 @@
-package service
+﻿package service
 
 import (
 	"errors"
@@ -150,6 +150,6 @@ func contains(slice pq.Int64Array, item int64) bool {
 	return false
 }
 
-func (s *TourExecutionService) GetExecutionsByTour(tourID uint) ([]models.TourExecution, error) {
-    return s.repo.GetExecutionsByTour(tourID)
+func (s *TourExecutionService) GetExecutionsByTour(tourID uint, touristID uint) ([]models.TourExecution, error) {
+    return s.repo.GetExecutionsByTour(tourID, touristID)
 }

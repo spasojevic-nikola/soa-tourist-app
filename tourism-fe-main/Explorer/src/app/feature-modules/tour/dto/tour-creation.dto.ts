@@ -3,10 +3,13 @@ export interface CreateTourPayload {
     description: string;
     difficulty: string;
     tags: string[];
-  }
+    price: number;
+}
+  
 export interface UpdateTourPayload {
     name: string;
     description: string;
     difficulty: string;
     tags: string[];
+    price: number;
 }
