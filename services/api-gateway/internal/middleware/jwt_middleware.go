@@ -73,7 +73,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, "username", claims.Username)
 		ctx = context.WithValue(ctx, "userRole", claims.Role)
 
-		// Prosle��i user info preko headera ka mikroservisima
+		// Prosledi user info preko headera ka mikroservisima
 		r.Header.Set("X-User-ID", fmt.Sprintf("%d", claims.UserID))
 		r.Header.Set("X-User-Username", claims.Username)
 		r.Header.Set("X-User-Role", claims.Role)

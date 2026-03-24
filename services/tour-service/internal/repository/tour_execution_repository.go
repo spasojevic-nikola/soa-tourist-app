@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"tour-service/internal/models"
@@ -56,8 +56,8 @@ func (r *TourExecutionRepository) GetKeyPointsByTour(tourID uint) ([]models.KeyP
 	return keyPoints, err
 }
 
-func (r *TourExecutionRepository) GetExecutionsByTour(tourID uint) ([]models.TourExecution, error) {
+func (r *TourExecutionRepository) GetExecutionsByTour(tourID uint, touristID uint) ([]models.TourExecution, error) {
     var executions []models.TourExecution
-    err := r.DB.Where("tour_id = ?", tourID).Find(&executions).Error
+    err := r.DB.Where("tour_id = ? AND tourist_id = ?", tourID, touristID).Find(&executions).Error
     return executions, err
 }

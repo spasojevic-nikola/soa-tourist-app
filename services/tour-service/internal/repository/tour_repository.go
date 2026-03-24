@@ -23,7 +23,7 @@ func (r *TourRepository) Create(tour *models.Tour) error {
 
 func (r *TourRepository) FindByAuthorID(authorID uint) ([]models.Tour, error) {
 	var tours []models.Tour
-	if err := r.DB.Where("author_id = ?", authorID).Find(&tours).Error; err != nil {
+	if err := r.DB.Preload("KeyPoints").Where("author_id = ?", authorID).Find(&tours).Error; err != nil {
 		return nil, err
 	}
 	return tours, nil
@@ -83,11 +83,11 @@ func (r *TourRepository) UpdateDistance(tourID uint, distance float64) error {
 	return r.DB.Model(&models.Tour{}).Where("id = ?", tourID).Update("distance", distance).Error
 }
 
-// FindAllPublished finds all published tours with their first keypoint only
+// FindAllPublished finds all published tours with their keypoints
 func (r *TourRepository) FindAllPublished() ([]models.Tour, error) {
 	var tours []models.Tour
-	// Get all published tours with only the first keypoint (order = 1)
-	if err := r.DB.Preload("KeyPoints", "\"order\" = 1").
+	// Get all published tours with all keypoints
+	if err := r.DB.Preload("KeyPoints").
 		Where("status = ?", models.Published).
 		Find(&tours).Error; err != nil {
 		return nil, err
@@ -96,5 +96,5 @@ func (r *TourRepository) FindAllPublished() ([]models.Tour, error) {
 }
 
 func (r *TourRepository) UpdateTourBase(tour *models.Tour) error {
-    return r.DB.Save(tour).Error
+	return r.DB.Save(tour).Error
 }

@@ -2,19 +2,18 @@
   <h1>Explore Tours</h1>
 
   <section *ngIf="isCreator" class="tours-section">
-    <div class="section-header">
-      <div>
-        <h2>My Tours</h2>
-        <p class="section-subtitle">Preview every tour you've designed.</p>
+    <ng-container *ngIf="myTours$ | async as myTours; else loadingMyTours">
+      <div class="section-header">
+        <div>
+          <h2>My Tours</h2>
+          <p class="section-subtitle">Preview every tour you've designed.</p>
+        </div>
+        <button *ngIf="myTours.length > 0" mat-raised-button color="primary" routerLink="/tours/create">Create new tour</button>
       </div>
-      <a routerLink="/tours/create" class="create-tour-link">Create new tour</a>
-    </div>
 
-    <ng-container *ngIf="myTours$ as myToursStream">
-      <ng-container *ngIf="myToursStream | async as myTours; else loadingMyTours">
-        <div *ngIf="myTours.length > 0; else noMyTours" class="tours-grid">
+      <div *ngIf="myTours.length > 0; else noMyTours" class="tours-grid">
           <div *ngFor="let tour of myTours" class="tour-card">
-            <div class="card-image">
+            <div class="card-image" [style.background-image]="(tour.keyPoints && tour.keyPoints.length > 0 && tour.keyPoints[0].image) ? 'url(' + tour.keyPoints[0].image + ')' : null" [class.has-image]="tour.keyPoints && tour.keyPoints.length > 0 && tour.keyPoints[0].image">
               <span class="tour-status" [ngClass]="tour.status">{{ tour.status }}</span>
             </div>
 
@@ -37,15 +36,14 @@
                   <span class="meta-pill">Difficulty: {{ tour.difficulty }}</span>
                   <span class="meta-pill">Stations: {{ tour.keyPoints?.length || 0 }}</span>
                   <span class="meta-pill" *ngIf="tour.distance">Dist: {{ tour.distance | number:'1.1-1' }} km</span>
-                  <span class="meta-pill">Price: €{{ tour.price }}</span>
+                  <span class="meta-pill">Price: {{ tour.price }}</span>
                 </div>
               </div>
             </div>
 
-            <button class="details-btn" (click)="viewTour(tour)">View live version</button>
+            <button mat-raised-button color="primary" class="details-btn" (click)="viewTour(tour)">View live version</button>
           </div>
         </div>
-      </ng-container>
     </ng-container>
 
     <ng-template #loadingMyTours>
@@ -55,7 +53,7 @@
     <ng-template #noMyTours>
       <div class="info-text">
         <p>You haven't created any tours yet.</p>
-        <a routerLink="/tours/create" class="create-tour-link">Create your first one!</a>
+        <button mat-raised-button color="primary" routerLink="/tours/create">Create your first one!</button>
       </div>
     </ng-template>
   </section>
@@ -63,17 +61,13 @@
   <section class="tours-section">
     <div class="section-header">
       <div>
-        <h2>Published Tours</h2>
-        <p class="section-subtitle">See every published tour exactly how travellers will experience it.</p>
+        <h2>All Published Tours</h2>
       </div>
     </div>
 
     <ng-container *ngIf="publishedTours$ | async as publishedTours; else loadingPublished">
       <div *ngIf="publishedTours.length > 0; else noPublished" class="tours-grid">
-        <div *ngFor="let tour of publishedTours" class="tour-card">
-          <div class="card-image">
-            <span class="tour-status" [ngClass]="tour.status">{{ tour.status }}</span>
-          </div>
+        <div *ngFor="let tour of publishedTours" class="tour-card">        <div class="card-image" [style.background-image]="(tour.keyPoints && tour.keyPoints.length > 0 && tour.keyPoints[0].image) ? 'url(' + tour.keyPoints[0].image + ')' : null" [class.has-image]="tour.keyPoints && tour.keyPoints.length > 0 && tour.keyPoints[0].image">          </div>
 
           <div class="card-content">
             <div class="tour-author-meta">
@@ -93,13 +87,13 @@
               <div class="tour-meta-grid">
                 <span class="meta-pill">Difficulty: {{ tour.difficulty }}</span>
                 <span class="meta-pill">Stations: {{ tour.keyPoints?.length || 0 }}</span>
-                <span class="meta-pill" *ngIf="tour.distance">Dist: {{ tour.distance | number:'1.1-1' }} km</span>
-                <span class="meta-pill">Price: €{{ tour.price }}</span>
+                <span class="meta-pill" *ngIf="tour.distance">Dist: {{ tour.distance | number:'1.1-1' }}km</span>
+                <span class="meta-pill">Price: {{ tour.price }}€</span>
               </div>
             </div>
           </div>
 
-          <button class="details-btn" (click)="viewTour(tour)">View details</button>
+          <button mat-raised-button color="primary" class="details-btn" (click)="viewTour(tour)">View details</button>
         </div>
       </div>
     </ng-container>

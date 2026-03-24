@@ -1,0 +1,279 @@
+<div class="tour-page">
+  <section *ngIf="isLoading" class="state-card">
+    <mat-spinner diameter="32"></mat-spinner>
+    <p>Loading tour details...</p>
+  </section>
+
+  <section *ngIf="!isLoading && !tour" class="state-card state-error">
+    <mat-icon>sentiment_dissatisfied</mat-icon>
+    <p>Tour not found.</p>
+    <button mat-stroked-button color="primary" routerLink="/tours">Back to tours</button>
+  </section>
+
+  <ng-container *ngIf="!isLoading && tour">
+    <section class="tour-hero">
+      <div class="hero-sheen"></div>
+      <div class="hero-content">
+        <div class="hero-meta">
+          <span class="status-pill" [ngClass]="tour.status.toLowerCase()">{{ tour.status }}</span>
+          <span class="meta-chip">Created {{ tour.createdAt | date:'MMM d, y' }}</span>
+        </div>
+        <div class="hero-tags" *ngIf="tour.tags?.length">
+          <span *ngFor="let tag of tour.tags" class="tag-chip">#{{ tag }}</span>
+        </div>
+        <h1>{{ tour.name }}</h1>
+        <p class="hero-description">{{ tour.description }}</p>
+
+
+        <div class="hero-actions">
+          <button 
+            class="btn btn-primary" 
+            [ngClass]="{ 'btn-muted': isTourPurchased }"
+            (click)="onPurchase()"
+            [disabled]="isAddingToCart || tour.status !== 'Published' || isTourPurchased">
+            <ng-container *ngIf="isAddingToCart">
+              <mat-spinner diameter="18"></mat-spinner>
+              <span>Adding to cart...</span>
+            </ng-container>
+            <ng-container *ngIf="!isAddingToCart && !isTourPurchased">
+              <mat-icon class="btn-icon">shopping_cart</mat-icon>
+              <span>Purchase tour</span>
+            </ng-container>
+            <ng-container *ngIf="!isAddingToCart && isTourPurchased">
+              <mat-icon class="btn-icon">check_circle</mat-icon>
+              <span>Already purchased</span>
+            </ng-container>
+          </button>
+
+          <button class="btn btn-outline hero-outline" (click)="onLeaveReview()">
+            <mat-icon class="btn-icon">rate_review</mat-icon>
+            <span>Leave a review</span>
+          </button>
+
+          <button *ngIf="isAuthor()" class="btn btn-outline hero-outline" (click)="onEditTour()">
+            <mat-icon class="btn-icon">edit</mat-icon>
+            <span>Edit</span>
+          </button>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="tour-content-grid">
+      <div class="primary-column">
+        <article class="card keypoints-card" *ngIf="tour.keyPoints?.length">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Route</p>
+              <h2>{{ canViewFullTour() ? 'All tour key points' : 'Starting point preview' }}</h2>
+            </div>
+            <span class="section-count">{{ tour.keyPoints?.length || 0 }} stops</span>
+          </div>
+
+          <ng-container *ngIf="canViewFullTour(); else lockedKeypoints">
+            <div class="keypoint-carousel" *ngIf="tour.keyPoints?.length">
+              <button
+                type="button"
+                class="carousel-nav prev"
+                aria-label="Previous key points"
+                (click)="scrollKeypoints('prev')"
+                [disabled]="!canScrollPrev">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+
+              <div class="keypoint-track" #keypointCarousel (scroll)="onCarouselScroll()">
+                <div *ngFor="let keypoint of tour.keyPoints; let i = index" class="keypoint-card">
+                  <div class="keypoint-header" style="justify-content: space-between; display: flex; width: 100%;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                      <span class="keypoint-number">{{ i + 1 }}</span>
+                      <div>
+                        <h3>{{ keypoint.name }}</h3>
+                        <p class="keypoint-address">{{ keypoint.address || 'Loading address...' }}</p>
+                      </div>
+                    </div>
+                    <ng-container *ngIf="isAuthor()">
+                      <button mat-icon-button [matMenuTriggerFor]="kpMenu">
+                        <mat-icon>more_vert</mat-icon>
+                      </button>
+                      <mat-menu #kpMenu="matMenu">
+                        <button mat-menu-item (click)="onEditKeyPoint(keypoint)">
+                          <mat-icon>edit</mat-icon>
+                          <span>Edit</span>
+                        </button>
+                        <button mat-menu-item (click)="onDeleteKeyPoint(keypoint.id)" style="color: #ef4444;">
+                          <mat-icon style="color: #ef4444;">delete</mat-icon>
+                          <span>Delete</span>
+                        </button>
+                      </mat-menu>
+                    </ng-container>
+                  </div>
+                  <p class="keypoint-description">{{ keypoint.description }}</p>
+                  <img *ngIf="keypoint.image" [src]="keypoint.image" [alt]="keypoint.name" class="keypoint-image" />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="carousel-nav next"
+                aria-label="Next key points"
+                (click)="scrollKeypoints('next')"
+                [disabled]="!canScrollNext">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-template #lockedKeypoints>
+            <div class="keypoint-card">
+              <div class="keypoint-header">
+                <span class="keypoint-number">1</span>
+                <div>
+                  <h3>{{ tour.keyPoints?.[0]?.name }}</h3>
+                  <p class="keypoint-address">{{ tour.keyPoints?.[0]?.address || 'Loading address...' }}</p>
+                </div>
+              </div>
+              <p class="keypoint-description">{{ tour.keyPoints?.[0]?.description }}</p>
+              <img *ngIf="tour.keyPoints?.[0]?.image" [src]="tour.keyPoints?.[0]?.image" [alt]="tour.keyPoints?.[0]?.name" class="keypoint-image" />
+              <div *ngIf="(tour.keyPoints?.length || 0) > 1 && tour.price > 0" class="locked-overlay">
+                <mat-icon>lock</mat-icon>
+                <span>Purchase to unlock {{ (tour.keyPoints?.length || 1) - 1 }} additional locations</span>
+              </div>
+            </div>
+          </ng-template>
+        </article>
+      </div>
+
+      <aside class="secondary-column">
+        <div class="hero-stats">
+          <div class="stat-chip">
+            <mat-icon>map</mat-icon>
+            <div>
+              <small>Distance</small>
+              <strong>{{ (tour.distance || 0) | number:'1.1-1' }} km</strong>
+            </div>
+          </div>
+          <div class="stat-chip">
+            <mat-icon>bolt</mat-icon>
+            <div>
+              <small>Difficulty</small>
+              <strong>{{ tour.difficulty }}</strong>
+            </div>
+          </div>
+          <div class="stat-chip">
+            <mat-icon>place</mat-icon>
+            <div>
+              <small>Stops</small>
+              <strong>{{ tour.keyPoints?.length || 0 }}</strong>
+            </div>
+          </div>
+          <div class="stat-chip">
+            <mat-icon>payments</mat-icon>
+            <div>
+              <small>Price</small>
+              <strong>{{ tour.price > 0 ? (tour.price | number:'1.0-0') + ' EUR' : 'Free tour' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card sidebar-reviews-card">
+          <div class="sidebar-reviews-head">
+            <div>
+              <p class="eyebrow">Community</p>
+              <h3>Traveler reviews</h3>
+            </div>
+            <!--<button type="button" class="pill-btn" (click)="onLeaveReview()">
+              <mat-icon>rate_review</mat-icon>
+              <span>Write</span>
+            </button>-->
+          </div>
+
+          <div class="rating-pill" *ngIf="reviewStats">
+            <div class="rating-main">
+              <span class="rating-number">{{ reviewStats.averageRating | number:'1.1-1' }}</span>
+              <div class="stars">
+                <mat-icon *ngFor="let star of getRatingStars(reviewStats.averageRating)">{{ star }}</mat-icon>
+              </div>
+            </div>
+            <span class="review-count">{{ reviewStats.reviewCount }} {{ reviewStats.reviewCount === 1 ? 'review' : 'reviews' }}</span>
+          </div>
+
+          <div *ngIf="loadingReviews" class="state-card inline compact">
+            <mat-spinner diameter="20"></mat-spinner>
+            <p>Loading reviews...</p>
+          </div>
+
+          <div *ngIf="!loadingReviews && reviews.length === 0" class="empty-state compact">
+            <p>No reviews yet. Be the first to share your experience.</p>
+            <button mat-stroked-button color="accent" (click)="onLeaveReview()">Leave a review</button>
+          </div>
+
+          <div class="mini-review-list" *ngIf="!loadingReviews && reviews.length > 0">
+            <article class="mini-review" *ngFor="let review of reviews">
+              <div class="mini-review-header" style="justify-content: space-between;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <img *ngIf="review.touristProfileImage" [src]="review.touristProfileImage" class="reviewer-avatar" alt="pfp" />
+                  <mat-icon *ngIf="!review.touristProfileImage" class="reviewer-avatar-icon">account_circle</mat-icon>
+                  <div>
+                    <p class="mini-reviewer">{{ review.touristUsername || 'Tourist #' + review.touristId }}</p>
+                    <span class="mini-meta">{{ review.createdAt | date:'MMM d' }} &#183; {{ review.rating | number:'1.0-0' }}&#9733;</span>
+                  </div>
+                </div>
+                <ng-container *ngIf="isReviewAuthor(review)">
+                  <button mat-icon-button [matMenuTriggerFor]="reviewMenu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #reviewMenu="matMenu">
+                    <button mat-menu-item (click)="onEditReview(review)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit</span>
+                    </button>
+                  </mat-menu>
+                </ng-container>
+              </div>
+              <p class="mini-review-comment">{{ review.comment }}</p>
+            </article>
+          </div>
+        </div>
+         <div class="card execution-card" *ngIf="isTourPurchased">
+          <div class="card-heading">
+            <mat-icon>directions_walk</mat-icon>
+            <div>
+              <h3>Tour execution</h3>
+              <p>Jump right back into your adventure.</p>
+            </div>
+          </div>
+
+          <div class="execution-buttons">
+            <button *ngIf="!hasActiveExecution && !checkingExecutionStatus && !hasCompletedExecution" 
+                    class="btn btn-primary"
+                    (click)="startTourExecution()">
+              <mat-icon class="btn-icon">play_arrow</mat-icon>
+              <span>Start tour</span>
+            </button>
+
+            <button *ngIf="hasActiveExecution && !checkingExecutionStatus" 
+                    class="btn btn-primary"
+                    [routerLink]="['/tour-execution', activeExecutionId]">
+              <mat-icon class="btn-icon">play_circle</mat-icon>
+              <span>Continue ({{ executionProgress }}%)</span>
+            </button>
+
+            <button *ngIf="hasCompletedExecution && !checkingExecutionStatus" 
+                    class="btn btn-muted" disabled>
+              <mat-icon class="btn-icon">check_circle</mat-icon>
+              <span>Tour completed</span>
+            </button>
+          </div>
+
+          <div class="execution-loading" *ngIf="checkingExecutionStatus">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Checking tour status...</span>
+          </div>
+        </div>
+
+        
+      </aside>
+    </section>
+  </ng-container>
+</div>
+

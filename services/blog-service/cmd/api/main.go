@@ -55,6 +55,7 @@ func main() {
 	)
 
 	apiV1 := r.PathPrefix("/api/v1/blogs").Subrouter()
+	apiV1.Use(api.AuthMiddleware)
 
 	// API Gateway sada radi JWT validaciju, mi samo čitamo X-User-* headere
 	apiV1.HandleFunc("", blogHandler.CreateBlog).Methods("POST")

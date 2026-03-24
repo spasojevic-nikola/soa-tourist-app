@@ -1,106 +1,42 @@
-<div class="tour-execution-container">
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading">
-    <div class="spinner"></div>
-    <p>Loading tour execution...</p>
-  </div>
+﻿<div class="simple-container">
+  <div *ngIf="isLoading" class="loading">Loading...</div>
 
-  <!-- Main Content -->
-  <div *ngIf="!isLoading && execution && tour" class="execution-content">
-    
-    <!-- Header -->
-    <div class="execution-header">
-      <h1>🎯 {{ tour.name }}</h1>
-      <div class="execution-info">
-        <span class="status-badge" [class.started]="execution.status === 'STARTED'">
-          {{ execution.status }}
-        </span>
-        <span class="start-time">Started: {{ execution.startTime | date:'medium' }}</span>
+  <div *ngIf="!isLoading && execution && tour" class="simple-card">
+    <div class="header">
+      <h2>{{ tour.name }}</h2>
+      <span class="badge" [ngClass]="execution.status.toLowerCase()">{{ execution.status }}</span>
+    </div>
+
+    <div class="progress-box">
+      <h3>Progress: {{ getProgressPercentage() }}%</h3>
+      <div class="bar-bg">
+        <div class="bar-fill" [style.width.%]="getProgressPercentage()"></div>
       </div>
     </div>
 
-    <!-- Progress Bar -->
-    <div class="progress-section">
-      <div class="progress-header">
-        <h3>Tour Progress</h3>
-        <span class="progress-percentage">{{ getProgressPercentage() }}%</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
-      </div>
+    <div class="points-box">
+      <h3>Route Points</h3>
+      <ul class="points-list">
+        <li *ngFor="let keypoint of tour.keyPoints; let i = index" 
+            [class.completed]="isKeyPointCompleted(keypoint.id)">
+          <strong>{{ i + 1 }}. {{ keypoint.name }}</strong>
+          <span class="status-icon">{{ isKeyPointCompleted(keypoint.id) ? 'Done' : '  Pending' }}</span>
+        </li>
+      </ul>
     </div>
 
-    <!-- Position Info -->
-    <div class="position-info">
-      <h3>📍 Your Current Position</h3>
-      <div class="position-coordinates" *ngIf="currentPosition">
-        <span>Lat: {{ currentPosition.lat | number:'1.4-4' }}</span>
-        <span>Lng: {{ currentPosition.lng | number:'1.4-4' }}</span>
-      </div>
-      <p class="position-note">
-        🔄 Position is automatically checked every 10 seconds
-      </p>
+    <div class="coord-box" *ngIf="currentPosition">
+      <p>Current Position: Lat {{ currentPosition.lat | number:'1.4-4' }}, Lng {{ currentPosition.lng | number:'1.4-4' }}</p>
+      <a routerLink="/position-simulator">Change location in simulator</a>
     </div>
 
-    <!-- Key Points List -->
-    <div class="keypoints-section">
-      <h3>🗺️ Tour Route</h3>
-      <div class="keypoints-list">
-        <div *ngFor="let keypoint of tour.keyPoints; let i = index" 
-             class="keypoint-item"
-             [class.completed]="isKeyPointCompleted(keypoint.id)">
-          
-          <div class="keypoint-marker">
-            <span class="keypoint-number">{{ i + 1 }}</span>
-            <div class="keypoint-status">
-              <span *ngIf="isKeyPointCompleted(keypoint.id)" class="completed-icon">✅</span>
-              <span *ngIf="!isKeyPointCompleted(keypoint.id)" class="pending-icon">⏳</span>
-            </div>
-          </div>
-
-          <div class="keypoint-content">
-            <h4>{{ keypoint.name }}</h4>
-            <p class="keypoint-description">{{ keypoint.description }}</p>
-            <div class="keypoint-details">
-              <span class="coordinate">📍 {{ keypoint.latitude | number:'1.4-4' }}, {{ keypoint.longitude | number:'1.4-4' }}</span>
-              <span *ngIf="keypoint.address" class="address">{{ keypoint.address }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="action-buttons">
-      <button 
-    class="btn btn-complete" 
-    (click)="completeTour()"
-    [disabled]="!canCompleteTour()"
-    [class.disabled]="!canCompleteTour()">
-    ✅ {{ execution.status === 'COMPLETED' ? 'Tour Completed' : 'Complete Tour' }}
-  </button>
-      <button class="btn btn-abandon" (click)="abandonTour()">
-        🚪 Abandon Tour
-      </button>
-    </div>
-
-    <!-- Position Simulator Link -->
-    <div class="simulator-note">
-      <p>
-        💡 Need to update your position? 
-        <a routerLink="/position-simulator" class="simulator-link">
-          Open Position Simulator
-        </a>
-      </p>
+    <div class="action-box">
+      <button class="btn btn-primary" (click)="completeTour()" [disabled]="!canCompleteTour()">Complete Tour</button>
+      <button class="btn btn-danger" (click)="abandonTour()">Abandon</button>
     </div>
   </div>
 
-  <!-- Error State -->
-  <div *ngIf="!isLoading && (!execution || !tour)" class="error-state">
-    <h2>❌ Tour Execution Not Found</h2>
-    <p>Unable to load tour execution details.</p>
-    <button class="btn btn-back" routerLink="/home">
-      ← Back to Home
-    </button>
+  <div *ngIf="!isLoading && (!execution || !tour)" class="error">
+    <p>Tour Execution Not Found or Not Started.</p>
   </div>
 </div>

@@ -57,7 +57,7 @@ export class TourExecutionComponent implements OnInit, OnDestroy {
       next: (tour) => {
         this.tour = tour;
         this.isLoading = false;
-        console.log('🎯 Tour loaded:', tour);
+        console.log('Tour loaded:', tour);
       },
       error: (err) => {
         console.error('Error loading tour:', err);
@@ -68,7 +68,7 @@ export class TourExecutionComponent implements OnInit, OnDestroy {
 
   loadCurrentPosition(): void {
     this.currentPosition = this.positionService.getCurrentPosition();
-    console.log('📍 Current position loaded:', this.currentPosition);
+    console.log('Current position loaded:', this.currentPosition);
   }
 
   startPositionTracking(): void {
@@ -85,7 +85,7 @@ checkPosition(): void {
   this.loadCurrentPosition();
   
   if (!this.currentPosition) {
-    console.log('📍 No current position available');
+    console.log(' No current position available');
     return;
   }
 

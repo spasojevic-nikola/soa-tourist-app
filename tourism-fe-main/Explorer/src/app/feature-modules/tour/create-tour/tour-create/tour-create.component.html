@@ -33,6 +33,14 @@
     </div>
 
     <div class="form-group">
+      <label for="price">Price (€)</label>
+      <input id="price" type="number" step="0.01" min="0" class="form-control" formControlName="price" placeholder="Enter tour price">
+      <div *ngIf="tourForm.get('price')?.touched && tourForm.get('price')?.invalid" class="validation-error">
+        Price is required and must be a positive number.
+      </div>
+    </div>
+
+    <div class="form-group">
       <label for="tags">Tags (comma separated)</label>
       <input id="tags" type="text" class="form-control" formControlName="tags" placeholder="e.g., hiking, river, nature">
       <div *ngIf="tourForm.get('tags')?.touched && tourForm.get('tags')?.invalid" class="validation-error">

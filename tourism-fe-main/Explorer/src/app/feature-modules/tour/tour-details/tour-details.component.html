@@ -13,48 +13,104 @@
   <ng-container *ngIf="!isLoading && tour">
     <section class="tour-hero">
       <div class="hero-sheen"></div>
-      <div class="hero-content">
-        <div class="hero-meta">
-          <span class="status-pill" [ngClass]="tour.status.toLowerCase()">{{ tour.status }}</span>
-          <span class="meta-chip">Created {{ tour.createdAt | date:'MMM d, y' }}</span>
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="hero-meta">
+            <span class="status-pill" [ngClass]="tour.status.toLowerCase()">{{ tour.status }}</span>
+            <span class="meta-chip">Created {{ tour.createdAt | date:'MMM d, y' }}</span>
+          </div>
+          <div class="hero-tags" *ngIf="tour.tags?.length">
+            <span *ngFor="let tag of tour.tags" class="tag-chip">#{{ tag }}</span>
+          </div>
+          <h1>{{ tour.name }}</h1>
+          <p class="hero-description">{{ tour.description }}</p>
+
+          <div class="hero-actions">
+            <button
+              *ngIf="!isAuthor()"
+              class="btn btn-primary"
+              [ngClass]="{ 'btn-muted': isTourPurchased }"
+              (click)="onPurchase()"
+              [disabled]="isAddingToCart || tour.status !== 'Published' || isTourPurchased">
+              <ng-container *ngIf="isAddingToCart">
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Adding to cart...</span>
+              </ng-container>
+              <ng-container *ngIf="!isAddingToCart && !isTourPurchased">
+                <mat-icon class="btn-icon">shopping_cart</mat-icon>
+                <span>Purchase tour</span>
+              </ng-container>
+              <ng-container *ngIf="!isAddingToCart && isTourPurchased">
+                <mat-icon class="btn-icon">check_circle</mat-icon>
+                <span>Already purchased</span>
+              </ng-container>
+            </button>
+            <button
+               *ngIf="isAuthor()"
+               class="btn btn-primary"
+               [ngClass]="{ 'btn-muted': tour.status === 'Published' }"
+               (click)="onPublishTour()"
+               [disabled]="tour.status === 'Published'">
+               <mat-icon class="btn-icon">public</mat-icon>
+               <span>{{ tour.status === 'Published' ? 'Published' : 'Publish tour' }}</span>
+            </button>
+
+            <button class="btn btn-outline hero-outline" (click)="onLeaveReview()">
+              <mat-icon class="btn-icon">rate_review</mat-icon>
+              <span>Leave a review</span>
+            </button>
+
+            <button *ngIf="isAuthor()" class="btn btn-outline hero-outline" (click)="onEditTour()">
+              <mat-icon class="btn-icon">edit</mat-icon>
+              <span>Edit</span>
+            </button>
+          </div>
         </div>
-        <div class="hero-tags" *ngIf="tour.tags?.length">
-          <span *ngFor="let tag of tour.tags" class="tag-chip">#{{ tag }}</span>
-        </div>
-        <h1>{{ tour.name }}</h1>
-        <p class="hero-description">{{ tour.description }}</p>
 
+        <div class="hero-execution-side">
+          <div class="hero-image" *ngIf="tour.keyPoints && tour.keyPoints.length > 0 && tour.keyPoints[0].image">
+            <img [src]="tour.keyPoints[0].image" alt="Tour image">
+          </div>
+          <div class="hero-image-placeholder" *ngIf="!tour.keyPoints || tour.keyPoints.length === 0 || !tour.keyPoints[0].image">
+            <span>🏔️</span>
+          </div>
 
-        <div class="hero-actions">
-          <button 
-            class="btn btn-primary" 
-            [ngClass]="{ 'btn-muted': isTourPurchased }"
-            (click)="onPurchase()"
-            [disabled]="isAddingToCart || tour.status !== 'Published' || isTourPurchased">
-            <ng-container *ngIf="isAddingToCart">
-              <mat-spinner diameter="18"></mat-spinner>
-              <span>Adding to cart...</span>
-            </ng-container>
-            <ng-container *ngIf="!isAddingToCart && !isTourPurchased">
-              <mat-icon class="btn-icon">shopping_cart</mat-icon>
-              <span>Purchase tour</span>
-            </ng-container>
-            <ng-container *ngIf="!isAddingToCart && isTourPurchased">
-              <mat-icon class="btn-icon">check_circle</mat-icon>
-              <span>Already purchased</span>
-            </ng-container>
-          </button>
+          <div class="card execution-card hero-execution-card" *ngIf="isTourPurchased">
+            <div class="card-heading">
+              <mat-icon>directions_walk</mat-icon>
+              <div>
+                <h3>Tour execution</h3>
+                <p>Jump right back into your adventure.</p>
+              </div>
+            </div>
 
-          <button class="btn btn-outline hero-outline" (click)="onLeaveReview()">
-            <mat-icon class="btn-icon">rate_review</mat-icon>
-            <span>Leave a review</span>
-          </button>
+            <div class="execution-buttons">
+              <button *ngIf="!hasActiveExecution && !checkingExecutionStatus && !hasCompletedExecution" 
+                      class="btn btn-primary"
+                      (click)="startTourExecution()">
+                <mat-icon class="btn-icon">play_arrow</mat-icon>
+                <span>Start tour</span>
+              </button>
 
-          <button *ngIf="isAuthor()" class="btn btn-outline hero-outline" (click)="onEditTour()">
-            <mat-icon class="btn-icon">edit</mat-icon>
-            <span>Edit</span>
-          </button>
+              <button *ngIf="hasActiveExecution && !checkingExecutionStatus" 
+                      class="btn btn-primary"
+                      [routerLink]="['/tour-execution', activeExecutionId]">
+                <mat-icon class="btn-icon">play_circle</mat-icon>
+                <span>Continue ({{ executionProgress }}%)</span>
+              </button>
 
+              <button *ngIf="hasCompletedExecution && !checkingExecutionStatus" 
+                      class="btn btn-muted" disabled>
+                <mat-icon class="btn-icon">check_circle</mat-icon>
+                <span>Tour completed</span>
+              </button>
+            </div>
+
+            <div class="execution-loading" *ngIf="checkingExecutionStatus">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Checking tour status...</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -234,48 +290,6 @@
             </article>
           </div>
         </div>
-         <div class="card execution-card" *ngIf="isTourPurchased">
-          <div class="card-heading">
-            <mat-icon>directions_walk</mat-icon>
-            <div>
-              <h3>Tour execution</h3>
-              <p>Jump right back into your adventure.</p>
-            </div>
-          </div>
-
-          <div class="execution-buttons">
-            <button *ngIf="!hasActiveExecution && !checkingExecutionStatus && !hasCompletedExecution" 
-                    class="btn btn-primary"
-                    (click)="startTourExecution()">
-              <mat-icon class="btn-icon">play_arrow</mat-icon>
-              <span>Start tour</span>
-            </button>
-
-            <button *ngIf="hasActiveExecution && !checkingExecutionStatus" 
-                    class="btn btn-primary"
-                    [routerLink]="['/tour-execution', activeExecutionId]">
-              <mat-icon class="btn-icon">play_circle</mat-icon>
-              <span>Continue ({{ executionProgress }}%)</span>
-            </button>
-
-            <button *ngIf="hasCompletedExecution && !checkingExecutionStatus" 
-                    class="btn btn-muted" disabled>
-              <mat-icon class="btn-icon">check_circle</mat-icon>
-              <span>Tour completed</span>
-            </button>
-          </div>
-
-          <div class="execution-loading" *ngIf="checkingExecutionStatus">
-            <mat-spinner diameter="20"></mat-spinner>
-            <span>Checking tour status...</span>
-          </div>
-
-          <p class="execution-hint" *ngIf="hasActiveExecution">
-            🎯 You have an active session. Continue where you left off!
-          </p>
-        </div>
-
-        
       </aside>
     </section>
   </ng-container>

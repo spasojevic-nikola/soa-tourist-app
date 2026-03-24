@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+﻿import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { TourService } from '../tour.service';
@@ -59,6 +59,16 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
     executionProgress: number = 0; 
     hasCompletedExecution: boolean = false;
 
+    private activeExecutionData: any = null;
+
+    private calculateExecutionProgress(): void {
+        if (this.activeExecutionData && this.tour?.keyPoints) {
+            const totalKeyPoints = this.tour.keyPoints.length;
+            const completed = this.activeExecutionData.completedKeyPoints?.length || 0;
+            this.executionProgress = Math.round((completed / totalKeyPoints) * 100);
+        }
+    }
+
   constructor(
     private route: ActivatedRoute,
     private tourService: TourService,
@@ -115,7 +125,7 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err) => {
         console.error('Error checking purchase status:', err);
-        // U slučaju greške, pretpostavljamo da nije kupljeno da ne bi prikazali pogrešne opcije
+        // U sluÄaju greÅ¡ke, pretpostavljamo da nije kupljeno da ne bi prikazali pogreÅ¡ne opcije
         this.isTourPurchased = false; 
         this.checkingPurchaseStatus = false;
       }
@@ -141,6 +151,7 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
           this.keypointAddress = tour.keyPoints[0].address || 'Loading address...';
         }
         
+        this.calculateExecutionProgress();
         this.isLoading = false;
         setTimeout(() => this.updateCarouselNav(), 0);
       },
@@ -199,6 +210,21 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  onPublishTour(): void {
+    if (!this.tour || !this.tour.id) return;
+    
+    this.tourService.publishTour(this.tour.id).subscribe({
+      next: (updatedTour) => {
+        this.tour = updatedTour;
+        this.snackBar.open('Tour published successfully!', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        console.error('Error publishing tour:', err);
+        this.snackBar.open(err.error?.message || 'Failed to publish tour.', 'Close', { duration: 5000 });
+      }
+    });
+  }
+
   onPurchase(): void {
     // 1. Provera postojanja podataka i uslova za kupovinu
     if (this.isAddingToCart) return; 
@@ -216,7 +242,7 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
   
     this.isAddingToCart = true; 
   
-    // Kreiramo objekat koji sadrži SAMO ID ture
+    // Kreiramo objekat koji sadrÅ¾i SAMO ID ture
     const itemToAdd = {
         tourId: String(this.tour.id)
     };
@@ -224,7 +250,7 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
     // 3. POZIV BACKENDA (sada sa ispravnim, "glupim" objektom)
     this.cartService.addItem(itemToAdd).subscribe({
         next: (updatedCart) => {
-            // Pošto 'itemToAdd' više nema ime, koristimo 'this.tour.name' za poruku
+            // PoÅ¡to 'itemToAdd' viÅ¡e nema ime, koristimo 'this.tour.name' za poruku
             this.snackBar.open(`"${this.tour!.name}" added to cart!`, 'View Cart', { duration: 4000 })
                 .onAction()
                 .subscribe(() => {
@@ -406,20 +432,17 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
   
   this.tourService.getAllExecutionsForTour(tourId).subscribe({
     next: (executions) => {
-      console.log('🔍 All executions:', executions);
+      console.log('ðŸ” All executions:', executions);
       
       const activeExecution = executions.find(e => e.status === 'STARTED');
       const completedExecution = executions.find(e => e.status === 'COMPLETED');
       
       this.hasActiveExecution = !!activeExecution;
+        this.activeExecutionData = activeExecution;
       this.hasCompletedExecution = !!completedExecution;
       this.activeExecutionId = activeExecution?.id || completedExecution?.id || null;
       
-      if (activeExecution && this.tour?.keyPoints) {
-        const totalKeyPoints = this.tour.keyPoints.length;
-        const completed = activeExecution.completedKeyPoints?.length || 0;
-        this.executionProgress = Math.round((completed / totalKeyPoints) * 100);
-      }
+      this.calculateExecutionProgress();
       
       this.checkingExecutionStatus = false;
     },
@@ -484,6 +507,7 @@ export class TourDetailsComponent implements OnInit, OnDestroy, AfterViewInit {
     this.canScrollNext = scrollLeft + clientWidth < scrollWidth - 8;
   }
 }
+
 
 
 
